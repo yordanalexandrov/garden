@@ -278,7 +278,7 @@ For activities like:
 - fertilizing
 - pruning
 
-The system should suggest future tasks based on product or task rules, but only after user confirmation.
+The system may create future tasks as `suggested` based on product or task rules. User confirmation is required before any suggestion becomes a planned task with reminders.
 
 Not for:
 - watering

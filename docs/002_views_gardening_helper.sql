@@ -158,6 +158,7 @@ select
     t.notes,
     t.source_type,
     t.source_reference_id,
+    t.target_scope_type,
     t.status,
     t.created_at,
     t.updated_at,
@@ -180,6 +181,7 @@ group by
     t.notes,
     t.source_type,
     t.source_reference_id,
+    t.target_scope_type,
     t.status,
     t.created_at,
     t.updated_at,
@@ -189,7 +191,7 @@ group by
 -- ---------------------------------------------------------------------------
 -- calendar_items_view
 -- Unified read model for calendar aggregation.
--- item_type: activity | task | quarantine
+-- item_type: activity | task | quarantine | weather
 -- ---------------------------------------------------------------------------
 create or replace view calendar_items_view as
 select
@@ -236,6 +238,28 @@ select
     null::timestamptz as starts_at,
     null::timestamptz as ends_at,
     null::text as status
-from quarantine_periods qp;
+from quarantine_periods qp
+
+union all
+
+select
+    'weather'::text as item_type,
+    we.id as item_id,
+    we.account_id,
+    we.place_id,
+    we.event_type as title,
+    null::text as notes,
+    coalesce(t.due_date, a.performed_at::date, we.created_at::date) as starts_on,
+    coalesce(t.due_date, a.performed_at::date, we.created_at::date) as ends_on,
+    a.performed_at as starts_at,
+    a.performed_at as ends_at,
+    we.user_confirmation_status as status
+from weather_events we
+left join tasks t
+    on we.related_entity_type = 'task'
+   and t.id = we.related_entity_id
+left join activities a
+    on we.related_entity_type = 'activity'
+   and a.id = we.related_entity_id;
 
 commit;

@@ -685,7 +685,7 @@ interface ActivitiesService {
    - create consumption `inventory_movements`
    - update lot `quantity_remaining`
    - if shortage and not allowed -> fail transaction
-   - if shortage and allowed -> create movement for covered amounts only or explicit unassigned remainder according to policy
+   - if shortage and allowed -> create movements only for covered stock and return uncovered quantity as a warning
 11. For each product usage with quarantine days:
    - create `quarantine_periods`
 12. For each product usage with reapplication interval:
@@ -702,6 +702,7 @@ interface CreateActivityResult {
   inventoryEffects: InventoryMovement[];
   quarantinePeriods: QuarantinePeriod[];
   suggestedTasks: Task[];
+  warnings: string[];
 }
 ```
 
@@ -909,6 +910,12 @@ interface TargetResolver {
   resolveActivityTargets(
     accountId: UUID,
     input: ResolveActivityTargetsInput,
+    db?: DbTransaction
+  ): Promise<ResolvedTarget[]>;
+
+  resolveTaskTargets(
+    accountId: UUID,
+    input: ResolveTaskTargetsInput,
     db?: DbTransaction
   ): Promise<ResolvedTarget[]>;
 }
@@ -1378,19 +1385,23 @@ Request:
   "type": "fertilizing",
   "dueDate": "2026-05-20",
   "notes": "",
-  "sourceType": "manual",
   "status": "planned",
-  "targets": [
-    { "targetType": "bed", "targetId": "uuid" }
-  ]
+  "targetScopeType": "selected_beds",
+  "targetSelection": {
+    "bedIds": ["uuid"]
+  }
 }
 ```
 
 Validation:
 - type allowed values
 - dueDate required
-- if status = planned, reminders may be created immediately
-- targets non-empty
+- targetScopeType required
+- targetSelection must match targetScopeType
+- resolved targets non-empty
+- backend sets sourceType = manual for this endpoint
+- if status = planned, backend sets confirmedAt and creates reminders immediately
+- if status = suggested, reminders must not be created
 
 ### POST /api/v1/tasks/:id/confirm
 No body required.

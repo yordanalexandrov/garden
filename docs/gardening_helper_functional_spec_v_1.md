@@ -305,8 +305,8 @@ No volume or duration tracking in v1.
 - id
 - type
 - performed_at
-- target_type
-- target_scope
+- target_scope_type
+- resolved targets
 - notes optional
 - created_at
 
@@ -520,8 +520,8 @@ No recurring watering or inspection automation in v1.
 - id
 - type
 - due_date
-- target_type
-- target_scope
+- target_scope_type
+- resolved targets
 - notes optional
 - source_type optional
 - source_reference optional
@@ -728,7 +728,9 @@ If stock is insufficient:
 - allow save only according to chosen policy
 
 Recommended v1 policy:
-- warn, but still allow with manual confirmation
+- reject by default
+- allow only with explicit shortage confirmation/override
+- create consumption movements only for covered stock and show uncovered quantity
 
 ### 17.5 Weather disabled
 If weather is disabled for a place:
@@ -843,4 +845,3 @@ Including:
 - AI integration boundaries
 
 That is the point where we move from product definition into implementation design.
-

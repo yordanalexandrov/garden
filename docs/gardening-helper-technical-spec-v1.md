@@ -31,7 +31,7 @@ It specifically supports:
 - places with optional weather integration
 - trees/perennials, beds, persistent bed plants, yearly bed plantings
 - activity logging with bulk targeting
-- problems and observations with photos
+- problems with photos and observations without photos in v1
 - products, plant-specific usage rules, inventory lots and movements
 - tasks, suggestions, quarantine periods, reminders
 - weather-aware task context
@@ -144,7 +144,7 @@ Recommended internal modules:
 ## 5. Identity, Ownership, and Deletion Strategy
 
 ## 5.1 Ownership model
-v1 is single-user oriented, but every top-level record should still carry `owner_account_id` or `workspace_id` so the schema does not collapse when sharing is added later.
+v1 is single-user oriented, but every top-level business record should still carry `account_id` so the schema does not collapse when sharing is added later.
 
 Recommended:
 - `accounts`
@@ -199,12 +199,13 @@ Use UUIDs for all major entities.
 - task_reminders
 
 ### Integrations/support
-- weather_place_settings
 - weather_events
 - ai_sessions
 - ai_suggestions
-- files
+- push_subscriptions
 - audit_logs
+
+Weather configuration lives on `places` in the v1 schema. A separate `weather_place_settings` table is a future extraction only.
 
 ---
 
@@ -323,6 +324,9 @@ Fields:
 
 Constraints:
 - status in ('active','removed','archived')
+- width_m is null or width_m > 0
+- length_m is null or length_m > 0
+- area_m2 is null or area_m2 > 0
 
 Indexes:
 - (place_id, status)
@@ -431,6 +435,7 @@ Fields:
 - archived_at timestamptz nullable
 
 Constraints:
+- dose_value > 0
 - dose_unit in ('ml','l','g','kg')
 - reapplication_interval_days >= 0
 - quarantine_period_days >= 0
@@ -467,15 +472,15 @@ Fields:
 
 Constraints:
 - unit in ('ml','l','g','kg')
-- quantity_initial >= 0
-- quantity_remaining can go negative only if policy allows; recommended keep non-negative at lot level
+- quantity_initial > 0
+- quantity_remaining >= 0
 
 Indexes:
 - (product_id, archived_at)
 - (expiry_date)
 
 Design note:
-- if overspend is allowed by policy, track deficit via movement and not negative lots unless needed
+- no lot should become negative in v1; if shortage is explicitly allowed, create movements only for covered stock and return a warning for the uncovered quantity
 
 ---
 
@@ -659,6 +664,7 @@ Fields:
 - notes text nullable
 - source_type text nullable
 - source_reference_id UUID nullable
+- target_scope_type text not null
 - status text not null
 - created_at timestamptz not null
 - updated_at timestamptz not null
@@ -669,6 +675,11 @@ Constraints:
 - type in ('spraying','fertilizing','pruning','planting','harvest_reminder','custom')
 - status in ('suggested','planned','done','skipped','canceled')
 - source_type in ('activity','manual','weather','ai') or null
+- target_scope_type in (
+  'whole_place','all_perennials_in_place','selected_perennials',
+  'all_beds_in_place','selected_beds','single_bed',
+  'selected_yearly_plantings','selected_persistent_bed_plants'
+)
 
 Indexes:
 - (account_id, due_date)
@@ -741,23 +752,18 @@ Rule:
 
 ---
 
-## 7.21 weather_place_settings
-Optional future extraction from places if weather config grows.
+## 7.21 Weather place settings
+Weather configuration is stored on `places` in the v1 schema.
 
-Fields:
-- id UUID PK
-- place_id UUID FK -> places.id unique
-- provider text not null
-- location_label text nullable
+Existing v1 fields:
+- weather_enabled boolean not null default false
+- weather_location_label text nullable
 - latitude numeric nullable
 - longitude numeric nullable
-- rain_confirmation_enabled boolean not null default true
-- created_at timestamptz not null
-- updated_at timestamptz not null
+- timezone text nullable
 
-Note:
-- for v1, this can be collapsed into `places`
-- keep separate if you expect weather config to grow
+Future note:
+- a separate `weather_place_settings` table may be introduced later if provider-specific weather configuration grows
 
 ---
 
@@ -766,6 +772,7 @@ Weather observations/relevant snapshots linked to tasks/activities.
 
 Fields:
 - id UUID PK
+- account_id UUID FK
 - place_id UUID FK -> places.id
 - related_entity_type text not null
 - related_entity_id UUID not null
@@ -907,7 +914,8 @@ A single foreign key on `activities` or `tasks` would break quickly.
 Use:
 - `activities.target_scope_type` for original user intent
 - `activity_targets` for resolved concrete targets
-- `tasks` + `task_targets` the same way
+- `tasks.target_scope_type` for original user intent
+- `task_targets` for resolved concrete targets
 
 Example:
 User selects “all trees in Orchard A”
@@ -942,17 +950,16 @@ When saving an activity with product usage:
 
 ## 10.3 Inventory shortage policy
 Recommended v1:
-- warn user if available stock < requested usage
-- user can confirm forced save
-- create consumption movement even if no lot fully covers it
-- either:
-  - create a movement without lot
-  - or create deficit adjustment record
+- reject if available stock < requested usage and `allowInventoryShortage = false`
+- allow only when the user explicitly sets the shortage override
+- do not create movements for uncovered stock
 
 Recommended implementation:
-- allow `inventory_lot_id = null` for shortage-backed consumption remainder
+- create consumption movements only for quantities covered by existing lots
+- reduce covered lots to zero as needed
+- return an explicit warning with uncovered quantity
 
-That keeps history truthful.
+Do not create fake stock or shortage-backed consumption movements for uncovered quantity.
 
 ---
 
@@ -1167,8 +1174,8 @@ Update place.
 ### POST /places/:id/archive
 Archive place.
 
-### GET /places/:id/weather
-Get weather summary/forecast context for place.
+Weather forecast context is exposed by:
+- `GET /places/:placeId/weather/forecast`
 
 ---
 
@@ -1234,10 +1241,10 @@ Archive bed.
 ### POST /beds/:bedId/persistent-plants
 Add persistent plant.
 
-### PATCH /persistent-plants/:id
+### PATCH /persistent-bed-plants/:id
 Update persistent plant.
 
-### POST /persistent-plants/:id/archive
+### POST /persistent-bed-plants/:id/archive
 Archive/remove persistent plant.
 
 ---
@@ -1341,10 +1348,9 @@ Example body:
   "type": "treatment",
   "performedAt": "2026-05-13T08:00:00+03:00",
   "targetScopeType": "selected_beds",
-  "resolvedTargets": [
-    { "targetType": "bed", "targetId": "uuid-1" },
-    { "targetType": "bed", "targetId": "uuid-2" }
-  ],
+  "targetSelection": {
+    "bedIds": ["uuid-1", "uuid-2"]
+  },
   "notes": "Preventive spray",
   "productUsages": [
     {
@@ -1402,6 +1408,8 @@ List tasks with filters:
 ### POST /tasks
 Create manual task.
 
+Use `targetScopeType` plus structured `targetSelection`; backend resolves and persists `task_targets`.
+
 ### GET /tasks/:id
 Get task detail.
 
@@ -1436,13 +1444,13 @@ Response sections:
 - activities
 - tasks
 - quarantinePeriods
-- weatherAlerts optional
+- weatherEvents optional
 
 ---
 
 ## 17.14 Weather
 
-### GET /weather/places/:placeId/forecast
+### GET /places/:placeId/weather/forecast
 Get forecast for place.
 
 ### POST /weather/events/:id/confirm-rain
