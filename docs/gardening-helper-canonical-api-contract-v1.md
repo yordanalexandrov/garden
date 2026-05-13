@@ -1485,6 +1485,7 @@ Response:
         "type": "spraying",
         "dueDate": "2026-05-23",
         "status": "suggested",
+        "targetScopeType": "selected_beds",
         "targetSummary": "2 beds",
         "sourceType": "activity",
         "notes": ""
@@ -1510,22 +1511,24 @@ Request:
   "dueDate": "2026-05-20",
   "notes": "",
   "status": "planned",
-  "targets": [
-    {
-      "targetType": "bed",
-      "targetId": "uuid"
-    }
-  ]
+  "targetScopeType": "selected_beds",
+  "targetSelection": {
+    "bedIds": ["uuid"]
+  }
 }
 ```
 
 Validation:
-- targets non-empty
+- targetScopeType required
+- targetSelection must match targetScopeType
+- resolved target set must be non-empty
 - dueDate required
-- if status is planned, reminders should be created
+- backend sets sourceType = manual for this endpoint
+- if status is planned, backend sets confirmedAt and creates reminders
+- if status is suggested, reminders must not be created
 
 Transactional:
-- yes if reminders are created
+- yes
 
 ## 19.3 GET /tasks/:taskId
 
@@ -1543,6 +1546,7 @@ Response:
     "status": "suggested",
     "sourceType": "activity",
     "sourceReferenceId": "uuid",
+    "targetScopeType": "selected_beds",
     "targets": [],
     "reminders": [],
     "weatherEvents": [],
@@ -1559,7 +1563,7 @@ Allowed:
 - dueDate
 - notes
 - type if not done/canceled
-- targets if not done/canceled
+- targetScopeType and targetSelection if not done/canceled
 
 ## 19.5 POST /tasks/:taskId/confirm
 
@@ -2037,7 +2041,7 @@ Purpose:
 | POST /products/:id/inventory-lots | yes | Creates lot + purchase movement |
 | POST /inventory/adjustments | yes | Creates movement + updates lot |
 | POST /ai/suggestions/:id/accept | yes | Marks suggestion + creates business records |
-| POST /tasks | yes if planned | May create reminders |
+| POST /tasks | yes | Creates task + resolved targets; planned tasks also create reminders |
 | POST /problems | yes | Creates problem metadata |
 | POST /problems/:id/photos | yes for metadata | File upload may be outside DB transaction |
 

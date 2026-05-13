@@ -117,11 +117,11 @@ CREATE TABLE beds (
   CONSTRAINT beds_status_chk
     CHECK (status IN ('active', 'removed', 'archived')),
   CONSTRAINT beds_width_m_chk
-    CHECK (width_m IS NULL OR width_m >= 0),
+    CHECK (width_m IS NULL OR width_m > 0),
   CONSTRAINT beds_length_m_chk
-    CHECK (length_m IS NULL OR length_m >= 0),
+    CHECK (length_m IS NULL OR length_m > 0),
   CONSTRAINT beds_area_m2_chk
-    CHECK (area_m2 IS NULL OR area_m2 >= 0)
+    CHECK (area_m2 IS NULL OR area_m2 > 0)
 );
 
 CREATE INDEX idx_beds_place_status
@@ -227,7 +227,7 @@ CREATE TABLE product_usage_rules (
   updated_at timestamptz NOT NULL DEFAULT NOW(),
   archived_at timestamptz,
   CONSTRAINT product_usage_rules_dose_value_chk
-    CHECK (dose_value >= 0),
+    CHECK (dose_value > 0),
   CONSTRAINT product_usage_rules_dose_unit_chk
     CHECK (dose_unit IN ('ml', 'l', 'g', 'kg')),
   CONSTRAINT product_usage_rules_reapplication_interval_days_chk
@@ -254,7 +254,7 @@ CREATE TABLE inventory_lots (
   updated_at timestamptz NOT NULL DEFAULT NOW(),
   archived_at timestamptz,
   CONSTRAINT inventory_lots_quantity_initial_chk
-    CHECK (quantity_initial >= 0),
+    CHECK (quantity_initial > 0),
   CONSTRAINT inventory_lots_quantity_remaining_chk
     CHECK (quantity_remaining >= 0),
   CONSTRAINT inventory_lots_unit_chk
@@ -323,6 +323,7 @@ CREATE TABLE tasks (
   notes text,
   source_type text,
   source_reference_id uuid,
+  target_scope_type text NOT NULL,
   status text NOT NULL,
   created_at timestamptz NOT NULL DEFAULT NOW(),
   updated_at timestamptz NOT NULL DEFAULT NOW(),
@@ -333,7 +334,18 @@ CREATE TABLE tasks (
   CONSTRAINT tasks_status_chk
     CHECK (status IN ('suggested', 'planned', 'done', 'skipped', 'canceled')),
   CONSTRAINT tasks_source_type_chk
-    CHECK (source_type IS NULL OR source_type IN ('activity', 'manual', 'weather', 'ai'))
+    CHECK (source_type IS NULL OR source_type IN ('activity', 'manual', 'weather', 'ai')),
+  CONSTRAINT tasks_target_scope_type_chk
+    CHECK (target_scope_type IN (
+      'whole_place',
+      'all_perennials_in_place',
+      'selected_perennials',
+      'all_beds_in_place',
+      'selected_beds',
+      'single_bed',
+      'selected_yearly_plantings',
+      'selected_persistent_bed_plants'
+    ))
 );
 
 CREATE INDEX idx_tasks_account_due_date

@@ -58,22 +58,24 @@ The product must be:
 
 # 3. Mandatory document reading order
 
-The AI implementation agent must read the project documents in this order:
+The AI implementation agent must start with this handoff and the highest-priority contract documents, then read the supporting design documents:
 
-1. `gardening-helper-product-scope.md`
-2. `gardening_helper_functional_spec_v_1.md`
-3. `gardening-helper-technical-requirements-and-erd.md`
-4. `001_initial_schema_gardening_helper.sql`
-5. `002_views_gardening_helper.sql`
-6. `003_seed_reference_data_gardening_helper.sql`
-7. `004_guards_and_triggers_gardening_helper.sql`
-8. `gardening-helper-backend-application-design-pack-v1.md`
-9. `gardening-helper-frontend-technical-spec-v1.md`
-10. `gardening-helper-canonical-api-contract-v1.md`
-11. `gardening-helper-domain-rules-and-invariants-v1.md`
-12. `gardening-helper-testing-and-acceptance-spec-v1.md`
-13. `gardening-helper-implementation-instructions-for-ai-v1.md`
-14. `gardening-helper-ai-implementation-handoff-readme-v1.md`
+1. `gardening-helper-ai-implementation-handoff-readme-v1.md`
+2. `gardening-helper-implementation-instructions-for-ai-v1.md`
+3. `gardening-helper-domain-rules-and-invariants-v1.md`
+4. `gardening-helper-canonical-api-contract-v1.md`
+5. `gardening-helper-testing-and-acceptance-spec-v1.md`
+6. `gardening-helper-implementation-agent-instructions.md`
+7. `gardening-helper-backend-application-design-pack-v1.md`
+8. `gardening-helper-technical-requirements-and-erd.md`
+9. SQL migration pack:
+   - `001_initial_schema_gardening_helper.sql`
+   - `002_views_gardening_helper.sql`
+   - `003_seed_reference_data_gardening_helper.sql`
+   - `004_guards_and_triggers_gardening_helper.sql`
+10. `gardening-helper-frontend-technical-spec-v1.md`
+11. `gardening_helper_functional_spec_v_1.md`
+12. `gardening-helper-product-scope.md`
 
 The agent must not start implementation before reading all files.
 

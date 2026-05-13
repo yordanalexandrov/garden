@@ -265,6 +265,7 @@ as $$
 declare
     v_product_account_id uuid;
     v_lot_account_id uuid;
+    v_lot_product_id uuid;
     v_activity_account_id uuid;
 begin
     select account_id into v_product_account_id
@@ -278,7 +279,7 @@ begin
     perform _gh_same_account_or_fail(new.account_id, v_product_account_id, 'inventory_movement.account_id must match product.account_id');
 
     if new.inventory_lot_id is not null then
-        select account_id into v_lot_account_id
+        select account_id, product_id into v_lot_account_id, v_lot_product_id
         from inventory_lots
         where id = new.inventory_lot_id;
 
@@ -287,6 +288,11 @@ begin
         end if;
 
         perform _gh_same_account_or_fail(new.account_id, v_lot_account_id, 'inventory_movement.account_id must match inventory_lot.account_id');
+
+        if v_lot_product_id <> new.product_id then
+            raise exception 'inventory_movement.inventory_lot_id must belong to product_id'
+                using errcode = '23514';
+        end if;
     end if;
 
     if new.activity_id is not null then
@@ -479,6 +485,7 @@ declare
     v_target_account_id uuid;
     v_target_place_id uuid;
     v_linked_activity_account_id uuid;
+    v_linked_activity_place_id uuid;
 begin
     select account_id into v_place_account_id
     from places
@@ -525,7 +532,7 @@ begin
     end if;
 
     if new.linked_activity_id is not null then
-        select account_id into v_linked_activity_account_id
+        select account_id, place_id into v_linked_activity_account_id, v_linked_activity_place_id
         from activities
         where id = new.linked_activity_id;
 
@@ -534,6 +541,11 @@ begin
         end if;
 
         perform _gh_same_account_or_fail(new.account_id, v_linked_activity_account_id, 'problem.account_id must match linked activity account_id');
+
+        if v_linked_activity_place_id is not null and v_linked_activity_place_id is distinct from new.place_id then
+            raise exception 'problem linked activity must belong to same place as problem'
+                using errcode = '23514';
+        end if;
     end if;
 
     return new;
@@ -545,6 +557,39 @@ create trigger trg_problems_validate_consistency
 before insert or update on problems
 for each row
 execute function trg_problems_validate_consistency();
+
+-- ---------------------------------------------------------------------------
+-- problem_photos are allowed only for problem records, not observations
+-- ---------------------------------------------------------------------------
+create or replace function trg_problem_photos_validate_consistency()
+returns trigger
+language plpgsql
+as $$
+declare
+    v_problem_type text;
+begin
+    select type into v_problem_type
+    from problems
+    where id = new.problem_id;
+
+    if v_problem_type is null then
+        raise exception 'problem_photos.problem_id does not exist';
+    end if;
+
+    if v_problem_type <> 'problem' then
+        raise exception 'problem photos may only be attached to problems'
+            using errcode = '23514';
+    end if;
+
+    return new;
+end;
+$$;
+
+drop trigger if exists trg_problem_photos_validate_consistency on problem_photos;
+create trigger trg_problem_photos_validate_consistency
+before insert or update on problem_photos
+for each row
+execute function trg_problem_photos_validate_consistency();
 
 -- ---------------------------------------------------------------------------
 -- tasks consistency
@@ -705,6 +750,7 @@ declare
     v_activity_account_id uuid;
     v_activity_place_id uuid;
     v_usage_activity_id uuid;
+    v_usage_product_id uuid;
     v_product_account_id uuid;
 begin
     if new.ends_on < new.starts_on then
@@ -727,7 +773,7 @@ begin
             using errcode = '23514';
     end if;
 
-    select activity_id into v_usage_activity_id
+    select activity_id, product_id into v_usage_activity_id, v_usage_product_id
     from activity_product_usages
     where id = new.activity_product_usage_id;
 
@@ -737,6 +783,11 @@ begin
 
     if v_usage_activity_id <> new.activity_id then
         raise exception 'quarantine_period.activity_product_usage_id must belong to same activity'
+            using errcode = '23514';
+    end if;
+
+    if v_usage_product_id <> new.product_id then
+        raise exception 'quarantine_period.product_id must match activity product usage product_id'
             using errcode = '23514';
     end if;
 
@@ -770,6 +821,7 @@ as $$
 declare
     v_place_account_id uuid;
     v_entity_account_id uuid;
+    v_entity_place_id uuid;
 begin
     select account_id into v_place_account_id
     from places
@@ -782,11 +834,11 @@ begin
     perform _gh_same_account_or_fail(new.account_id, v_place_account_id, 'weather_event.account_id must match place.account_id');
 
     if new.related_entity_type = 'task' then
-        select account_id into v_entity_account_id
+        select account_id, place_id into v_entity_account_id, v_entity_place_id
         from tasks
         where id = new.related_entity_id;
     elseif new.related_entity_type = 'activity' then
-        select account_id into v_entity_account_id
+        select account_id, place_id into v_entity_account_id, v_entity_place_id
         from activities
         where id = new.related_entity_id;
     else
@@ -799,6 +851,11 @@ begin
 
     perform _gh_same_account_or_fail(new.account_id, v_entity_account_id, 'weather_event related entity must belong to same account');
 
+    if v_entity_place_id is not null and v_entity_place_id is distinct from new.place_id then
+        raise exception 'weather_event.place_id must match related entity place_id'
+            using errcode = '23514';
+    end if;
+
     return new;
 end;
 $$;
@@ -808,13 +865,6 @@ create trigger trg_weather_events_validate_consistency
 before insert or update on weather_events
 for each row
 execute function trg_weather_events_validate_consistency();
-
--- ---------------------------------------------------------------------------
--- ai_suggestions only one accepted suggestion of same type per session
--- ---------------------------------------------------------------------------
-create unique index if not exists ux_ai_suggestions_one_accepted_per_type
-    on ai_suggestions (ai_session_id, suggestion_type)
-    where accepted is true;
 
 -- ---------------------------------------------------------------------------
 -- push_subscriptions avoid duplicate active endpoint rows per account

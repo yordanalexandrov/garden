@@ -19,15 +19,15 @@ Before implementing, read these files in order:
 2. `gardening-helper-implementation-instructions-for-ai-v1.md`
 3. `gardening-helper-domain-rules-and-invariants-v1.md`
 4. `gardening-helper-canonical-api-contract-v1.md`
-5. `gardening-helper-backend-application-design-pack-v1.md`
-6. `gardening-helper-frontend-technical-spec-v1.md`
-7. `gardening-helper-testing-and-acceptance-spec-v1.md`
-8. `gardening-helper-technical-requirements-and-erd.md`
-9. SQL migrations:
+5. `gardening-helper-testing-and-acceptance-spec-v1.md`
+6. `gardening-helper-backend-application-design-pack-v1.md`
+7. `gardening-helper-technical-requirements-and-erd.md`
+8. SQL migrations:
    - `001_initial_schema_gardening_helper.sql`
    - `002_views_gardening_helper.sql`
    - `003_seed_reference_data_gardening_helper.sql`
    - `004_guards_and_triggers_gardening_helper.sql`
+9. `gardening-helper-frontend-technical-spec-v1.md`
 10. Product/functional docs:
    - `gardening-helper-product-scope.md`
    - `gardening_helper_functional_spec_v_1.md`
@@ -36,7 +36,7 @@ If there is conflict between files, follow this priority:
 
 1. Domain Rules and Invariants
 2. Canonical API Contract
-3. Implementation Instructions
+3. Implementation Instructions for AI
 4. Backend Application Design Pack
 5. Technical Requirements / ERD
 6. SQL Migrations
@@ -433,4 +433,3 @@ Your PR is acceptable only if:
 - it keeps changes focused
 - it is reviewable
 - it responds cleanly to review comments
-

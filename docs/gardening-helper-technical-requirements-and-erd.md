@@ -486,6 +486,9 @@ Weather е optional per place.
 
 ### Constraints
 - status in ('active', 'removed', 'archived')
+- width_m is null or width_m > 0
+- length_m is null or length_m > 0
+- area_m2 is null or area_m2 > 0
 
 ### Indexes
 - (place_id, status)
@@ -595,6 +598,7 @@ Weather е optional per place.
 - archived_at timestamptz nullable
 
 ### Constraints
+- dose_value > 0
 - dose_unit in ('ml', 'l', 'g', 'kg')
 - reapplication_interval_days is null or reapplication_interval_days >= 0
 - quarantine_period_days is null or quarantine_period_days >= 0
@@ -623,7 +627,7 @@ Weather е optional per place.
 
 ### Constraints
 - unit in ('ml', 'l', 'g', 'kg')
-- quantity_initial >= 0
+- quantity_initial > 0
 - quantity_remaining >= 0
 
 ### Indexes
@@ -825,6 +829,7 @@ Weather е optional per place.
 - notes text nullable
 - source_type text nullable
 - source_reference_id UUID nullable
+- target_scope_type text not null
 - status text not null
 - created_at timestamptz not null
 - updated_at timestamptz not null
@@ -835,6 +840,16 @@ Weather е optional per place.
 - type in ('spraying', 'fertilizing', 'pruning', 'planting', 'harvest_reminder', 'custom')
 - status in ('suggested', 'planned', 'done', 'skipped', 'canceled')
 - source_type in ('activity', 'manual', 'weather', 'ai') or null
+- target_scope_type in (
+  'whole_place',
+  'all_perennials_in_place',
+  'selected_perennials',
+  'all_beds_in_place',
+  'selected_beds',
+  'single_bed',
+  'selected_yearly_plantings',
+  'selected_persistent_bed_plants'
+)
 
 ### Indexes
 - (account_id, due_date)
