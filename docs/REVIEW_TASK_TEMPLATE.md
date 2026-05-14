@@ -11,6 +11,17 @@ Use:
 - `gardening-helper-canonical-api-contract-v1.md`
 - `gardening-helper-testing-and-acceptance-spec-v1.md`
 
+Final infrastructure/provider decisions:
+- Deployment: Hetzner VPS + Docker Compose
+- Database: self-hosted Supabase Postgres
+- Auth: self-hosted Supabase Auth through `AuthPort`
+- Storage: self-hosted Supabase Storage through `StoragePort`
+- Weather: Open-Meteo through `WeatherPort`
+- Push: raw Web Push with VAPID through `PushPort`
+- Correction workflow: hybrid correction model
+
+The application data API remains the Fastify API under `/api/v1`.
+
 ---
 
 # PR / Diff to review
@@ -43,6 +54,9 @@ Focus especially on:
 - [ ] API contract
 - [ ] database integrity
 - [ ] frontend/backend responsibility boundaries
+- [ ] auth/storage/provider boundaries
+- [ ] deployment/security boundaries
+- [ ] worker/scheduler responsibility
 - [ ] tests
 - [ ] maintainability
 
@@ -87,6 +101,10 @@ Use `[BLOCKING]` for:
 - AI data saved without acceptance
 - weather auto-failing treatment
 - missing critical tests
+- direct frontend access to application tables
+- Supabase service role key exposed to frontend
+- provider SDK used in core domain service instead of behind a port/adapter
+- public Supabase Studio or public PostgreSQL port in deployment changes
 
 ---
 
@@ -103,6 +121,12 @@ Use `[BLOCKING]` for:
 - [ ] frontend does not access application tables directly
 - [ ] Supabase service role key is backend-only
 - [ ] problem photo access uses signed URLs or protected backend endpoints
+- [ ] Supabase Storage access goes through StoragePort
+- [ ] Open-Meteo access goes through WeatherPort
+- [ ] raw Web Push access goes through PushPort
+- [ ] Supabase-specific code does not leak into core domain layer
+- [ ] worker/scheduler ownership is explicit where relevant
+- [ ] protected Studio and private Postgres are documented where deployment is touched
 - [ ] no hidden DB business side-effect triggers
 
 ## API

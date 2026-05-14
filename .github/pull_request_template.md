@@ -38,6 +38,9 @@
 - [ ] Database migrations/views/triggers
 - [ ] Auth/session boundary
 - [ ] Storage/file access boundary
+- [ ] Provider adapter boundary
+- [ ] Worker/scheduler responsibility
+- [ ] Deployment/security boundary
 
 ## Important domain notes
 
@@ -84,6 +87,8 @@ Results:
 - Weather:
 - AI:
 - Push:
+- Worker/scheduler:
+- Deployment/security:
 
 ## Screenshots / recordings
 

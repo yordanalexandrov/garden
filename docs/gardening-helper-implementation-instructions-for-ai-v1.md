@@ -112,9 +112,13 @@ Use:
 - self-hosted Supabase Storage through `StoragePort`
 - Open-Meteo through `WeatherPort`
 - raw Web Push with VAPID through `PushPort`
+- hybrid correction model
+- worker/scheduler enabled for reminders and weather checks
 
 Do not replace the Fastify API with direct Supabase table access.
 Supabase service role key must remain backend-only.
+Supabase Studio must be protected.
+PostgreSQL must not be publicly exposed.
 
 ## Recommended backend data access
 Use:
@@ -205,10 +209,15 @@ Do not:
 - put business workflows in controllers
 - put business workflows in repositories
 - call database directly from Angular
+- access application tables directly from Angular
 - call provider SDKs directly from domain services without ports/adapters
+- use Supabase SDKs directly inside domain services except behind adapters
 - spread transaction logic across controllers
 - hide critical behavior in database triggers
 - duplicate backend business rules in frontend
+- expose Supabase service role key to frontend code/config/logs/build output
+- make Supabase Studio public without protection
+- open PostgreSQL publicly
 
 ---
 
@@ -799,6 +808,18 @@ If no real LLM provider is configured yet:
 Use raw Web Push with VAPID through a `PushPort`.
 Implement backend subscription registration, reminder data, send operation and frontend permission/subscription flow.
 Tests may mock the send operation behind the same port.
+Reminder delivery must be owned by the backend worker/scheduler.
+
+## 13.6 Worker / scheduler
+
+Keep worker/scheduler responsibility explicit.
+
+The worker/scheduler owns:
+- reminder delivery
+- weather checks where scheduled
+- retry/failure bookkeeping for background jobs
+
+Do not implement reminder or weather-check business workflows as frontend timers.
 
 ---
 
@@ -1084,6 +1105,7 @@ Implement selected provider adapters behind ports:
 - Open-Meteo adapter
 - raw Web Push/VAPID adapter
 - AI mock or selected AI adapter, depending on task scope
+- worker/scheduler jobs for reminders/weather checks where in scope
 
 ## Step 8
 Add deterministic test mocks behind the same ports where needed.

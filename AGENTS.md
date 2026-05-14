@@ -75,12 +75,16 @@ The application is:
 - Angular + Angular Material frontend
 - PWA-first
 - Node.js + Fastify + TypeScript backend
-- PostgreSQL database
+- self-hosted Supabase Postgres database
 - modular monolith
 - REST API under `/api/v1`
 - backend-owned business logic
 - repository + service + transaction abstraction
 - self-hosted Supabase Postgres/Auth/Storage behind backend ports/adapters
+- Hetzner VPS + Docker Compose deployment
+- Open-Meteo through `WeatherPort`
+- raw Web Push with VAPID through `PushPort`
+- hybrid correction workflow
 
 ---
 
@@ -90,10 +94,18 @@ Always preserve these rules:
 
 - Backend owns business logic.
 - Frontend never talks directly to the database.
+- Frontend never accesses application tables directly.
 - Controllers stay thin.
 - Services orchestrate workflows and transactions.
 - Repositories only access data.
 - External integrations go through ports/adapters.
+- Supabase Auth is used through `AuthPort`.
+- Supabase Storage is used through `StoragePort`.
+- Open-Meteo is used through `WeatherPort`.
+- Raw Web Push is used through `PushPort`.
+- Supabase service role key is backend-only.
+- Supabase Studio must be protected.
+- PostgreSQL must not be publicly exposed.
 - Activity/task targets must resolve to concrete target rows.
 - All-beds/all-perennials are scoped to one place.
 - Cross-place mixed targeting is not allowed in v1.
@@ -128,6 +140,11 @@ Do not:
 - implement only superficial CRUD for critical flows
 - skip transaction tests for critical flows
 - place business logic in the frontend
+- bypass the Fastify API for application data
+- expose Supabase service role key to frontend
+- use Supabase SDK directly inside domain services except behind adapters
+- make Supabase Studio public without protection
+- open PostgreSQL publicly
 - save AI output directly as business data
 - auto-create planned tasks from product rules
 - hide stock changes without movement history
@@ -146,7 +163,8 @@ When acting as Review Agent:
 6. Check account scoping.
 7. Check transaction safety.
 8. Check test coverage.
-9. Leave actionable comments with severity labels.
+9. Check auth/storage/provider/deployment boundaries.
+10. Leave actionable comments with severity labels.
 
 Use these labels:
 
@@ -166,6 +184,11 @@ Be strict on:
 - weather confirmation boundary
 - problem photo rules
 - frontend/backend responsibility boundaries
+- no direct frontend access to application tables
+- no service role key in frontend code/env
+- backend JWT validation through `AuthPort`
+- storage/weather/push behind ports
+- protected Studio and private Postgres
 
 ---
 

@@ -376,6 +376,7 @@ Implement provider adapters behind ports for:
 - Weather: Open-Meteo through `WeatherPort`
 - AI
 - Push notifications: raw Web Push with VAPID through `PushPort`
+- Correction workflow: hybrid correction model
 
 Test/dev mocks must preserve the real interface shape and stay behind ports.
 
@@ -395,6 +396,9 @@ Do not replace the Fastify API with direct Supabase table access.
 Supabase service role key must remain backend-only.
 Frontend may use Supabase Auth only for login/session handling.
 Fastify validates JWTs, derives authenticated actor/account context server-side and enforces account scoping.
+Supabase Studio must be protected.
+PostgreSQL must not be publicly exposed.
+Worker/scheduler ownership must be explicit for reminders and weather checks.
 
 ---
 
@@ -448,6 +452,7 @@ Provider decisions are fixed for v1:
 - Storage: self-hosted Supabase Storage through `StoragePort`
 - Weather: Open-Meteo through `WeatherPort`
 - Push: raw Web Push with VAPID through `PushPort`
+- Correction workflow: hybrid correction model
 
 Mocks are allowed for tests and local scaffolding only when they preserve the same port contract.
 
@@ -491,6 +496,7 @@ AI suggestion persistence and accept/reject flow must still be implemented.
 Use raw Web Push with VAPID behind `PushPort`.
 
 Reminder rows must still be generated.
+Reminder delivery must be owned by the backend worker/scheduler.
 
 ---
 
@@ -507,10 +513,14 @@ These are mandatory.
 - integrations go through ports/adapters
 - critical writes use explicit transactions
 - account scoping enforced everywhere
+- Supabase SDKs are used behind adapters, not inside core domain services
+- backend validates JWTs through `AuthPort`
+- worker/scheduler ownership is explicit for reminders/weather checks
 
 ## 9.2 Frontend rules
 
 - Angular frontend never talks directly to database
+- Angular frontend never accesses application tables directly
 - use Angular Material
 - use Reactive Forms for business forms
 - use typed API services
@@ -525,6 +535,8 @@ These are mandatory.
 - use PostgreSQL migrations
 - use constraints for structural integrity
 - no hidden business side-effect triggers
+- no public PostgreSQL port
+- no public Supabase Studio without protection
 - archive over delete for historical records
 - inventory movement history must be preserved
 
@@ -539,6 +551,7 @@ These are mandatory.
 - AI suggestions are not business truth
 - weather does not decide treatment validity
 - problem photos only for problems in v1
+- hybrid correction model for corrections
 
 ---
 
@@ -566,6 +579,11 @@ Do not:
 18. Return raw unwrapped API responses.
 19. Use untyped request/response objects everywhere.
 20. Skip tests because the app compiles.
+21. Expose Supabase service role key to frontend.
+22. Use Supabase SDKs directly inside domain services instead of adapters.
+23. Make Supabase Studio public without protection.
+24. Open PostgreSQL publicly.
+25. Implement reminder/weather-check business workflows as frontend timers.
 
 ---
 
