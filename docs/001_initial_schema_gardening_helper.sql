@@ -1,7 +1,7 @@
 -- Gardening Helper
 -- Initial schema migration draft
 -- Based on: technical requirements, DB schema and ERD
--- PostgreSQL-first, Supabase-ready, backend-owned business logic
+-- PostgreSQL schema for self-hosted Supabase Postgres; backend-owned business logic
 
 BEGIN;
 

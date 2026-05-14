@@ -47,6 +47,46 @@ If there is conflict between files, follow this priority:
 
 ---
 
+# 1.1 Final infrastructure/provider decisions
+
+These decisions are fixed for v1:
+
+- Deployment: Hetzner VPS + Docker Compose
+- Database: self-hosted Supabase Postgres
+- Auth: self-hosted Supabase Auth through `AuthPort`
+- Storage: self-hosted Supabase Storage through `StoragePort`
+- Weather: Open-Meteo through `WeatherPort`
+- Push: raw Web Push with VAPID through `PushPort`
+- Correction workflow: hybrid correction model
+
+The application data API remains the Fastify API under `/api/v1`.
+Do not bypass it with direct frontend access to Supabase application tables.
+
+# 1.2 Infrastructure/security rules
+
+Implementation agents must not:
+
+- bypass the Fastify API for application data
+- put business logic in Angular components
+- put business side-effect orchestration in database triggers
+- expose the Supabase service role key to frontend code/config/logs/build output
+- use Supabase SDKs directly inside domain services except behind adapters
+- make Supabase Studio public without protection
+- open PostgreSQL publicly
+
+Implementation agents must:
+
+- keep integrations behind ports/adapters
+- validate Supabase Auth JWTs in backend through `AuthPort`
+- enforce account scoping backend-side
+- use Supabase Auth for auth/session flows
+- use Supabase Storage through `StoragePort`
+- use Open-Meteo through `WeatherPort`
+- use raw Web Push through `PushPort`
+- keep worker/scheduler responsibility explicit for reminders and weather checks
+
+---
+
 # 2. Working mode
 
 You work in a dedicated branch.
@@ -156,6 +196,26 @@ Database must:
 - not hide business side effects in triggers
 - use archive/status instead of hard delete for business records
 
+## 4.5 Provider and deployment behavior
+
+Do not bypass the Fastify API for application data.
+
+Supabase is used as infrastructure:
+- Postgres for persistence
+- Auth behind `AuthPort`
+- Storage behind `StoragePort`
+
+Provider access must stay behind adapters:
+- Open-Meteo behind `WeatherPort`
+- raw Web Push/VAPID behind `PushPort`
+- AI behind `AiPort`
+
+Operational security must be preserved:
+- Supabase service role key is backend-only
+- Supabase Studio is protected by VPN/Tailscale, IP allowlist, reverse proxy basic auth, or private network access
+- PostgreSQL is private to Docker/private network and not publicly exposed
+- worker/scheduler ownership is explicit for reminder and weather jobs
+
 ---
 
 # 5. Critical rules you must not break
@@ -213,9 +273,27 @@ Weather is advisory.
 
 Rain confirmation does not auto-fail treatment.
 
+Weather data comes from Open-Meteo through `WeatherPort`.
+
+## Push
+
+Push notifications use raw Web Push with VAPID through `PushPort`.
+
+Reminder delivery must be owned by the backend worker/scheduler, not frontend timers.
+
+## Corrections
+
+Use the hybrid correction model.
+
+Fresh records without side effects may use validated edit flows where allowed.
+Records with inventory/quarantine/task side effects require explicit correction workflows.
+
 ## Photos
 
 Photos are supported only for problems in v1, not observations.
+
+Problem photos use self-hosted Supabase Storage through `StoragePort`.
+File access must use signed URLs or protected backend endpoints.
 
 ---
 
@@ -312,9 +390,9 @@ Not run:
 - npm test — test setup does not exist yet
 ```
 
-## Mocks/deferred work
+## Integration/provider status
 
-Mention if anything is mocked:
+Mention selected adapters touched, and any test/dev mocks used behind ports:
 
 - Auth
 - Storage
@@ -400,8 +478,8 @@ Unless assigned otherwise, work in this order:
 6. problems/photos
 7. tasks/calendar
 8. frontend shell/pages
-9. integrations as mocks
-10. real integrations if configured
+9. selected provider adapters behind ports
+10. worker/scheduler jobs for reminders/weather checks where in scope
 
 Do not start with AI/weather/push before the core domain works.
 

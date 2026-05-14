@@ -76,6 +76,26 @@ Be especially strict around:
 - weather confirmation boundary
 - problem photo rules
 - frontend/business logic boundary
+- Supabase Auth/Storage boundaries
+- worker/scheduler ownership
+- deployment security for Studio/Postgres
+
+---
+
+# 2.1 Final infrastructure/provider decisions
+
+These decisions are fixed for v1:
+
+- Deployment: Hetzner VPS + Docker Compose
+- Database: self-hosted Supabase Postgres
+- Auth: self-hosted Supabase Auth through `AuthPort`
+- Storage: self-hosted Supabase Storage through `StoragePort`
+- Weather: Open-Meteo through `WeatherPort`
+- Push: raw Web Push with VAPID through `PushPort`
+- Correction workflow: hybrid correction model
+
+The application data API remains the Fastify API under `/api/v1`.
+Reviewers must treat direct frontend access to application tables as a blocking issue.
 
 ---
 
@@ -172,9 +192,11 @@ Check:
 - [ ] services own workflow orchestration
 - [ ] repositories only access database
 - [ ] integrations go through ports/adapters
+- [ ] Supabase-specific code does not leak into core domain services
 - [ ] business logic is not hidden in DB triggers
 - [ ] transactions are explicit
 - [ ] account scoping is enforced
+- [ ] worker/scheduler responsibilities are explicit when reminders/weather jobs are touched
 
 Blocking issues:
 
@@ -183,6 +205,7 @@ Blocking issues:
 - no transaction around multi-write operation
 - frontend or controller performing inventory allocation
 - provider SDK used directly inside domain service without port boundary
+- Supabase SDK used directly inside domain service instead of behind an adapter
 
 ---
 
@@ -236,10 +259,13 @@ Blocking issues:
 Check every changed backend path for:
 
 - [ ] authenticated account is derived server-side
+- [ ] Supabase Auth JWTs are validated through AuthPort
 - [ ] queries are account-scoped
 - [ ] referenced entities are checked against account
 - [ ] cross-account references are rejected
 - [ ] frontend does not supply trusted accountId
+- [ ] Supabase service role key is not exposed to frontend
+- [ ] no direct frontend access to application tables
 
 Blocking issues:
 
@@ -354,7 +380,9 @@ If PR touches problems/photos, verify:
 - [ ] photos rejected/disabled for observations in v1
 - [ ] problem can exist without photo
 - [ ] photo metadata stored in DB
-- [ ] file access is protected/signed or abstracted
+- [ ] files are stored through StoragePort / Supabase Storage
+- [ ] file access is protected/signed or served through protected backend endpoints
+- [ ] frontend does not access Supabase Storage buckets directly for business flows
 - [ ] target belongs to place/account
 
 Blocking issues:
@@ -375,7 +403,7 @@ If PR touches AI, verify:
 - [ ] accept endpoint is transactional
 - [ ] reject creates no business record
 - [ ] AI provider behind AiPort
-- [ ] mock provider is deterministic if real provider absent
+- [ ] test/dev AI mock is deterministic if used behind AiPort
 
 Blocking issues:
 
@@ -395,8 +423,9 @@ If PR touches weather, verify:
 - [ ] forecast is advisory
 - [ ] rain confirmation persists user response
 - [ ] confirmed rain does not auto-fail treatment
-- [ ] weather provider behind WeatherPort
-- [ ] mock provider usable without API key
+- [ ] Open-Meteo adapter behind WeatherPort
+- [ ] test/dev weather mock, if present, is behind WeatherPort
+- [ ] weather checks run in explicit backend worker/scheduler flow if scheduled
 
 Blocking issues:
 
@@ -407,14 +436,37 @@ Blocking issues:
 
 ---
 
-## 6.8 Frontend
+## 6.8 Push and scheduler
+
+If PR touches push notifications, reminders, or scheduled jobs, verify:
+
+- [ ] raw Web Push/VAPID is behind `PushPort`
+- [ ] service worker/browser subscription flow does not own reminder business logic
+- [ ] backend worker/scheduler owns reminder delivery
+- [ ] reminder job is account-scoped
+- [ ] failed sends do not mark tasks failed
+- [ ] push secrets/private keys are backend-only
+
+Blocking issues:
+
+- push sent directly from frontend as business workflow
+- VAPID private key exposed to frontend
+- reminders delivered from frontend timers
+- scheduler scans data without account scoping
+
+---
+
+## 6.9 Frontend
 
 If PR touches frontend, verify:
 
 - [ ] Angular Material used
 - [ ] Reactive Forms used for business forms
 - [ ] typed API services used
-- [ ] no direct DB/vendor access
+- [ ] no direct DB/application-table or business storage access
+- [ ] Supabase Auth is used only for login/session handling
+- [ ] all business data reads/writes go through Fastify API
+- [ ] service role key is not present in frontend code/config
 - [ ] API errors displayed
 - [ ] mobile layout usable
 - [ ] create activity shows target summary and side effects
@@ -429,6 +481,26 @@ Blocking issues:
 - create activity page hides selected target meaning
 - missing rule state hidden
 - suggested/planned tasks visually indistinguishable
+
+---
+
+## 6.10 Deployment/security docs
+
+If PR touches deployment, Docker Compose, environment, Supabase or operations docs, verify:
+
+- [ ] Hetzner VPS + Docker Compose assumptions are preserved
+- [ ] Supabase Studio is protected
+- [ ] PostgreSQL port is not public
+- [ ] service role key is backend-only
+- [ ] frontend receives only public/anon Supabase values where appropriate
+- [ ] application data still goes through Fastify API
+
+Blocking issues:
+
+- public Supabase Studio without protection
+- public PostgreSQL port
+- service role key in frontend env/build
+- direct Supabase table access replacing application API
 
 ---
 

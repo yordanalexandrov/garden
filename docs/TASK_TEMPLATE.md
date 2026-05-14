@@ -10,6 +10,17 @@ Use:
 - `gardening-helper-ai-implementation-handoff-readme-v1.md`
 - all relevant specs for this task
 
+Final infrastructure/provider decisions:
+- Deployment: Hetzner VPS + Docker Compose
+- Database: self-hosted Supabase Postgres
+- Auth: self-hosted Supabase Auth through `AuthPort`
+- Storage: self-hosted Supabase Storage through `StoragePort`
+- Weather: Open-Meteo through `WeatherPort`
+- Push: raw Web Push with VAPID through `PushPort`
+- Correction workflow: hybrid correction model
+
+The application data API remains the Fastify API under `/api/v1`.
+
 ---
 
 # Task
@@ -83,6 +94,11 @@ This task touches:
 - [ ] frontend forms
 - [ ] API contract
 - [ ] database/migrations
+- [ ] auth/session boundary
+- [ ] storage/file access boundary
+- [ ] provider adapter boundary
+- [ ] worker/scheduler responsibility
+- [ ] deployment/security docs
 
 Important rules to preserve:
 
@@ -104,10 +120,35 @@ Implement:
 - [ ] frontend API service
 - [ ] frontend page/component
 - [ ] frontend form validation
+- [ ] provider adapter through port
+- [ ] worker/scheduler behavior
+- [ ] deployment/security docs
 - [ ] tests
 - [ ] docs/update notes
 
 Remove unchecked items that are not relevant.
+
+---
+
+# Required infrastructure/security boundaries
+
+Preserve these rules:
+
+- [ ] no direct frontend access to application tables
+- [ ] no bypass of the Fastify API for application data
+- [ ] no business logic in Angular components
+- [ ] no business side-effect orchestration in database triggers
+- [ ] no Supabase service role key in frontend code/env/build output/logs
+- [ ] no direct Supabase SDK usage inside domain services except behind adapters
+- [ ] Supabase Studio protected if deployment/admin config is touched
+- [ ] PostgreSQL not publicly exposed if deployment/admin config is touched
+- [ ] backend validates JWTs and derives account context server-side if auth is touched
+- [ ] account scoping enforced backend-side
+- [ ] Supabase Auth used only for auth/session flows
+- [ ] Supabase Storage used through `StoragePort`
+- [ ] Open-Meteo used through `WeatherPort`
+- [ ] raw Web Push used through `PushPort`
+- [ ] worker/scheduler ownership is explicit for reminders/weather checks
 
 ---
 
@@ -184,7 +225,7 @@ PR description must include:
 - API changes
 - Database changes
 - Tests run
-- Mocked/deferred integrations
+- Integration/provider status
 - Review focus
 
 ---

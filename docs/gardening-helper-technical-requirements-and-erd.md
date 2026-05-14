@@ -25,15 +25,20 @@
 - **TypeScript**
 
 ## Database
-- **PostgreSQL**
+- **Self-hosted Supabase Postgres**
 
 ## Storage
-- Object storage за problem photos
+- **Self-hosted Supabase Storage** за problem photos, през `StoragePort`
 
 ## External integrations
-- Weather API
+- Self-hosted Supabase Auth през `AuthPort`
+- Open-Meteo през `WeatherPort`
 - AI / LLM provider
-- Web Push notifications
+- Raw Web Push with VAPID през `PushPort`
+
+## Deployment
+- **Hetzner VPS**
+- **Docker Compose**
 
 ---
 
@@ -43,20 +48,22 @@
 Frontend-ът говори **само** с Fastify API.
 Няма директен достъп от Angular до базата.
 
-## 3.2 PostgreSQL-first, не vendor-first
-Схемата и домейнът се проектират като **чист PostgreSQL domain model**, така че по-късно да може лесно да се използва:
-- обикновен PostgreSQL
-- managed PostgreSQL
-- Supabase Postgres
+## 3.2 Self-hosted Supabase Postgres, не vendor-first domain
+Схемата и домейнът се проектират като **чист PostgreSQL domain model**, изпълняван върху self-hosted Supabase Postgres.
 
-## 3.3 Supabase-ready, но не Supabase-coupled
-Искаме лесна подмяна към Supabase в бъдеще, но не и vendor lock-in още от началото.
+## 3.3 Supabase services, но не Supabase-coupled domain
+Gardening Helper v1 използва self-hosted Supabase за Postgres, Auth и Storage.
+Това не променя backend-owned architecture и не означава директен frontend достъп до application tables.
 
 Затова:
 - не вкарваме Supabase SDK в core domain logic
 - не зависим от Supabase-specific query patterns
-- auth/storage/weather/AI се моделират зад interfaces
+- Supabase Auth минава през `AuthPort`
+- Supabase Storage минава през `StoragePort`
+- Open-Meteo минава през `WeatherPort`
+- raw Web Push with VAPID минава през `PushPort`
 - DB access е backend-only
+- Supabase service role key е backend-only
 
 ## 3.4 No hidden truth
 Не държим derived state като основна истина, ако може да се изчисли надеждно.
@@ -90,18 +97,91 @@ Activity и Task моделът трябва да поддържат норма�
 # 4. High-Level Architecture
 
 ```text
-Angular PWA (Angular Material)
-        |
-        | HTTPS / JSON
-        v
-Fastify API
-        |
-        +-- PostgreSQL
-        +-- Object Storage (problem photos)
-        +-- Weather API
-        +-- AI Provider
-        +-- Push Notification Jobs
+Hetzner VPS
+|
++-- Reverse proxy: Caddy / Traefik / Nginx
+|     +-- garden.domain.com       -> Angular PWA
+|     +-- garden.domain.com/api/v1 -> Fastify API
+|     +-- supabase.domain.com     -> Supabase gateway if needed
+|     +-- studio.domain.com       -> Supabase Studio, protected
+|
++-- app_web
++-- app_api
++-- app_worker
+|
++-- supabase_db
++-- supabase_auth
++-- supabase_storage
++-- supabase_rest
++-- supabase_realtime optional
++-- supabase_studio protected
++-- supabase_meta
 ```
+
+---
+
+# 4.1 Infrastructure Decision — Hetzner + Self-hosted Supabase
+
+Gardening Helper v1 runs on a Hetzner VPS using Docker Compose.
+
+The deployment includes:
+- Angular PWA frontend
+- Fastify API
+- background worker/scheduler
+- self-hosted Supabase stack:
+  - Postgres
+  - Auth
+  - Storage
+  - REST/Meta/Studio as needed
+
+Application architecture remains backend-owned:
+- Angular does not access application tables directly.
+- Fastify API owns business logic, validation, transactions, account scoping and side effects.
+- Supabase service role key is backend-only.
+- Supabase Auth may be used for authentication/session handling.
+- All application data access goes through the Fastify API.
+- Integrations remain behind ports/adapters.
+
+Frontend auth boundary:
+- Angular PWA may use self-hosted Supabase Auth for login/session handling only.
+- Angular must not read or write application tables directly.
+- Angular must not call Supabase generated REST/table APIs for Gardening Helper application data.
+
+Backend auth boundary:
+- Fastify validates Supabase Auth JWTs through `AuthPort`.
+- Fastify derives authenticated actor/account context server-side.
+- Fastify enforces account scoping and authorization for application data.
+- Fastify rejects invalid, expired, missing or mismatched tokens.
+
+Provider decisions:
+- Auth: self-hosted Supabase Auth through `AuthPort`
+- Storage: self-hosted Supabase Storage through `StoragePort`
+- Database: self-hosted Supabase Postgres
+- Weather: Open-Meteo through `WeatherPort`
+- Push: raw Web Push with VAPID through `PushPort`
+
+Operational requirements:
+- automated PostgreSQL backups
+- object storage backups
+- restore test procedure
+- protected Supabase Studio
+- no public PostgreSQL port
+- monitored disk usage and container health
+
+Supabase Studio must not be publicly accessible without protection.
+Protect it using at least one of:
+- VPN/Tailscale
+- IP allowlist
+- reverse proxy basic auth
+- private network access
+
+Hard rules:
+- Do not replace the Fastify API with direct Supabase table access.
+- Do not move business logic to frontend.
+- Do not move business side effects to database triggers.
+- Keep repository + transaction abstraction.
+- Keep provider access behind ports/adapters.
+- Preserve source-of-truth priority from `docs_INDEX.md`.
 
 ---
 
@@ -157,13 +237,10 @@ src/
 
 ---
 
-# 6. DB Access Layer — за лесна смяна към Supabase
+# 6. DB Access Layer — self-hosted Supabase Postgres
 
 ## 6.1 Основен принцип
-Domain services не трябва да знаят дали отдолу има:
-- директен PostgreSQL
-- Supabase Postgres
-- друга PostgreSQL услуга
+Domain services не трябва да зависят от Supabase client patterns, Studio, REST generated endpoints или конкретния deployment layout.
 
 Те трябва да зависят от:
 - repositories
@@ -175,11 +252,13 @@ Domain services не трябва да знаят дали отдолу има:
 - repositories по feature
 - explicit transaction manager
 
-## 6.3 Защо не Supabase-first access
+## 6.3 Защо не Supabase-first access за application data
 Ако backend-ът се върже директно за Supabase client patterns:
 - transaction orchestration става по-неудобно
 - domain layer се vendor-lock-ва
 - сложни inventory/activity flows стават по-крехки
+
+Self-hosted Supabase Postgres е избраната database runtime, но application data access остава backend-owned през repository + transaction abstraction.
 
 ## 6.4 Абстракции
 
@@ -1113,7 +1192,10 @@ Targets се извличат през activity_targets на свързанот�
 # 15. Интеграции
 
 ## 15.1 Storage
-Проблемните снимки да минават през `StoragePort`, не директно vendor API.
+Проблемните снимки минават през `StoragePort`, backed by self-hosted Supabase Storage.
+Frontend-ът не достъпва storage buckets или Supabase Storage APIs директно за business flows.
+Database stores photo metadata only.
+File access must use signed URLs or protected backend endpoints.
 
 Примерни методи:
 - `uploadProblemPhoto`
@@ -1121,10 +1203,13 @@ Targets се извличат през activity_targets на свързанот�
 - `getSignedUrl`
 
 ## 15.2 Auth
-Да има `AuthPort`, за да може по-късно да минем на Supabase Auth без пренаписване на app logic.
+Self-hosted Supabase Auth е избраният auth provider.
+Backend-ът го използва през `AuthPort`, за да резолвне authenticated actor/account.
+Supabase service role key остава backend-only.
+Frontend-ът може да използва Supabase Auth само за login/session handling.
 
 ## 15.3 Weather
-Да има `WeatherPort`, напр.:
+Open-Meteo е избраният weather provider и минава през `WeatherPort`, напр.:
 - `getForecastForPlace`
 - `getRainRiskForDate`
 - `captureForecastSnapshot`
@@ -1136,7 +1221,7 @@ Targets се извличат през activity_targets на свързанот�
 - `assistProblem`
 
 ## 15.5 Notifications
-Да има `PushPort`, напр.:
+Raw Web Push with VAPID е избраният push mechanism и минава през `PushPort`, напр.:
 - `registerSubscription`
 - `sendReminder`
 
@@ -1158,28 +1243,30 @@ Targets се извличат през activity_targets на свързанот�
 
 ---
 
-# 17. Future-proofing за Supabase
+# 17. Supabase boundary rules
 
-## Какво трябва да е лесно сменяемо
-- DB host / provider
-- Auth provider
-- Object storage provider
+Self-hosted Supabase е избрана infrastructure dependency за v1, но не е application architecture shortcut.
 
-## Какво НЕ трябва да се сменя
+## Какво НЕ трябва да се заобикаля
+- Fastify API като application data API
+- repository + transaction abstraction
+- services като owner на workflows and side effects
+- account scoping in backend
+- ports/adapters for auth/storage/weather/push
+
+## Какво НЕ трябва да се променя
 - domain entities
 - business rules
 - transaction semantics
 - REST API contracts
 
 ## Извод
-Ако по-късно решим да минем на Supabase:
-- Postgres schema може да остане почти същата
-- Fastify API остава
-- repository layer остава
-- само adapters може да се сменят:
-  - DB connection / hosting
-  - auth
-  - storage
+Supabase Postgres/Auth/Storage са operational providers.
+Те не дават permission за:
+- direct frontend access to application tables
+- exposing Supabase service role key outside backend
+- placing business side effects in DB triggers
+- replacing service-layer transactions with generated REST/table operations
 
 ---
 
@@ -1227,15 +1314,21 @@ Targets се извличат през activity_targets на свързанот�
 
 - **Angular + Angular Material** за frontend
 - **Fastify + TypeScript** за backend
-- **PostgreSQL** за database
+- **Hetzner VPS + Docker Compose** за deployment
+- **Self-hosted Supabase Postgres** за database
+- **Self-hosted Supabase Auth** през `AuthPort`
+- **Self-hosted Supabase Storage** през `StoragePort`
+- **Open-Meteo** през `WeatherPort`
+- **Raw Web Push with VAPID** през `PushPort`
 - **Modular monolith**
 - **Repository + transaction abstraction**
-- **PostgreSQL-first design**
-- **Supabase-ready adapters**, но без vendor lock-in в core logic
+- **PostgreSQL domain model**
+- **Supabase-backed adapters**, но без Supabase coupling в core logic
 - **Bulk-target model** чрез header + resolved target rows
 - **Inventory ledger model** чрез lots + movements
 - **AI suggestions отделно от business truth**
 - **Weather as context, not automatic control**
+- **Hybrid correction model**
 
 ---
 
@@ -1247,13 +1340,13 @@ Targets се извличат през activity_targets на свързанот�
 - добър transaction control
 - auditability
 - лесна поддръжка
-- нисък vendor lock-in
-- реалистичен път към Supabase в бъдеще
+- low core-domain coupling to infrastructure providers
+- ясна operational deployment форма за v1
 
 Най-важните решения са:
 - backend owns all business logic
 - data access layer е абстрахиран
-- schema е чист PostgreSQL
+- schema е чист PostgreSQL върху self-hosted Supabase Postgres
 - integrations са зад interfaces
 - activities/tasks използват resolved target tables
 - inventory е ledger, не само current balance

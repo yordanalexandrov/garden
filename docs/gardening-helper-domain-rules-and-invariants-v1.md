@@ -47,10 +47,38 @@ The system must prioritize:
 
 ---
 
+# 2.1 Infrastructure provider boundary invariants
+
+Gardening Helper v1 runs on a Hetzner VPS using Docker Compose with self-hosted Supabase services.
+
+Provider decisions:
+- Database: self-hosted Supabase Postgres
+- Auth: self-hosted Supabase Auth through `AuthPort`
+- Storage: self-hosted Supabase Storage through `StoragePort`
+- Weather: Open-Meteo through `WeatherPort`
+- Push: raw Web Push with VAPID through `PushPort`
+
+These providers do not change domain ownership:
+- Angular does not access application tables directly.
+- The Fastify API owns business logic, validation, transactions, account scoping and side effects.
+- Supabase service role key is backend-only.
+- The Angular PWA may use Supabase Auth only for login/session handling.
+- All application data access goes through the Fastify API.
+- Integrations remain behind ports/adapters.
+
+Hard rules:
+- Do not replace the Fastify API with direct Supabase table access.
+- Do not move business logic to frontend.
+- Do not move business side effects to database triggers.
+- Keep repository + transaction abstraction.
+- Keep provider access behind ports/adapters.
+
+---
+
 # 3. Source of truth rules
 
 ## 3.1 Database is the persistence source of truth
-The PostgreSQL database is the persistence source of truth for:
+Self-hosted Supabase Postgres is the persistence source of truth for:
 
 - places
 - plants
@@ -85,6 +113,10 @@ The backend service layer is responsible for deciding and orchestrating:
 
 ## 3.3 Frontend is not business truth
 The frontend may display, preview, validate basic input, and submit user intent.
+
+The Angular PWA may use self-hosted Supabase Auth for login/session handling, session refresh and obtaining an access token.
+It must not use Supabase generated REST/table APIs for Gardening Helper application data.
+All business data reads/writes go through the Fastify API.
 
 The frontend must not decide:
 
@@ -157,6 +189,17 @@ Examples:
 The backend derives account scope from the authenticated actor.
 
 If the frontend submits accountId for normal CRUD, backend should ignore it or reject it depending on implementation policy.
+
+## 4.5 Backend auth boundary
+The Fastify backend validates Supabase Auth JWTs through `AuthPort`.
+
+The backend must:
+- derive authenticated user/account context server-side
+- enforce account scoping on every application data read/write
+- own authorization for application data
+- reject invalid, expired, missing or mismatched tokens
+
+The Supabase service role key is backend-only and must never be exposed to frontend code, browser storage, build output, logs, screenshots or public documentation.
 
 ---
 
@@ -367,12 +410,16 @@ The backend should preserve this by allowing nullable rule reference.
 Even if target rows identify the place indirectly, `activities.place_id` should be populated whenever possible for filtering and reporting.
 
 ## 9.8 Activity correction should be explicit
+Gardening Helper v1 uses a hybrid correction model.
+
+Fresh records that have not created business side effects may be edited through normal validated update flows.
 If an activity created side effects, later correction should not silently mutate:
 - inventory ledger
 - quarantine periods
 - suggested tasks
 
-Corrections should be explicit and auditable.
+Corrections for side-effecting records should be explicit and auditable.
+They must append or create reverse/adjust operations rather than hiding prior business history.
 
 ---
 
@@ -514,7 +561,7 @@ For observations:
 - no photo upload in v1 unless explicitly expanded later
 
 ## 13.5 Problem photo metadata is database truth
-The file itself lives in object storage.
+The file itself lives in self-hosted Supabase Storage through backend `StoragePort`.
 
 Database stores metadata:
 - storage key
@@ -728,10 +775,12 @@ If sending a push notification fails:
 # 20. File/storage invariants
 
 ## 20.1 Object storage is behind backend abstraction
-Frontend must not depend directly on vendor-specific storage behavior.
+Frontend must not depend directly on Supabase Storage behavior.
+Business flows use backend APIs and `StoragePort`.
+The Supabase service role key must never be used by frontend upload/download code.
 
 ## 20.2 Database stores metadata, not image binary
-Problem photo files live in object storage.
+Problem photo files live in self-hosted Supabase Storage.
 
 Database stores:
 - storage key
@@ -747,7 +796,16 @@ Use:
 
 Do not expose public bucket listing.
 
-## 20.4 Orphaned uploads should be cleanable
+## 20.4 Supabase Studio must be protected
+Supabase Studio must not be publicly accessible without protection.
+
+Acceptable protection includes:
+- VPN/Tailscale
+- IP allowlist
+- reverse proxy basic auth
+- private network access
+
+## 20.5 Orphaned uploads should be cleanable
 If file upload succeeds but DB metadata creation fails, the system should have cleanup strategy.
 
 This may be manual/job-based in v1.

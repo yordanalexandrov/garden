@@ -36,6 +36,11 @@
 - [ ] Frontend forms / validation
 - [ ] API contract
 - [ ] Database migrations/views/triggers
+- [ ] Auth/session boundary
+- [ ] Storage/file access boundary
+- [ ] Provider adapter boundary
+- [ ] Worker/scheduler responsibility
+- [ ] Deployment/security boundary
 
 ## Important domain notes
 
@@ -73,15 +78,17 @@ Results:
 - 
 - 
 
-## Mocked/deferred integrations
+## Integration/provider status
 
-<!-- Mention if Auth/Storage/Weather/AI/Push are mocked or deferred. -->
+<!-- Mention selected adapters touched, and any test/dev mocks used behind ports. -->
 
 - Auth:
 - Storage:
 - Weather:
 - AI:
 - Push:
+- Worker/scheduler:
+- Deployment/security:
 
 ## Screenshots / recordings
 

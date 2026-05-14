@@ -101,8 +101,24 @@ Use:
 ## Database
 Use:
 
-- PostgreSQL
+- self-hosted Supabase Postgres
 - the provided SQL migrations as the schema baseline
+
+## Infrastructure/provider decisions
+Use:
+
+- Hetzner VPS + Docker Compose for deployment
+- self-hosted Supabase Auth through `AuthPort`
+- self-hosted Supabase Storage through `StoragePort`
+- Open-Meteo through `WeatherPort`
+- raw Web Push with VAPID through `PushPort`
+- hybrid correction model
+- worker/scheduler enabled for reminders and weather checks
+
+Do not replace the Fastify API with direct Supabase table access.
+Supabase service role key must remain backend-only.
+Supabase Studio must be protected.
+PostgreSQL must not be publicly exposed.
 
 ## Recommended backend data access
 Use:
@@ -193,10 +209,15 @@ Do not:
 - put business workflows in controllers
 - put business workflows in repositories
 - call database directly from Angular
+- access application tables directly from Angular
 - call provider SDKs directly from domain services without ports/adapters
+- use Supabase SDKs directly inside domain services except behind adapters
 - spread transaction logic across controllers
 - hide critical behavior in database triggers
 - duplicate backend business rules in frontend
+- expose Supabase service role key to frontend code/config/logs/build output
+- make Supabase Studio public without protection
+- open PostgreSQL publicly
 
 ---
 
@@ -210,7 +231,7 @@ Do not redesign the schema unless there is a real blocking implementation issue.
 
 If schema changes are necessary:
 - explain why
-- keep them PostgreSQL-first
+- keep them compatible with PostgreSQL / self-hosted Supabase Postgres
 - keep them compatible with the domain rules
 - add a new migration rather than editing historical migrations once implementation has started
 
@@ -545,7 +566,7 @@ Implement in this order:
 - frontend app shell
 - database connection
 - migration runner
-- auth placeholder or real auth adapter
+- Supabase Auth adapter through `AuthPort`
 - standard API response/error handling
 - shared DTO/enums
 - validation setup
@@ -678,7 +699,7 @@ Generate/implement:
 - responsive navigation
 - route outlet
 - global error/snackbar handling
-- auth/session bootstrap placeholder if auth is not final
+- Supabase Auth login/session bootstrap
 - PWA setup
 
 ## 12.2 Core API services
@@ -749,47 +770,56 @@ Include tests for:
 
 ## 13.1 Auth
 
-Use an `AuthPort`/adapter approach.
-
-If final auth provider is not decided:
-- implement a clean placeholder/mock adapter for development
-- keep auth concerns isolated
-- do not bake provider-specific logic into modules
+Use self-hosted Supabase Auth through an `AuthPort`/adapter approach.
+Keep auth concerns isolated and do not bake Supabase-specific logic into domain modules.
+Dev/test mocks are allowed only behind the same port.
+The frontend may use Supabase Auth only for login/session handling.
+All application data access goes through the Fastify API.
+The Fastify API validates JWTs, derives authenticated actor/account context server-side and enforces account scoping.
+The Supabase service role key is backend-only.
 
 ## 13.2 Storage
 
-Use a `StoragePort`.
+Use self-hosted Supabase Storage through a `StoragePort`.
 
 Problem photo upload must go through backend.
 
-Do not access vendor storage directly from business components.
+Do not access Supabase Storage directly from business components.
+The database stores photo metadata only.
+File access must use signed URLs or protected backend endpoints.
 
 ## 13.3 Weather
 
-Use a `WeatherPort`.
-
-If no real provider is configured yet:
-- implement a mock provider
-- preserve the API shape
-- preserve rain confirmation flow
+Use Open-Meteo through a `WeatherPort`.
+Tests may use deterministic mocks behind the same port.
+Preserve rain confirmation flow.
 
 ## 13.4 AI
 
 Use an `AiPort`.
 
-If no real LLM provider is configured yet:
-- implement a mock provider returning deterministic suggestions
+If the assigned task does not include production AI adapter configuration:
+- implement a deterministic test/dev adapter behind `AiPort`
 - preserve session/suggestion persistence
 - preserve accept/reject flow
 
 ## 13.5 Push notifications
 
-Use a `PushPort`.
+Use raw Web Push with VAPID through a `PushPort`.
+Implement backend subscription registration, reminder data, send operation and frontend permission/subscription flow.
+Tests may mock the send operation behind the same port.
+Reminder delivery must be owned by the backend worker/scheduler.
 
-If real Web Push is not configured yet:
-- implement backend registration and reminder data
-- mock send operation
-- keep frontend permission/subscription flow ready
+## 13.6 Worker / scheduler
+
+Keep worker/scheduler responsibility explicit.
+
+The worker/scheduler owns:
+- reminder delivery
+- weather checks where scheduled
+- retry/failure bookkeeping for background jobs
+
+Do not implement reminder or weather-check business workflows as frontend timers.
 
 ---
 
@@ -820,13 +850,13 @@ Prioritize:
 ## P2 tests
 - advanced filters
 - audit log detail
-- provider-specific integration behavior
+- concrete adapter integration behavior
 
-Use mocks for:
-- AI provider
-- weather provider
-- storage provider
-- push provider
+Use mocks behind ports for:
+- AI through `AiPort`
+- Open-Meteo through `WeatherPort`
+- self-hosted Supabase Storage through `StoragePort`
+- raw Web Push with VAPID through `PushPort`
 
 Use real PostgreSQL test database for repository/service integration tests if possible.
 
@@ -893,7 +923,7 @@ Implementation is not complete until the following work:
 ## Notifications
 - [ ] Push subscription registration
 - [ ] Reminder records exist
-- [ ] Send operation is implemented or mocked behind PushPort
+- [ ] Web Push/VAPID send operation is implemented behind PushPort
 - [ ] App works when notifications are disabled
 
 ## Frontend
@@ -1001,8 +1031,8 @@ If something is not explicitly specified:
    - auditability
    - backend-owned business logic
    - explicit user confirmation
-   - PostgreSQL-first design
-   - future Supabase readiness
+   - self-hosted Supabase Postgres with PostgreSQL domain model
+   - Supabase Auth/Storage behind ports
 6. Document the assumption in code comments or implementation notes.
 
 Do not silently invent major product behavior.
@@ -1069,14 +1099,16 @@ Implement frontend flows:
 - calendar/task screens
 
 ## Step 7
-Implement integrations with mocks first:
-- AI mock
-- weather mock
-- push mock
-- storage local/mock adapter
+Implement selected provider adapters behind ports:
+- Supabase Auth adapter
+- Supabase Storage adapter
+- Open-Meteo adapter
+- raw Web Push/VAPID adapter
+- AI mock or selected AI adapter, depending on task scope
+- worker/scheduler jobs for reminders/weather checks where in scope
 
 ## Step 8
-Replace mocks with real providers if credentials/config are available.
+Add deterministic test mocks behind the same ports where needed.
 
 ## Step 9
 Run full test suite and fix gaps.
@@ -1084,8 +1116,9 @@ Run full test suite and fix gaps.
 ## Step 10
 Produce implementation notes:
 - what is complete
-- what is mocked
-- what is deferred
+- which selected provider adapters are implemented
+- which test/dev mocks are used behind ports
+- what is not implemented
 - how to run app/tests
 - known limitations
 
@@ -1102,7 +1135,7 @@ The final implementation should include:
 - services
 - controllers/routes
 - validation schemas
-- integration adapters/mocks
+- integration adapters and test/dev mocks behind ports
 - tests
 - README instructions
 
@@ -1123,7 +1156,7 @@ The final implementation should include:
 - environment variables
 - migration instructions
 - test instructions
-- known mocks/deferred integrations
+- integration/provider status
 
 ---
 

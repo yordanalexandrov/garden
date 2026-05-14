@@ -61,24 +61,27 @@ It specifically supports:
 - Background job runner inside same deployable service for v1 if hosting allows, otherwise scheduled worker process
 
 ## 3.3 Database
-- **PostgreSQL**
+- **self-hosted Supabase Postgres**
 - Strong relational model
 - JSONB only where flexibility is warranted
 - Soft-archive instead of hard delete for business entities
 
 ## 3.4 Storage
-- Object storage for uploaded photos
+- **self-hosted Supabase Storage** for uploaded photos through `StoragePort`
 - Store only metadata in database
 
 ## 3.5 External integrations
-- Weather API provider per place
+- self-hosted Supabase Auth through `AuthPort`
+- Open-Meteo through `WeatherPort`
 - LLM provider for AI assistance
-- Web Push for PWA reminders
+- raw Web Push with VAPID through `PushPort`
 
-## 3.6 Deployment target
-Recommended:
-- web app + API + Postgres + object storage
-- deploy as separate frontend and backend services
+## 3.6 Selected deployment target
+Selected:
+- Hetzner VPS
+- Docker Compose
+- Angular PWA frontend + Fastify API + background worker/scheduler
+- self-hosted Supabase Postgres/Auth/Storage plus REST/Meta/Studio as needed
 - keep architecture compatible with future native mobile clients
 
 ---
@@ -88,18 +91,72 @@ Recommended:
 ## 4.1 High-level architecture
 
 ```text
-PWA Frontend
-   |
-   | HTTPS / JSON REST
-   v
-API Service
-   |
-   +-- PostgreSQL
-   +-- Object Storage (problem photos)
-   +-- Weather API
-   +-- AI Service
-   +-- Notification Scheduler / Push Sender
+Hetzner VPS
+|
++-- Reverse proxy: Caddy / Traefik / Nginx
+|     +-- garden.domain.com       -> Angular PWA
+|     +-- garden.domain.com/api/v1 -> Fastify API
+|     +-- supabase.domain.com     -> Supabase gateway if needed
+|     +-- studio.domain.com       -> Supabase Studio, protected
+|
++-- app_web
++-- app_api
++-- app_worker
+|
++-- supabase_db
++-- supabase_auth
++-- supabase_storage
++-- supabase_rest
++-- supabase_realtime optional
++-- supabase_studio protected
++-- supabase_meta
 ```
+
+## 4.1.1 Infrastructure Decision — Hetzner + Self-hosted Supabase
+
+Gardening Helper v1 runs on a Hetzner VPS using Docker Compose.
+
+Application architecture remains backend-owned:
+- Angular does not access application tables directly.
+- Fastify API owns business logic, validation, transactions, account scoping and side effects.
+- Supabase service role key is backend-only.
+- Supabase Auth may be used for authentication/session handling.
+- All application data access goes through the Fastify API.
+- Integrations remain behind ports/adapters.
+
+Frontend auth boundary:
+- Angular may use Supabase Auth for login/session handling only.
+- Angular must not access application tables directly.
+- Angular must not call Supabase generated REST/table APIs for Gardening Helper application data.
+
+Backend auth boundary:
+- Fastify validates Supabase Auth JWTs through `AuthPort`.
+- Fastify derives authenticated actor/account context server-side.
+- Fastify owns account scoping and authorization for application data.
+
+Provider decisions:
+- Auth: self-hosted Supabase Auth through `AuthPort`
+- Storage: self-hosted Supabase Storage through `StoragePort`
+- Database: self-hosted Supabase Postgres
+- Weather: Open-Meteo through `WeatherPort`
+- Push: raw Web Push with VAPID through `PushPort`
+
+Operational requirements:
+- automated PostgreSQL backups
+- object storage backups
+- restore test procedure
+- protected Supabase Studio
+- no public PostgreSQL port
+- monitored disk usage and container health
+
+Supabase Studio must be protected with VPN/Tailscale, IP allowlist, reverse proxy basic auth or private network access.
+
+Hard rules:
+- Do not replace the Fastify API with direct Supabase table access.
+- Do not move business logic to frontend.
+- Do not move business side effects to database triggers.
+- Keep repository + transaction abstraction.
+- Keep provider access behind ports/adapters.
 
 ## 4.2 Architectural style
 Use a **modular monolith**, not microservices.
@@ -763,7 +820,7 @@ Existing v1 fields:
 - timezone text nullable
 
 Future note:
-- a separate `weather_place_settings` table may be introduced later if provider-specific weather configuration grows
+- a separate `weather_place_settings` table may be introduced later if Open-Meteo/place weather configuration outgrows the `places` fields
 
 ---
 
@@ -1008,8 +1065,9 @@ Expose quarantine periods as read-only calendar overlays with linked activity/pr
 ## 13.1 Scope
 Weather is informational and workflow-supporting, not autonomous control.
 
-## 13.2 Recommended provider abstraction
-Create backend weather service interface:
+## 13.2 Selected provider abstraction
+Open-Meteo is the selected weather provider.
+All weather access goes through the backend `WeatherPort`:
 
 - `getForecastForPlace(placeId, dateRange)`
 - `getRainRiskForTask(taskId)`
@@ -1042,7 +1100,7 @@ Reasons:
 - key security
 - payload normalization
 - auditability
-- future provider switching
+- provider isolation behind `AiPort`
 
 ## 14.2 Supported AI workflows
 
@@ -1098,7 +1156,7 @@ Return:
 ## 15.2 Upload pattern
 Recommended:
 1. client requests upload URL/token from backend
-2. uploads file to object storage
+2. uploads file through a backend-mediated Supabase Storage flow
 3. backend finalizes metadata row in `problem_photos`
 
 Or, for simpler backend-managed flow:
@@ -1577,20 +1635,30 @@ Recommended early reporting endpoints or internal queries:
 ## 22. Authentication and Security
 
 ## 22.1 v1 auth
-Recommended:
-- email/password or external identity provider
-- session or JWT auth
+Selected:
+- self-hosted Supabase Auth through `AuthPort`
+- session/JWT verification is backend-owned
+- frontend may use Supabase Auth only for login/session handling
+- frontend must not access application tables directly
 
 ## 22.2 Authorization
 Even for v1 single-user:
 - enforce account scoping in backend on every query
+- derive authenticated actor/account server-side from validated JWT
 
 ## 22.3 File security
 - signed access URLs or protected proxy
 - no public bucket listing
+- problem photos stored in self-hosted Supabase Storage through `StoragePort`
+- database stores photo metadata only
 
 ## 22.4 AI and weather keys
 - keep provider secrets server-side only
+- keep Supabase service role key backend-only
+
+## 22.5 Supabase Studio protection
+Supabase Studio must not be publicly accessible without protection.
+Use VPN/Tailscale, IP allowlist, reverse proxy basic auth or private network access.
 
 ---
 
@@ -1640,9 +1708,10 @@ Runs periodically or on-demand:
 ## 25.1 Activities
 Do not silently overwrite activities that already triggered inventory/quarantine/task side effects.
 
-Recommended:
-- correction workflow
-- explicit reverse/adjust operations
+Hybrid correction model:
+- fresh records without side effects may be edited through normal validated update flows
+- records with side effects require explicit correction workflow
+- correction workflow uses reverse/adjust operations for inventory and derived effects
 
 ## 25.2 Inventory
 Corrections should append movements rather than rewriting history when possible.
@@ -1685,29 +1754,32 @@ This order reduces risk because activity + inventory is the hardest integrity pa
 
 ## 27. Minimum Acceptance for Technical Readiness
 
-Implementation can begin safely when these are agreed:
+Implementation can begin safely with these fixed decisions:
 
 - modular monolith architecture
-- PostgreSQL relational schema
+- self-hosted Supabase Postgres with PostgreSQL relational schema
 - explicit target resolution tables
 - immutable-ish inventory ledger model
 - suggested-task workflow instead of silent automation
 - backend-mediated AI integration
-- backend-mediated weather integration
-- PWA-first frontend with push notifications
+- Open-Meteo through backend-mediated `WeatherPort`
+- PWA-first frontend with raw Web Push/VAPID notifications
 
 ---
 
-## 28. Open Technical Decisions
+## 28. Final Infrastructure and Provider Decisions
 
-These are still open and should be decided before coding starts:
+These decisions are fixed for Gardening Helper v1:
 
-1. **Auth provider**: custom auth, Clerk, Supabase Auth, Auth0, etc.
-2. **Object storage**: S3-compatible, Supabase Storage, Cloudflare R2, etc.
-3. **Weather provider**: exact API vendor
-4. **Push infrastructure**: raw Web Push vs provider wrapper
-5. **Deployment**: single VPS, managed platform, or hosting-specific constraints
-6. **Correction workflow depth**: append-only corrections vs editable drafts for fresh records
+1. **Deployment**: Hetzner VPS + Docker Compose
+2. **Database**: self-hosted Supabase Postgres
+3. **Auth**: self-hosted Supabase Auth through `AuthPort`
+4. **Object storage**: self-hosted Supabase Storage through `StoragePort`
+5. **Weather provider**: Open-Meteo through `WeatherPort`
+6. **Push infrastructure**: raw Web Push with VAPID through `PushPort`
+7. **Correction workflow**: hybrid correction model
+
+These decisions do not change the backend-owned architecture. Application data access still goes through the Fastify API, and business logic stays in services.
 
 ---
 

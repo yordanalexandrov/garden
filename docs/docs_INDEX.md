@@ -43,6 +43,12 @@ These define what the product is and what v1 must support.
 
 ---
 
+# Production / deployment
+
+- `gardening-helper-production-checklist.md`
+
+---
+
 # SQL migrations
 
 - `001_initial_schema_gardening_helper.sql`
