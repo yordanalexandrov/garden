@@ -73,9 +73,9 @@ Results:
 - 
 - 
 
-## Mocked/deferred integrations
+## Integration/provider status
 
-<!-- Mention if Auth/Storage/Weather/AI/Push are mocked or deferred. -->
+<!-- Mention selected adapters touched, and any test/dev mocks used behind ports. -->
 
 - Auth:
 - Storage:

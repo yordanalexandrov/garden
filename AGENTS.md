@@ -80,7 +80,7 @@ The application is:
 - REST API under `/api/v1`
 - backend-owned business logic
 - repository + service + transaction abstraction
-- PostgreSQL-first and Supabase-ready, but not Supabase-coupled
+- self-hosted Supabase Postgres/Auth/Storage behind backend ports/adapters
 
 ---
 

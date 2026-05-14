@@ -375,7 +375,7 @@ If PR touches AI, verify:
 - [ ] accept endpoint is transactional
 - [ ] reject creates no business record
 - [ ] AI provider behind AiPort
-- [ ] mock provider is deterministic if real provider absent
+- [ ] test/dev AI mock is deterministic if used behind AiPort
 
 Blocking issues:
 
@@ -395,8 +395,8 @@ If PR touches weather, verify:
 - [ ] forecast is advisory
 - [ ] rain confirmation persists user response
 - [ ] confirmed rain does not auto-fail treatment
-- [ ] weather provider behind WeatherPort
-- [ ] mock provider usable without API key
+- [ ] Open-Meteo adapter behind WeatherPort
+- [ ] test/dev weather mock, if present, is behind WeatherPort
 
 Blocking issues:
 

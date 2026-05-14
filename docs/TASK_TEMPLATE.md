@@ -184,7 +184,7 @@ PR description must include:
 - API changes
 - Database changes
 - Tests run
-- Mocked/deferred integrations
+- Integration/provider status
 - Review focus
 
 ---

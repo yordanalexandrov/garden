@@ -13,7 +13,7 @@ The purpose of this README is to:
 - define source-of-truth priority
 - define expected implementation output
 - define implementation phases
-- define mock/deferred integrations
+- define selected infrastructure/provider integrations
 - define hard constraints and forbidden shortcuts
 - prevent the AI agent from redesigning the product
 
@@ -101,7 +101,7 @@ Do not invent behavior when a higher-priority document defines it.
 If something is still unclear, choose the simplest implementation that preserves:
 
 - backend-owned business logic
-- PostgreSQL-first design
+- PostgreSQL domain model on self-hosted Supabase Postgres
 - explicit user confirmation
 - auditability
 - inventory ledger correctness
@@ -172,7 +172,7 @@ The implementation AI should generate a complete project containing:
 - transaction wrapper
 - migration setup
 - integration ports/adapters
-- mock providers where needed
+- deterministic test/dev adapters where needed
 - tests
 - README/setup instructions
 
@@ -205,7 +205,7 @@ Final implementation should include:
 - environment variables
 - migration instructions
 - test instructions
-- known mocks/deferred integrations
+- integration/provider status
 - implementation notes
 - known limitations
 
@@ -367,29 +367,32 @@ Required:
 
 ---
 
-## Phase 7 — Mock integrations
+## Phase 7 — Selected integrations
 
-Implement mock/provider abstraction for:
+Implement provider adapters behind ports for:
 
-- Auth
-- Storage
-- Weather
+- Auth: self-hosted Supabase Auth through `AuthPort`
+- Storage: self-hosted Supabase Storage through `StoragePort`
+- Weather: Open-Meteo through `WeatherPort`
 - AI
-- Push notifications
+- Push notifications: raw Web Push with VAPID through `PushPort`
 
-Mocks must preserve the real interface shape.
+Test/dev mocks must preserve the real interface shape and stay behind ports.
 
-The app should work without real API keys.
+The app should keep core domain tests runnable without external API keys.
 
 ---
 
-## Phase 8 — Real integrations optional
+## Phase 8 — Deployment readiness
 
-If provider credentials/config are available, implement real adapters.
+Prepare the Hetzner VPS + Docker Compose deployment shape:
+- Angular PWA
+- Fastify API
+- background worker/scheduler
+- self-hosted Supabase Postgres/Auth/Storage plus REST/Meta/Studio as needed
 
-If not available, leave mocks with clear TODOs and documentation.
-
-Do not block core implementation on external providers.
+Do not replace the Fastify API with direct Supabase table access.
+Supabase service role key must remain backend-only.
 
 ---
 
@@ -421,8 +424,9 @@ Minimum required test focus:
 Before final output, provide:
 
 - what was implemented
-- what is mocked
-- what is deferred
+- which selected adapters are implemented
+- which test/dev mocks are used behind ports
+- what is not implemented
 - how to run backend
 - how to run frontend
 - how to run migrations
@@ -432,41 +436,35 @@ Before final output, provide:
 
 ---
 
-# 8. Mock/deferred integration policy
+# 8. Infrastructure/provider integration policy
 
-The following integrations may start as mocks:
+Provider decisions are fixed for v1:
+
+- Deployment: Hetzner VPS + Docker Compose
+- Database: self-hosted Supabase Postgres
+- Auth: self-hosted Supabase Auth through `AuthPort`
+- Storage: self-hosted Supabase Storage through `StoragePort`
+- Weather: Open-Meteo through `WeatherPort`
+- Push: raw Web Push with VAPID through `PushPort`
+
+Mocks are allowed for tests and local scaffolding only when they preserve the same port contract.
 
 ## Auth
 
-Allowed for initial implementation:
+Use self-hosted Supabase Auth behind `AuthPort`.
 
-- simple dev auth hook/plugin
-- fixed test account
-- mock authenticated actor
-
-But architecture must keep an `AuthPort`/adapter boundary.
-
-Do not bake mock auth into business modules.
+Do not bake Supabase auth details or mock auth into business modules.
 
 ## Storage
 
-Allowed for initial implementation:
-
-- local file storage adapter
-- mock storage adapter
-
-But architecture must keep a `StoragePort`.
+Use self-hosted Supabase Storage behind `StoragePort`.
 
 Problem photo metadata must still be persisted.
+Frontend must not access storage buckets directly for business flows.
 
 ## Weather
 
-Allowed for initial implementation:
-
-- deterministic mock forecast provider
-- deterministic mock rain risk
-
-But architecture must keep a `WeatherPort`.
+Use Open-Meteo behind `WeatherPort`.
 
 Rain confirmation flow must still be implemented.
 
@@ -485,12 +483,7 @@ AI suggestion persistence and accept/reject flow must still be implemented.
 
 ## Push notifications
 
-Allowed for initial implementation:
-
-- push subscription persistence
-- mock push sender
-
-But architecture must keep a `PushPort`.
+Use raw Web Push with VAPID behind `PushPort`.
 
 Reminder rows must still be generated.
 
@@ -809,7 +802,7 @@ At minimum, include tests for:
 - AI suggestion display
 - API error display
 
-Tests can use mocked providers for AI/weather/storage/push.
+Tests can use mocks behind `AiPort`, `WeatherPort`, `StoragePort` and `PushPort`.
 
 ---
 
@@ -823,13 +816,19 @@ The implementation should support environment variables such as:
 NODE_ENV=
 PORT=
 DATABASE_URL=
-JWT_SECRET=              # if dev auth uses JWT
-STORAGE_PROVIDER=
-STORAGE_LOCAL_DIR=
-WEATHER_PROVIDER=
+SUPABASE_URL=
+SUPABASE_ANON_KEY=
+# Backend-only; never expose to frontend.
+SUPABASE_SERVICE_ROLE_KEY=
+SUPABASE_JWT_SECRET=
+STORAGE_PROVIDER=supabase
+STORAGE_BUCKET=
+WEATHER_PROVIDER=open-meteo
 AI_PROVIDER=
-PUSH_PUBLIC_KEY=
-PUSH_PRIVATE_KEY=
+PUSH_PROVIDER=web-push
+VAPID_PUBLIC_KEY=
+VAPID_PRIVATE_KEY=
+VAPID_SUBJECT=
 ```
 
 ## Frontend
@@ -853,17 +852,17 @@ When done, the AI agent should return a final report containing:
 - list of implemented frontend pages
 - list of implemented tests
 
-## Mocked
+## Integration/provider status
 
-- auth
-- storage
-- weather
-- AI
-- push notifications
+- Auth: Supabase Auth adapter status
+- Storage: Supabase Storage adapter status
+- Weather: Open-Meteo adapter status
+- AI: selected adapter or mock status
+- Push notifications: Web Push/VAPID adapter status
 
-State which ones are real vs mocked.
+State which test/dev mocks are used behind ports.
 
-## Deferred
+## Not implemented
 
 List anything not implemented and why.
 
@@ -882,7 +881,7 @@ Include commands for:
 
 Mention any limitations clearly.
 
-Do not pretend mocked integrations are real.
+Do not pretend test/dev mocks are production provider adapters.
 
 ---
 

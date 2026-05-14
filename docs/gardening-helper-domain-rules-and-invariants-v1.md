@@ -47,10 +47,37 @@ The system must prioritize:
 
 ---
 
+# 2.1 Infrastructure provider boundary invariants
+
+Gardening Helper v1 runs on a Hetzner VPS using Docker Compose with self-hosted Supabase services.
+
+Provider decisions:
+- Database: self-hosted Supabase Postgres
+- Auth: self-hosted Supabase Auth through `AuthPort`
+- Storage: self-hosted Supabase Storage through `StoragePort`
+- Weather: Open-Meteo through `WeatherPort`
+- Push: raw Web Push with VAPID through `PushPort`
+
+These providers do not change domain ownership:
+- Angular does not access application tables directly.
+- The Fastify API owns business logic, validation, transactions, account scoping and side effects.
+- Supabase service role key is backend-only.
+- All application data access goes through the Fastify API.
+- Integrations remain behind ports/adapters.
+
+Hard rules:
+- Do not replace the Fastify API with direct Supabase table access.
+- Do not move business logic to frontend.
+- Do not move business side effects to database triggers.
+- Keep repository + transaction abstraction.
+- Keep provider access behind ports/adapters.
+
+---
+
 # 3. Source of truth rules
 
 ## 3.1 Database is the persistence source of truth
-The PostgreSQL database is the persistence source of truth for:
+Self-hosted Supabase Postgres is the persistence source of truth for:
 
 - places
 - plants
@@ -367,12 +394,16 @@ The backend should preserve this by allowing nullable rule reference.
 Even if target rows identify the place indirectly, `activities.place_id` should be populated whenever possible for filtering and reporting.
 
 ## 9.8 Activity correction should be explicit
+Gardening Helper v1 uses a hybrid correction model.
+
+Fresh records that have not created business side effects may be edited through normal validated update flows.
 If an activity created side effects, later correction should not silently mutate:
 - inventory ledger
 - quarantine periods
 - suggested tasks
 
-Corrections should be explicit and auditable.
+Corrections for side-effecting records should be explicit and auditable.
+They must append or create reverse/adjust operations rather than hiding prior business history.
 
 ---
 
@@ -728,10 +759,11 @@ If sending a push notification fails:
 # 20. File/storage invariants
 
 ## 20.1 Object storage is behind backend abstraction
-Frontend must not depend directly on vendor-specific storage behavior.
+Frontend must not depend directly on Supabase Storage behavior.
+Business flows use backend APIs and `StoragePort`.
 
 ## 20.2 Database stores metadata, not image binary
-Problem photo files live in object storage.
+Problem photo files live in self-hosted Supabase Storage.
 
 Database stores:
 - storage key

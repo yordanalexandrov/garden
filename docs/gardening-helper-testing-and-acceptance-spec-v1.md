@@ -1462,12 +1462,12 @@ Any implementation AI should be instructed to:
 
 1. Generate tests together with implementation.
 2. Prioritize service integration tests over superficial component tests.
-3. Use a real PostgreSQL test database for repository/service tests where possible.
-4. Mock external providers:
-   - AI
-   - weather
-   - storage
-   - push
+3. Use a real PostgreSQL-compatible test database for repository/service tests where possible; production runtime is self-hosted Supabase Postgres.
+4. Mock external providers only behind the selected ports:
+   - AI through `AiPort`
+   - Open-Meteo through `WeatherPort`
+   - Supabase Storage through `StoragePort`
+   - raw Web Push/VAPID through `PushPort`
 5. Verify transaction rollback explicitly.
 6. Verify account scoping explicitly.
 7. Avoid tests that only check happy paths.

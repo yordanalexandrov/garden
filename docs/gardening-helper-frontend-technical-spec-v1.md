@@ -751,7 +751,7 @@ No autonomous diagnosis wording.
 ### Must include
 - notification settings / prompt state
 - app/account basics
-- possibly future weather/API settings if exposed
+- place weather settings exposed by backend, if implemented
 
 ### Notifications settings section
 - current push permission status

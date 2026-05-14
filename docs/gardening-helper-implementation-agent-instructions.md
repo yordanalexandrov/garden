@@ -312,9 +312,9 @@ Not run:
 - npm test — test setup does not exist yet
 ```
 
-## Mocks/deferred work
+## Integration/provider status
 
-Mention if anything is mocked:
+Mention selected adapters touched, and any test/dev mocks used behind ports:
 
 - Auth
 - Storage

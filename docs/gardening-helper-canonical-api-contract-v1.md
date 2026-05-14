@@ -1308,11 +1308,13 @@ Response:
 
 ## 17.4 POST /activities/:activityId/correct
 
-Optional v1.1 correction endpoint.
+Hybrid correction workflow endpoint.
 
-For v1, implementation may defer this if normal edit/correction policy is not yet built.
+For v1, fresh records without business side effects may use normal validated update flows where available.
+Activities that created inventory, quarantine, suggested task or related side effects must use an explicit correction workflow.
 
-If implemented, it must not silently mutate historical side effects.
+The correction workflow must not silently mutate historical side effects.
+It should create auditable reverse/adjust operations inside a backend-owned transaction.
 
 ---
 

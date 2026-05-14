@@ -27,11 +27,11 @@ The backend remains:
 
 - **Node.js + TypeScript**
 - **Fastify**
-- **PostgreSQL-first**
+- **self-hosted Supabase Postgres**
 - **modular monolith**
 - **repository + transaction abstraction**
 - **backend-owned business logic**
-- **vendor-neutral domain layer**
+- **provider access behind ports/adapters**
 
 ## Core rule
 Repositories are responsible for **data access**.
@@ -44,6 +44,75 @@ Services are responsible for:
 - side-effect sequencing
 
 The controller layer should remain thin.
+
+---
+
+# 2.1 Infrastructure Decision — Hetzner + Self-hosted Supabase
+
+Gardening Helper v1 runs on a Hetzner VPS using Docker Compose.
+
+The deployment includes:
+- Angular PWA frontend
+- Fastify API
+- background worker/scheduler
+- self-hosted Supabase stack:
+  - Postgres
+  - Auth
+  - Storage
+  - REST/Meta/Studio as needed
+
+```text
+Hetzner VPS
+|
++-- Reverse proxy: Caddy / Traefik / Nginx
+|     +-- garden.domain.com       -> Angular PWA
+|     +-- garden.domain.com/api   -> Fastify API
+|     +-- supabase.domain.com     -> Supabase gateway if needed
+|     +-- studio.domain.com       -> Supabase Studio, protected
+|
++-- app_web
++-- app_api
++-- app_worker
+|
++-- supabase_db
++-- supabase_auth
++-- supabase_storage
++-- supabase_rest
++-- supabase_realtime optional
++-- supabase_studio protected
++-- supabase_meta
+```
+
+Application architecture remains backend-owned:
+- Angular does not access application tables directly.
+- Fastify API owns business logic, validation, transactions, account scoping and side effects.
+- Supabase service role key is backend-only.
+- Supabase Auth may be used for authentication/session handling.
+- All application data access goes through the Fastify API.
+- Integrations remain behind ports/adapters.
+
+Provider decisions:
+- Auth: self-hosted Supabase Auth through `AuthPort`
+- Storage: self-hosted Supabase Storage through `StoragePort`
+- Database: self-hosted Supabase Postgres
+- Weather: Open-Meteo through `WeatherPort`
+- Push: raw Web Push with VAPID through `PushPort`
+
+Operational requirements:
+- automated PostgreSQL backups
+- object storage backups
+- restore test procedure
+- protected Supabase Studio
+- no public PostgreSQL port
+- monitored disk usage and container health
+
+Hard rules:
+- Do not replace the Fastify API with direct Supabase table access.
+- Do not move business logic to frontend.
+- Do not move business side effects to database triggers.
+- Keep repository + transaction abstraction.
+- Keep provider access behind ports/adapters.
+- Preserve source-of-truth priority from `docs_INDEX.md`.
 
 ---
 
@@ -556,6 +625,8 @@ interface AuditLogsRepository {
 # 7. Integration ports
 
 ## 7.1 StoragePort
+Backed by self-hosted Supabase Storage in v1. Business services use this port and never call Supabase Storage directly.
+
 ```ts
 interface StoragePort {
   uploadProblemPhoto(input: UploadProblemPhotoInput): Promise<UploadedFileResult>;
@@ -565,6 +636,8 @@ interface StoragePort {
 ```
 
 ## 7.2 WeatherPort
+Backed by Open-Meteo in v1. Weather remains advisory and normalized results, not provider payloads, drive business decisions.
+
 ```ts
 interface WeatherPort {
   getForecastForPlace(input: WeatherForecastInput): Promise<WeatherForecastResult>;
@@ -583,6 +656,8 @@ interface AiPort {
 ```
 
 ## 7.4 PushPort
+Backed by raw Web Push with VAPID in v1.
+
 ```ts
 interface PushPort {
   sendReminder(input: SendReminderInput): Promise<void>;
@@ -590,6 +665,8 @@ interface PushPort {
 ```
 
 ## 7.5 AuthPort
+Backed by self-hosted Supabase Auth in v1. The service role key is backend-only and must not be exposed to frontend code.
+
 ```ts
 interface AuthPort {
   verifyAccessToken(token: string): Promise<AuthenticatedActor>;
@@ -1000,9 +1077,18 @@ Recommended v1:
 Best v1 choice:
 - create only movements for covered quantity
 - include uncovered quantity in result warning
-- require explicit future correction workflow
+- use the hybrid correction model for later user corrections
 
 This avoids fake stock history.
+
+## 11.6 Hybrid correction model
+Correction handling in v1 is hybrid:
+- fresh, side-effect-free draft-like mistakes may be edited through normal validated update flows where the edit does not rewrite derived business history
+- records that created side effects must use explicit correction workflows
+- correction workflows append or create auditable reverse/adjust operations for inventory, quarantine, tasks and related effects
+- historical business records are not silently mutated to hide prior effects
+
+Services own correction orchestration and transaction boundaries.
 
 ---
 
@@ -1701,7 +1787,7 @@ Continue in this exact order:
 6. **Integrations**
 
 That keeps the project aligned with the already fixed architecture:
-- PostgreSQL-first
+- self-hosted Supabase Postgres with PostgreSQL domain model
 - backend-owned business logic
 - explicit auditability
 - no hidden state
