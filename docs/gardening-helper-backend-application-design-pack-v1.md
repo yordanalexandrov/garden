@@ -11,7 +11,7 @@ It focuses on:
 - service-level workflows
 - API request/response contracts
 - validation and error conventions
-- implementation guidance for the Node.js + Express + TypeScript backend
+- implementation guidance for the Node.js + Fastify + TypeScript backend
 
 This document is intended to be the next handoff after:
 - product scope
@@ -26,7 +26,7 @@ This document is intended to be the next handoff after:
 The backend remains:
 
 - **Node.js + TypeScript**
-- **Express**
+- **Fastify**
 - **PostgreSQL-first**
 - **modular monolith**
 - **repository + transaction abstraction**

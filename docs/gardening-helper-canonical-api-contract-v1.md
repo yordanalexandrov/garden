@@ -7,7 +7,7 @@ This document defines the canonical REST API contract for Gardening Helper v1.
 It is the implementation agreement between:
 
 - Angular frontend
-- Express backend
+- Fastify backend
 - repository/service layer
 - validation layer
 - future AI implementation agents
