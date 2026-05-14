@@ -798,8 +798,8 @@ Preserve rain confirmation flow.
 
 Use an `AiPort`.
 
-If no real LLM provider is configured yet:
-- implement a mock provider returning deterministic suggestions
+If the assigned task does not include production AI adapter configuration:
+- implement a deterministic test/dev adapter behind `AiPort`
 - preserve session/suggestion persistence
 - preserve accept/reject flow
 
@@ -850,13 +850,13 @@ Prioritize:
 ## P2 tests
 - advanced filters
 - audit log detail
-- provider-specific integration behavior
+- concrete adapter integration behavior
 
-Use mocks for:
-- AI provider
-- weather provider
-- storage provider
-- push provider
+Use mocks behind ports for:
+- AI through `AiPort`
+- Open-Meteo through `WeatherPort`
+- self-hosted Supabase Storage through `StoragePort`
+- raw Web Push with VAPID through `PushPort`
 
 Use real PostgreSQL test database for repository/service integration tests if possible.
 

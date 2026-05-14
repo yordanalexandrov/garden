@@ -1340,7 +1340,7 @@ Supabase Postgres/Auth/Storage са operational providers.
 - добър transaction control
 - auditability
 - лесна поддръжка
-- нисък vendor lock-in
+- low core-domain coupling to infrastructure providers
 - ясна operational deployment форма за v1
 
 Най-важните решения са:

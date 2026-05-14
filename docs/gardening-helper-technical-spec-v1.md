@@ -76,7 +76,7 @@ It specifically supports:
 - LLM provider for AI assistance
 - raw Web Push with VAPID through `PushPort`
 
-## 3.6 Deployment target
+## 3.6 Selected deployment target
 Selected:
 - Hetzner VPS
 - Docker Compose
