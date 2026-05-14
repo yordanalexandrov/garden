@@ -91,6 +91,18 @@ Application architecture remains backend-owned:
 - All application data access goes through the Fastify API.
 - Integrations remain behind ports/adapters.
 
+Frontend auth boundary:
+- Angular may use self-hosted Supabase Auth for login/session handling only.
+- Angular must not access application tables directly.
+- Angular must not call Supabase generated REST/table APIs for Gardening Helper application data.
+- Angular must not access Supabase Storage buckets directly for business file flows.
+
+Backend auth boundary:
+- Fastify validates JWTs through `AuthPort`.
+- Fastify derives authenticated actor/account context server-side.
+- Fastify enforces account scoping and authorization for all application data.
+- Fastify rejects invalid, expired, missing or mismatched tokens.
+
 Provider decisions:
 - Auth: self-hosted Supabase Auth through `AuthPort`
 - Storage: self-hosted Supabase Storage through `StoragePort`
@@ -105,6 +117,12 @@ Operational requirements:
 - protected Supabase Studio
 - no public PostgreSQL port
 - monitored disk usage and container health
+
+Supabase Studio protection must use at least one of:
+- VPN/Tailscale
+- IP allowlist
+- reverse proxy basic auth
+- private network access
 
 Hard rules:
 - Do not replace the Fastify API with direct Supabase table access.
@@ -626,6 +644,8 @@ interface AuditLogsRepository {
 
 ## 7.1 StoragePort
 Backed by self-hosted Supabase Storage in v1. Business services use this port and never call Supabase Storage directly.
+Problem photo files are stored in Supabase Storage; the database stores metadata only.
+File access must use signed URLs or protected backend endpoints.
 
 ```ts
 interface StoragePort {
@@ -666,6 +686,7 @@ interface PushPort {
 
 ## 7.5 AuthPort
 Backed by self-hosted Supabase Auth in v1. The service role key is backend-only and must not be exposed to frontend code.
+Auth adapters verify Supabase JWTs and return the authenticated actor/account context used by services.
 
 ```ts
 interface AuthPort {
@@ -838,6 +859,7 @@ interface ProblemsService {
 2. Validate target belongs to actor account and place.
 3. If files included:
    - validate MIME type and size
+   - upload/store files through `StoragePort`
 4. Begin transaction.
 5. Insert `problems`.
 6. For each uploaded file already stored or newly uploaded:
@@ -845,6 +867,9 @@ interface ProblemsService {
 7. Insert audit log.
 8. Commit.
 9. Return created problem with signed photo URLs or metadata.
+
+The frontend must not upload directly to Supabase Storage using service-role credentials.
+If signed upload/download URLs are used, they are issued by the backend and scoped to the current authenticated account/problem.
 
 ### Note
 Binary upload itself can happen before or outside the DB transaction; metadata finalization must happen in transaction.

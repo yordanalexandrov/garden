@@ -2094,6 +2094,8 @@ Not mandatory for initial v1 unless implementation time allows.
 
 ## 28.1 Account scoping
 Every resource read/write must be scoped to authenticated account.
+Backend derives authenticated actor/account context server-side from a validated Supabase Auth JWT.
+Frontend must not provide trusted `accountId` for normal application operations.
 
 ## 28.2 Cross-resource validation
 Backend must verify:
@@ -2109,6 +2111,11 @@ Problem photo URLs should be:
 - protected API URLs
 
 Do not expose public bucket listing.
+Problem photos are stored in self-hosted Supabase Storage through backend `StoragePort`; the database stores metadata only.
+
+## 28.4 Supabase key boundary
+Supabase service role key is backend-only.
+It must never be exposed to frontend code, browser storage, public config, logs, or client-visible error messages.
 
 ---
 

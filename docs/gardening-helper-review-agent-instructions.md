@@ -236,10 +236,12 @@ Blocking issues:
 Check every changed backend path for:
 
 - [ ] authenticated account is derived server-side
+- [ ] Supabase Auth JWTs are validated through AuthPort
 - [ ] queries are account-scoped
 - [ ] referenced entities are checked against account
 - [ ] cross-account references are rejected
 - [ ] frontend does not supply trusted accountId
+- [ ] Supabase service role key is not exposed to frontend
 
 Blocking issues:
 
@@ -354,7 +356,9 @@ If PR touches problems/photos, verify:
 - [ ] photos rejected/disabled for observations in v1
 - [ ] problem can exist without photo
 - [ ] photo metadata stored in DB
-- [ ] file access is protected/signed or abstracted
+- [ ] files are stored through StoragePort / Supabase Storage
+- [ ] file access is protected/signed or served through protected backend endpoints
+- [ ] frontend does not access Supabase Storage buckets directly for business flows
 - [ ] target belongs to place/account
 
 Blocking issues:
@@ -414,7 +418,10 @@ If PR touches frontend, verify:
 - [ ] Angular Material used
 - [ ] Reactive Forms used for business forms
 - [ ] typed API services used
-- [ ] no direct DB/vendor access
+- [ ] no direct DB/application-table or business storage access
+- [ ] Supabase Auth is used only for login/session handling
+- [ ] all business data reads/writes go through Fastify API
+- [ ] service role key is not present in frontend code/config
 - [ ] API errors displayed
 - [ ] mobile layout usable
 - [ ] create activity shows target summary and side effects

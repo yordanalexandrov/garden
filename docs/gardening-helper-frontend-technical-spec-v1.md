@@ -59,6 +59,7 @@ Frontend is responsible for:
 - client-side validation
 - optimistic UI only where low risk
 - invoking backend API
+- Supabase Auth login/session UI only
 - push subscription registration
 - file selection/upload UI
 
@@ -69,8 +70,28 @@ Frontend is **not** responsible for:
 - weather decision logic
 - AI acceptance semantics
 - side-effect orchestration across entities
+- reading or writing application tables directly
+- using the Supabase service role key
+- calling Supabase Storage directly for business file flows
 
 All business logic remains backend-owned.
+
+## 2.4 Frontend auth boundary
+The Angular PWA may use self-hosted Supabase Auth for authentication and session handling.
+
+Allowed frontend Supabase usage:
+- sign in / sign out
+- session refresh
+- reading the current auth session/access token
+
+Forbidden frontend Supabase usage:
+- direct reads or writes to application tables
+- direct application-data queries through Supabase REST/PostgREST
+- direct business file access to Supabase Storage buckets
+- use or exposure of the Supabase service role key
+
+All business data reads/writes go through the Fastify API.
+The frontend sends the user access token to the Fastify API; backend validates it, derives the authenticated actor/account server-side and owns authorization for application data.
 
 ---
 
@@ -100,7 +121,7 @@ The app should use a stable shell with:
 - bottom-sheet/dialog patterns for selection-heavy flows
 
 ## 3.3 Global shell responsibilities
-- auth/session bootstrap
+- Supabase Auth login/session bootstrap
 - current account/app context
 - notification permission prompt entry point
 - route-level loading boundary
@@ -949,6 +970,26 @@ Each feature should have an API service, for example:
 - centralize base URL and auth headers
 - centralize error mapping/interceptor
 - do not scatter raw `HttpClient` calls inside components
+- attach Supabase Auth access token to Fastify API requests when authenticated
+- do not call Supabase application table endpoints from Angular services
+
+## 9.2.1 Application data API boundary
+All application data access goes through the Fastify API under `/api/v1`.
+
+The frontend may use Supabase Auth for login/session handling only.
+It must not use Supabase generated REST, SQL, or table APIs for Gardening Helper application data.
+Account scoping, authorization, validation, transactions and side effects are backend responsibilities.
+
+## 9.2.2 Problem photo access boundary
+Problem photo UI uses backend APIs.
+Files are stored in self-hosted Supabase Storage through backend `StoragePort`.
+The database stores photo metadata only.
+
+Photo display/download must use:
+- signed URLs returned by the backend, or
+- protected backend endpoints.
+
+The frontend must not list buckets, construct private storage keys into public URLs, or use the Supabase service role key.
 
 ## 9.3 Refresh rules after write actions
 After important mutations:
@@ -1134,7 +1175,9 @@ These are hard rules.
 
 ## 17.2 Forbidden shortcuts
 - no business logic duplication from backend
-- no direct DB/vendor access from frontend
+- no direct DB/application-table access from frontend
+- no Supabase Storage bucket access for business file flows
+- no service role key in frontend code, build config, logs, or docs
 - no giant god-component for place detail or activity creation
 - no hidden auto-selection that changes business meaning silently
 - no raw untyped API responses in components

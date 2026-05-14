@@ -36,6 +36,8 @@
 - [ ] Frontend forms / validation
 - [ ] API contract
 - [ ] Database migrations/views/triggers
+- [ ] Auth/session boundary
+- [ ] Storage/file access boundary
 
 ## Important domain notes
 

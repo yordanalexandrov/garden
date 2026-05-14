@@ -690,7 +690,7 @@ Generate/implement:
 - responsive navigation
 - route outlet
 - global error/snackbar handling
-- auth/session bootstrap placeholder if auth is not final
+- Supabase Auth login/session bootstrap
 - PWA setup
 
 ## 12.2 Core API services
@@ -764,6 +764,10 @@ Include tests for:
 Use self-hosted Supabase Auth through an `AuthPort`/adapter approach.
 Keep auth concerns isolated and do not bake Supabase-specific logic into domain modules.
 Dev/test mocks are allowed only behind the same port.
+The frontend may use Supabase Auth only for login/session handling.
+All application data access goes through the Fastify API.
+The Fastify API validates JWTs, derives authenticated actor/account context server-side and enforces account scoping.
+The Supabase service role key is backend-only.
 
 ## 13.2 Storage
 
@@ -772,6 +776,8 @@ Use self-hosted Supabase Storage through a `StoragePort`.
 Problem photo upload must go through backend.
 
 Do not access Supabase Storage directly from business components.
+The database stores photo metadata only.
+File access must use signed URLs or protected backend endpoints.
 
 ## 13.3 Weather
 

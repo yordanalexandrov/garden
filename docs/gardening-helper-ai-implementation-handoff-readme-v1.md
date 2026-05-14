@@ -225,7 +225,7 @@ Implement:
 - backend config loading
 - backend error model
 - backend validation hooks/plugins
-- backend auth hook/plugin placeholder/adapter
+- Supabase Auth adapter through `AuthPort`
 - database connection
 - transaction helper
 - migration runner/instructions
@@ -393,6 +393,8 @@ Prepare the Hetzner VPS + Docker Compose deployment shape:
 
 Do not replace the Fastify API with direct Supabase table access.
 Supabase service role key must remain backend-only.
+Frontend may use Supabase Auth only for login/session handling.
+Fastify validates JWTs, derives authenticated actor/account context server-side and enforces account scoping.
 
 ---
 
@@ -454,6 +456,8 @@ Mocks are allowed for tests and local scaffolding only when they preserve the sa
 Use self-hosted Supabase Auth behind `AuthPort`.
 
 Do not bake Supabase auth details or mock auth into business modules.
+The frontend may use Supabase Auth only for login/session handling; all application data access goes through the Fastify API.
+The Supabase service role key is backend-only.
 
 ## Storage
 
@@ -461,6 +465,7 @@ Use self-hosted Supabase Storage behind `StoragePort`.
 
 Problem photo metadata must still be persisted.
 Frontend must not access storage buckets directly for business flows.
+File access must use signed URLs or protected backend endpoints.
 
 ## Weather
 

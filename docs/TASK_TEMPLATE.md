@@ -83,6 +83,8 @@ This task touches:
 - [ ] frontend forms
 - [ ] API contract
 - [ ] database/migrations
+- [ ] auth/session boundary
+- [ ] storage/file access boundary
 
 Important rules to preserve:
 

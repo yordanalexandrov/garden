@@ -124,6 +124,16 @@ Application architecture remains backend-owned:
 - All application data access goes through the Fastify API.
 - Integrations remain behind ports/adapters.
 
+Frontend auth boundary:
+- Angular may use Supabase Auth for login/session handling only.
+- Angular must not access application tables directly.
+- Angular must not call Supabase generated REST/table APIs for Gardening Helper application data.
+
+Backend auth boundary:
+- Fastify validates Supabase Auth JWTs through `AuthPort`.
+- Fastify derives authenticated actor/account context server-side.
+- Fastify owns account scoping and authorization for application data.
+
 Provider decisions:
 - Auth: self-hosted Supabase Auth through `AuthPort`
 - Storage: self-hosted Supabase Storage through `StoragePort`
@@ -138,6 +148,8 @@ Operational requirements:
 - protected Supabase Studio
 - no public PostgreSQL port
 - monitored disk usage and container health
+
+Supabase Studio must be protected with VPN/Tailscale, IP allowlist, reverse proxy basic auth or private network access.
 
 Hard rules:
 - Do not replace the Fastify API with direct Supabase table access.
@@ -1626,18 +1638,27 @@ Recommended early reporting endpoints or internal queries:
 Selected:
 - self-hosted Supabase Auth through `AuthPort`
 - session/JWT verification is backend-owned
+- frontend may use Supabase Auth only for login/session handling
+- frontend must not access application tables directly
 
 ## 22.2 Authorization
 Even for v1 single-user:
 - enforce account scoping in backend on every query
+- derive authenticated actor/account server-side from validated JWT
 
 ## 22.3 File security
 - signed access URLs or protected proxy
 - no public bucket listing
+- problem photos stored in self-hosted Supabase Storage through `StoragePort`
+- database stores photo metadata only
 
 ## 22.4 AI and weather keys
 - keep provider secrets server-side only
 - keep Supabase service role key backend-only
+
+## 22.5 Supabase Studio protection
+Supabase Studio must not be publicly accessible without protection.
+Use VPN/Tailscale, IP allowlist, reverse proxy basic auth or private network access.
 
 ---
 

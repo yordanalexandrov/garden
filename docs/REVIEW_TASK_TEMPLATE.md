@@ -99,6 +99,10 @@ Use `[BLOCKING]` for:
 - [ ] repositories only access DB
 - [ ] integrations use ports/adapters
 - [ ] frontend does not contain backend business logic
+- [ ] frontend uses Supabase Auth only for login/session handling
+- [ ] frontend does not access application tables directly
+- [ ] Supabase service role key is backend-only
+- [ ] problem photo access uses signed URLs or protected backend endpoints
 - [ ] no hidden DB business side-effect triggers
 
 ## API

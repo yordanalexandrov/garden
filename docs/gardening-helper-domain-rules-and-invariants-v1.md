@@ -62,6 +62,7 @@ These providers do not change domain ownership:
 - Angular does not access application tables directly.
 - The Fastify API owns business logic, validation, transactions, account scoping and side effects.
 - Supabase service role key is backend-only.
+- The Angular PWA may use Supabase Auth only for login/session handling.
 - All application data access goes through the Fastify API.
 - Integrations remain behind ports/adapters.
 
@@ -112,6 +113,10 @@ The backend service layer is responsible for deciding and orchestrating:
 
 ## 3.3 Frontend is not business truth
 The frontend may display, preview, validate basic input, and submit user intent.
+
+The Angular PWA may use self-hosted Supabase Auth for login/session handling, session refresh and obtaining an access token.
+It must not use Supabase generated REST/table APIs for Gardening Helper application data.
+All business data reads/writes go through the Fastify API.
 
 The frontend must not decide:
 
@@ -184,6 +189,17 @@ Examples:
 The backend derives account scope from the authenticated actor.
 
 If the frontend submits accountId for normal CRUD, backend should ignore it or reject it depending on implementation policy.
+
+## 4.5 Backend auth boundary
+The Fastify backend validates Supabase Auth JWTs through `AuthPort`.
+
+The backend must:
+- derive authenticated user/account context server-side
+- enforce account scoping on every application data read/write
+- own authorization for application data
+- reject invalid, expired, missing or mismatched tokens
+
+The Supabase service role key is backend-only and must never be exposed to frontend code, browser storage, build output, logs, screenshots or public documentation.
 
 ---
 
@@ -545,7 +561,7 @@ For observations:
 - no photo upload in v1 unless explicitly expanded later
 
 ## 13.5 Problem photo metadata is database truth
-The file itself lives in object storage.
+The file itself lives in self-hosted Supabase Storage through backend `StoragePort`.
 
 Database stores metadata:
 - storage key
@@ -761,6 +777,7 @@ If sending a push notification fails:
 ## 20.1 Object storage is behind backend abstraction
 Frontend must not depend directly on Supabase Storage behavior.
 Business flows use backend APIs and `StoragePort`.
+The Supabase service role key must never be used by frontend upload/download code.
 
 ## 20.2 Database stores metadata, not image binary
 Problem photo files live in self-hosted Supabase Storage.
@@ -779,7 +796,16 @@ Use:
 
 Do not expose public bucket listing.
 
-## 20.4 Orphaned uploads should be cleanable
+## 20.4 Supabase Studio must be protected
+Supabase Studio must not be publicly accessible without protection.
+
+Acceptable protection includes:
+- VPN/Tailscale
+- IP allowlist
+- reverse proxy basic auth
+- private network access
+
+## 20.5 Orphaned uploads should be cleanable
 If file upload succeeds but DB metadata creation fails, the system should have cleanup strategy.
 
 This may be manual/job-based in v1.

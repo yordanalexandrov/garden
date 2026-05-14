@@ -142,6 +142,17 @@ Application architecture remains backend-owned:
 - All application data access goes through the Fastify API.
 - Integrations remain behind ports/adapters.
 
+Frontend auth boundary:
+- Angular PWA may use self-hosted Supabase Auth for login/session handling only.
+- Angular must not read or write application tables directly.
+- Angular must not call Supabase generated REST/table APIs for Gardening Helper application data.
+
+Backend auth boundary:
+- Fastify validates Supabase Auth JWTs through `AuthPort`.
+- Fastify derives authenticated actor/account context server-side.
+- Fastify enforces account scoping and authorization for application data.
+- Fastify rejects invalid, expired, missing or mismatched tokens.
+
 Provider decisions:
 - Auth: self-hosted Supabase Auth through `AuthPort`
 - Storage: self-hosted Supabase Storage through `StoragePort`
@@ -156,6 +167,13 @@ Operational requirements:
 - protected Supabase Studio
 - no public PostgreSQL port
 - monitored disk usage and container health
+
+Supabase Studio must not be publicly accessible without protection.
+Protect it using at least one of:
+- VPN/Tailscale
+- IP allowlist
+- reverse proxy basic auth
+- private network access
 
 Hard rules:
 - Do not replace the Fastify API with direct Supabase table access.
@@ -1176,6 +1194,8 @@ Targets се извличат през activity_targets на свързанот�
 ## 15.1 Storage
 Проблемните снимки минават през `StoragePort`, backed by self-hosted Supabase Storage.
 Frontend-ът не достъпва storage buckets или Supabase Storage APIs директно за business flows.
+Database stores photo metadata only.
+File access must use signed URLs or protected backend endpoints.
 
 Примерни методи:
 - `uploadProblemPhoto`
@@ -1186,6 +1206,7 @@ Frontend-ът не достъпва storage buckets или Supabase Storage APIs
 Self-hosted Supabase Auth е избраният auth provider.
 Backend-ът го използва през `AuthPort`, за да резолвне authenticated actor/account.
 Supabase service role key остава backend-only.
+Frontend-ът може да използва Supabase Auth само за login/session handling.
 
 ## 15.3 Weather
 Open-Meteo е избраният weather provider и минава през `WeatherPort`, напр.:
