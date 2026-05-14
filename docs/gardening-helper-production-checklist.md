@@ -32,7 +32,7 @@ Application data must continue to flow through the Fastify API. Do not replace t
 
 - [ ] TLS enabled.
 - [ ] Frontend route configured.
-- [ ] `/api` routed to the Fastify API service.
+- [ ] `/api/v1` routed to the Fastify API service.
 - [ ] Supabase gateway routed only if needed.
 - [ ] Supabase Studio route protected.
 - [ ] HTTP to HTTPS redirect configured.

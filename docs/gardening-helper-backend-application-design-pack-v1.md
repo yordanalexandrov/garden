@@ -66,7 +66,7 @@ Hetzner VPS
 |
 +-- Reverse proxy: Caddy / Traefik / Nginx
 |     +-- garden.domain.com       -> Angular PWA
-|     +-- garden.domain.com/api   -> Fastify API
+|     +-- garden.domain.com/api/v1 -> Fastify API
 |     +-- supabase.domain.com     -> Supabase gateway if needed
 |     +-- studio.domain.com       -> Supabase Studio, protected
 |
