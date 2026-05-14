@@ -88,7 +88,7 @@ Use:
 Use:
 
 - Node.js
-- Express.js
+- Fastify
 - TypeScript
 - Modular monolith architecture
 - REST JSON API under `/api/v1`
@@ -592,11 +592,11 @@ Do not start with AI/weather before activity + inventory is correct.
 Generate/implement:
 
 ## 11.1 App foundation
-- Express app
+- Fastify app
 - route registration
-- error middleware
-- auth middleware
-- validation middleware
+- error handler
+- auth hook/plugin
+- validation schemas/hooks
 - config loading
 - logger
 - health endpoint

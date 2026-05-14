@@ -55,7 +55,7 @@ It specifically supports:
 
 ## 3.2 Backend
 - **Node.js + TypeScript**
-- **Express** or **Fastify**
+- **Fastify**
 - Modular monolith architecture
 - REST API
 - Background job runner inside same deployable service for v1 if hosting allows, otherwise scheduled worker process
@@ -1694,13 +1694,12 @@ Implementation can begin safely when these are agreed:
 
 These are still open and should be decided before coding starts:
 
-1. **Backend framework**: Express vs Fastify
-2. **Auth provider**: custom auth, Clerk, Supabase Auth, Auth0, etc.
-3. **Object storage**: S3-compatible, Supabase Storage, Cloudflare R2, etc.
-4. **Weather provider**: exact API vendor
-5. **Push infrastructure**: raw Web Push vs provider wrapper
-6. **Deployment**: single VPS, managed platform, or hosting-specific constraints
-7. **Correction workflow depth**: append-only corrections vs editable drafts for fresh records
+1. **Auth provider**: custom auth, Clerk, Supabase Auth, Auth0, etc.
+2. **Object storage**: S3-compatible, Supabase Storage, Cloudflare R2, etc.
+3. **Weather provider**: exact API vendor
+4. **Push infrastructure**: raw Web Push vs provider wrapper
+5. **Deployment**: single VPS, managed platform, or hosting-specific constraints
+6. **Correction workflow depth**: append-only corrections vs editable drafts for fresh records
 
 ---
 

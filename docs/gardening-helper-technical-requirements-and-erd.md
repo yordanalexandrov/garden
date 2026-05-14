@@ -21,7 +21,7 @@
 
 ## Backend
 - **Node.js**
-- **Express.js**
+- **Fastify**
 - **TypeScript**
 
 ## Database
@@ -40,7 +40,7 @@
 # 3. Архитектурни принципи
 
 ## 3.1 Backend-owned business logic
-Frontend-ът говори **само** с Express API.  
+Frontend-ът говори **само** с Fastify API.
 Няма директен достъп от Angular до базата.
 
 ## 3.2 PostgreSQL-first, не vendor-first
@@ -94,7 +94,7 @@ Angular PWA (Angular Material)
         |
         | HTTPS / JSON
         v
-Express API
+Fastify API
         |
         +-- PostgreSQL
         +-- Object Storage (problem photos)
@@ -151,7 +151,7 @@ src/
   shared/
     errors/
     validation/
-    middleware/
+    plugins/
     utils/
 ```
 
@@ -1159,7 +1159,7 @@ Targets се извличат през activity_targets на свързанот�
 ## Извод
 Ако по-късно решим да минем на Supabase:
 - Postgres schema може да остане почти същата
-- Express API остава
+- Fastify API остава
 - repository layer остава
 - само adapters може да се сменят:
   - DB connection / hosting
@@ -1211,7 +1211,7 @@ Targets се извличат през activity_targets на свързанот�
 Заключваме следното:
 
 - **Angular + Angular Material** за frontend
-- **Express.js + TypeScript** за backend
+- **Fastify + TypeScript** за backend
 - **PostgreSQL** за database
 - **Modular monolith**
 - **Repository + transaction abstraction**

@@ -78,7 +78,7 @@ Use backend integration tests with a real test PostgreSQL database for:
 
 ## 3.3 API contract tests
 
-Use API-level tests against Express routes for:
+Use API-level tests against Fastify routes for:
 
 - request validation
 - response shape

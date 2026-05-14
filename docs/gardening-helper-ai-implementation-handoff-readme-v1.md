@@ -129,7 +129,7 @@ Use:
 Use:
 
 - Node.js
-- Express.js
+- Fastify
 - TypeScript
 - REST JSON API
 - Modular monolith architecture
@@ -159,7 +159,7 @@ The implementation AI should generate a complete project containing:
 
 ## Backend
 
-- Express app
+- Fastify app
 - TypeScript setup
 - route registration
 - controllers
@@ -222,8 +222,8 @@ Implement:
 - shared type/enums strategy
 - backend config loading
 - backend error model
-- backend validation middleware
-- backend auth middleware placeholder/adapter
+- backend validation hooks/plugins
+- backend auth hook/plugin placeholder/adapter
 - database connection
 - transaction helper
 - migration runner/instructions
@@ -438,7 +438,7 @@ The following integrations may start as mocks:
 
 Allowed for initial implementation:
 
-- simple dev auth middleware
+- simple dev auth hook/plugin
 - fixed test account
 - mock authenticated actor
 

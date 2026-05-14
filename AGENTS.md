@@ -74,7 +74,7 @@ The application is:
 
 - Angular + Angular Material frontend
 - PWA-first
-- Node.js + Express + TypeScript backend
+- Node.js + Fastify + TypeScript backend
 - PostgreSQL database
 - modular monolith
 - REST API under `/api/v1`
