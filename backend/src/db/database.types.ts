@@ -10,6 +10,7 @@ type Uuid = string;
 type GeneratedUuid = ColumnType<Uuid, Uuid | undefined, Uuid>;
 type GeneratedTimestamp = ColumnType<Timestamp, Timestamp | string | undefined, Timestamp | string>;
 type NullableTimestamp = ColumnType<Timestamp | null, Timestamp | string | null | undefined, Timestamp | string | null>;
+type NullableColumn<T> = ColumnType<T | null, T | null | undefined, T | null>;
 type ReadonlyColumn<T> = ColumnType<T, never, never>;
 type DateColumn = ColumnType<DateOnly, DateOnly | Date, DateOnly | Date>;
 type NullableDateColumn = ColumnType<DateOnly | null, DateOnly | Date | null | undefined, DateOnly | Date | null>;
@@ -20,8 +21,8 @@ type NullableJsonColumn<T extends JsonValue = JsonValue> = ColumnType<T | null, 
 
 export interface AccountsTable {
   id: GeneratedUuid;
-  email: string | null;
-  display_name: string | null;
+  email: NullableColumn<string>;
+  display_name: NullableColumn<string>;
   created_at: GeneratedTimestamp;
   updated_at: GeneratedTimestamp;
   archived_at: NullableTimestamp;
@@ -31,13 +32,13 @@ export interface PlacesTable {
   id: GeneratedUuid;
   account_id: Uuid;
   name: string;
-  description: string | null;
-  notes: string | null;
+  description: NullableColumn<string>;
+  notes: NullableColumn<string>;
   weather_enabled: Generated<boolean>;
-  weather_location_label: string | null;
+  weather_location_label: NullableColumn<string>;
   latitude: NullableNumericColumn;
   longitude: NullableNumericColumn;
-  timezone: string | null;
+  timezone: NullableColumn<string>;
   created_at: GeneratedTimestamp;
   updated_at: GeneratedTimestamp;
   archived_at: NullableTimestamp;
@@ -47,11 +48,11 @@ export interface PlantsTable {
   id: GeneratedUuid;
   account_id: Uuid;
   common_name: string;
-  variety: string | null;
-  plant_category: string | null;
+  variety: NullableColumn<string>;
+  plant_category: NullableColumn<string>;
   lifecycle_type: string;
   growing_style: string;
-  notes: string | null;
+  notes: NullableColumn<string>;
   created_at: GeneratedTimestamp;
   updated_at: GeneratedTimestamp;
   archived_at: NullableTimestamp;
@@ -62,9 +63,9 @@ export interface PerennialsTable {
   account_id: Uuid;
   place_id: Uuid;
   plant_id: Uuid;
-  label: string | null;
-  planted_year: number | null;
-  notes: string | null;
+  label: NullableColumn<string>;
+  planted_year: NullableColumn<number>;
+  notes: NullableColumn<string>;
   status: string;
   created_at: GeneratedTimestamp;
   updated_at: GeneratedTimestamp;
@@ -76,8 +77,8 @@ export interface BedsTable {
   account_id: Uuid;
   place_id: Uuid;
   name: string;
-  description: string | null;
-  notes: string | null;
+  description: NullableColumn<string>;
+  notes: NullableColumn<string>;
   width_m: NullableNumericColumn;
   length_m: NullableNumericColumn;
   area_m2: NullableNumericColumn;
@@ -92,9 +93,9 @@ export interface PersistentBedPlantsTable {
   account_id: Uuid;
   bed_id: Uuid;
   plant_id: Uuid;
-  planted_year: number | null;
+  planted_year: NullableColumn<number>;
   quantity: NullableNumericColumn;
-  notes: string | null;
+  notes: NullableColumn<string>;
   status: string;
   created_at: GeneratedTimestamp;
   updated_at: GeneratedTimestamp;
@@ -108,7 +109,7 @@ export interface YearlyBedPlantingsTable {
   plant_id: Uuid;
   year: number;
   quantity: NullableNumericColumn;
-  notes: string | null;
+  notes: NullableColumn<string>;
   status: string;
   created_at: GeneratedTimestamp;
   updated_at: GeneratedTimestamp;
@@ -120,11 +121,11 @@ export interface ProductsTable {
   account_id: Uuid;
   name: string;
   category: string;
-  active_substance: string | null;
-  manufacturer: string | null;
-  formulation: string | null;
+  active_substance: NullableColumn<string>;
+  manufacturer: NullableColumn<string>;
+  formulation: NullableColumn<string>;
   default_unit: string;
-  notes: string | null;
+  notes: NullableColumn<string>;
   created_at: GeneratedTimestamp;
   updated_at: GeneratedTimestamp;
   archived_at: NullableTimestamp;
@@ -137,11 +138,11 @@ export interface ProductUsageRulesTable {
   plant_id: Uuid;
   dose_value: NumericColumn;
   dose_unit: string;
-  dilution_text: string | null;
-  application_method: string | null;
-  reapplication_interval_days: number | null;
-  quarantine_period_days: number | null;
-  notes: string | null;
+  dilution_text: NullableColumn<string>;
+  application_method: NullableColumn<string>;
+  reapplication_interval_days: NullableColumn<number>;
+  quarantine_period_days: NullableColumn<number>;
+  notes: NullableColumn<string>;
   created_at: GeneratedTimestamp;
   updated_at: GeneratedTimestamp;
   archived_at: NullableTimestamp;
@@ -156,8 +157,8 @@ export interface InventoryLotsTable {
   unit: string;
   purchase_date: NullableDateColumn;
   expiry_date: NullableDateColumn;
-  batch_number: string | null;
-  notes: string | null;
+  batch_number: NullableColumn<string>;
+  notes: NullableColumn<string>;
   created_at: GeneratedTimestamp;
   updated_at: GeneratedTimestamp;
   archived_at: NullableTimestamp;
@@ -166,11 +167,11 @@ export interface InventoryLotsTable {
 export interface ActivitiesTable {
   id: GeneratedUuid;
   account_id: Uuid;
-  place_id: Uuid | null;
+  place_id: NullableColumn<Uuid>;
   type: string;
   performed_at: ColumnType<Timestamp, Timestamp | string, Timestamp | string>;
   target_scope_type: string;
-  notes: string | null;
+  notes: NullableColumn<string>;
   created_at: GeneratedTimestamp;
   updated_at: GeneratedTimestamp;
 }
@@ -178,12 +179,12 @@ export interface ActivitiesTable {
 export interface TasksTable {
   id: GeneratedUuid;
   account_id: Uuid;
-  place_id: Uuid | null;
+  place_id: NullableColumn<Uuid>;
   type: string;
   due_date: DateColumn;
-  notes: string | null;
-  source_type: string | null;
-  source_reference_id: Uuid | null;
+  notes: NullableColumn<string>;
+  source_type: NullableColumn<string>;
+  source_reference_id: NullableColumn<Uuid>;
   target_scope_type: string;
   status: string;
   created_at: GeneratedTimestamp;
@@ -204,13 +205,13 @@ export interface ActivityProductUsagesTable {
   id: GeneratedUuid;
   activity_id: Uuid;
   product_id: Uuid;
-  product_usage_rule_id: Uuid | null;
+  product_usage_rule_id: NullableColumn<Uuid>;
   quantity_used: NumericColumn;
   unit: string;
   created_stock_movement: Generated<boolean>;
   created_quarantine: Generated<boolean>;
   created_followup_suggestion: Generated<boolean>;
-  notes: string | null;
+  notes: NullableColumn<string>;
   created_at: GeneratedTimestamp;
 }
 
@@ -218,13 +219,13 @@ export interface InventoryMovementsTable {
   id: GeneratedUuid;
   account_id: Uuid;
   product_id: Uuid;
-  inventory_lot_id: Uuid | null;
+  inventory_lot_id: NullableColumn<Uuid>;
   movement_type: string;
   quantity: NumericColumn;
   unit: string;
-  activity_id: Uuid | null;
+  activity_id: NullableColumn<Uuid>;
   occurred_at: ColumnType<Timestamp, Timestamp | string, Timestamp | string>;
-  notes: string | null;
+  notes: NullableColumn<string>;
   created_at: GeneratedTimestamp;
 }
 
@@ -237,11 +238,11 @@ export interface ProblemsTable {
   target_id: Uuid;
   title: string;
   description: string;
-  category: string | null;
-  severity: string | null;
+  category: NullableColumn<string>;
+  severity: NullableColumn<string>;
   status: string;
   observed_at: ColumnType<Timestamp, Timestamp | string, Timestamp | string>;
-  linked_activity_id: Uuid | null;
+  linked_activity_id: NullableColumn<Uuid>;
   created_at: GeneratedTimestamp;
   updated_at: GeneratedTimestamp;
 }
@@ -250,11 +251,11 @@ export interface ProblemPhotosTable {
   id: GeneratedUuid;
   problem_id: Uuid;
   storage_key: string;
-  original_filename: string | null;
-  mime_type: string | null;
+  original_filename: NullableColumn<string>;
+  mime_type: NullableColumn<string>;
   file_size_bytes: ColumnType<string | null, string | number | null | undefined, string | number | null>;
-  width_px: number | null;
-  height_px: number | null;
+  width_px: NullableColumn<number>;
+  height_px: NullableColumn<number>;
   created_at: GeneratedTimestamp;
 }
 
@@ -279,13 +280,13 @@ export interface TaskRemindersTable {
 export interface QuarantinePeriodsTable {
   id: GeneratedUuid;
   account_id: Uuid;
-  place_id: Uuid | null;
+  place_id: NullableColumn<Uuid>;
   activity_id: Uuid;
   activity_product_usage_id: Uuid;
   product_id: Uuid;
   starts_on: DateColumn;
   ends_on: DateColumn;
-  notes: string | null;
+  notes: NullableColumn<string>;
   created_at: GeneratedTimestamp;
 }
 
@@ -296,9 +297,9 @@ export interface WeatherEventsTable {
   related_entity_type: string;
   related_entity_id: Uuid;
   event_type: string;
-  forecasted_rain: boolean | null;
-  observed_rain: boolean | null;
-  user_confirmation_status: string | null;
+  forecasted_rain: NullableColumn<boolean>;
+  observed_rain: NullableColumn<boolean>;
+  user_confirmation_status: NullableColumn<string>;
   provider_payload: NullableJsonColumn;
   created_at: GeneratedTimestamp;
   updated_at: GeneratedTimestamp;
@@ -310,9 +311,9 @@ export interface AiSessionsTable {
   kind: string;
   input_mode: string;
   status: string;
-  raw_input_text: string | null;
-  related_entity_type: string | null;
-  related_entity_id: Uuid | null;
+  raw_input_text: NullableColumn<string>;
+  related_entity_type: NullableColumn<string>;
+  related_entity_id: NullableColumn<Uuid>;
   created_at: GeneratedTimestamp;
   updated_at: GeneratedTimestamp;
 }
@@ -322,7 +323,7 @@ export interface AiSuggestionsTable {
   ai_session_id: Uuid;
   suggestion_type: string;
   payload: JsonColumn;
-  accepted: boolean | null;
+  accepted: NullableColumn<boolean>;
   accepted_at: NullableTimestamp;
   created_at: GeneratedTimestamp;
 }
@@ -333,7 +334,7 @@ export interface PushSubscriptionsTable {
   endpoint: string;
   p256dh: string;
   auth: string;
-  user_agent: string | null;
+  user_agent: NullableColumn<string>;
   is_active: Generated<boolean>;
   created_at: GeneratedTimestamp;
   updated_at: GeneratedTimestamp;
@@ -343,7 +344,7 @@ export interface AuditLogsTable {
   id: GeneratedUuid;
   account_id: Uuid;
   actor_type: string;
-  actor_id: Uuid | null;
+  actor_id: NullableColumn<Uuid>;
   entity_type: string;
   entity_id: Uuid;
   action: string;

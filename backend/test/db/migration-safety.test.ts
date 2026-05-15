@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { databaseTargetFromUrl, resolveDatabaseConnectionSettings } from "../../src/db/database-config.js";
+import {
+  DatabaseConfigError,
+  databaseTargetFromUrl,
+  resolveDatabaseConnectionSettings
+} from "../../src/db/database-config.js";
 import {
   assertSafeMigrationTarget,
   assertSafeTestResetTarget,
@@ -32,6 +36,20 @@ describe("database target safety", () => {
       database: "garden_test",
       user: "garden_user"
     });
+  });
+
+  it("rejects URL targets without an explicit host or database name", () => {
+    expect(() => databaseTargetFromUrl("postgres://garden_user:secret@localhost:5432")).toThrow(DatabaseConfigError);
+    expect(() => databaseTargetFromUrl("postgresql:///garden_test")).toThrow(DatabaseConfigError);
+  });
+
+  it("rejects DATABASE_URL host override query parameters", () => {
+    expect(() => databaseTargetFromUrl("postgresql://localhost/garden_test?host=db.example.com")).toThrow(
+      DatabaseConfigError
+    );
+    expect(() => databaseTargetFromUrl("postgresql://localhost/garden_test?hostaddr=203.0.113.10")).toThrow(
+      DatabaseConfigError
+    );
   });
 
   it("prefers DATABASE_URL over discrete postgres settings", () => {
@@ -73,6 +91,40 @@ describe("database target safety", () => {
 
     expect(() =>
       assertSafeMigrationTarget({ host: "localhost", database: "garden_prod", user: "garden" }, { nodeEnv: "test" })
+    ).toThrow(UnsafeDatabaseTargetError);
+  });
+
+  it("treats private prefixes as private only for full IPv4 literals", () => {
+    expect(() =>
+      assertSafeMigrationTarget({ host: "127.0.0.1", database: "garden_test", user: "garden" }, { nodeEnv: "test" })
+    ).not.toThrow();
+    expect(() =>
+      assertSafeMigrationTarget({ host: "10.0.0.2", database: "garden_test", user: "garden" }, { nodeEnv: "test" })
+    ).not.toThrow();
+    expect(() =>
+      assertSafeMigrationTarget({ host: "192.168.1.2", database: "garden_test", user: "garden" }, { nodeEnv: "test" })
+    ).not.toThrow();
+    expect(() =>
+      assertSafeMigrationTarget({ host: "172.16.0.2", database: "garden_test", user: "garden" }, { nodeEnv: "test" })
+    ).not.toThrow();
+
+    expect(() =>
+      assertSafeMigrationTarget({ host: "127.example.com", database: "garden_test", user: "garden" }, { nodeEnv: "test" })
+    ).toThrow(UnsafeDatabaseTargetError);
+    expect(() =>
+      assertSafeMigrationTarget({ host: "10.evil.com", database: "garden_test", user: "garden" }, { nodeEnv: "test" })
+    ).toThrow(UnsafeDatabaseTargetError);
+    expect(() =>
+      assertSafeMigrationTarget(
+        { host: "192.168.attacker.tld", database: "garden_test", user: "garden" },
+        { nodeEnv: "test" }
+      )
+    ).toThrow(UnsafeDatabaseTargetError);
+    expect(() =>
+      assertSafeMigrationTarget(
+        { host: "172.16.example.com", database: "garden_test", user: "garden" },
+        { nodeEnv: "test" }
+      )
     ).toThrow(UnsafeDatabaseTargetError);
   });
 

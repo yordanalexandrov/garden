@@ -18,6 +18,11 @@ async function main(): Promise<void> {
 
   try {
     const applied = await applyBaselineMigrations(pool);
+    if (applied.length === 0) {
+      console.info("No pending baseline migrations");
+      return;
+    }
+
     console.info(`Applied baseline migrations: ${applied.map((migration) => migration.id).join(", ")}`);
   } finally {
     await pool.end();

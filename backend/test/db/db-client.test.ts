@@ -1,4 +1,4 @@
-import type { Selectable } from "kysely";
+import type { Insertable, Selectable } from "kysely";
 import { describe, expect, it } from "vitest";
 
 import { loadConfig } from "../../src/config/config.js";
@@ -39,8 +39,12 @@ describe("database client factory", () => {
 describe("typed database surface", () => {
   it("compiles representative baseline tables and views", () => {
     type AccountRow = Selectable<Database["accounts"]>;
+    type AccountInsert = Insertable<Database["accounts"]>;
     type BalanceRow = Selectable<Database["inventory_product_balances"]>;
 
+    const accountInsert: AccountInsert = {
+      id: "00000000-0000-0000-0000-000000000002"
+    };
     const account: AccountRow = {
       id: "00000000-0000-0000-0000-000000000001",
       email: "demo@example.com",
@@ -60,6 +64,7 @@ describe("typed database surface", () => {
       next_expiry_date: "2027-01-01"
     };
 
+    expect(accountInsert.id).toBe("00000000-0000-0000-0000-000000000002");
     expect(balance.account_id).toBe(account.id);
   });
 });

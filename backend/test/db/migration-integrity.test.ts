@@ -3,6 +3,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { loadConfig } from "../../src/config/config.js";
 import { createDbClient } from "../../src/db/db.js";
+import { applyBaselineMigrations, MIGRATIONS_TABLE_NAME } from "../../src/db/migrations/migrator.js";
 import {
   FixtureIds,
   insertActivity,
@@ -55,11 +56,27 @@ describeDatabase("phase 2 database migration integrity", () => {
     );
 
     expect(tables.rows.map((row) => row.table_name)).toEqual(
-      expect.arrayContaining(["accounts", "products", "inventory_lots", "activities", "tasks", "problem_photos"])
+      expect.arrayContaining([
+        MIGRATIONS_TABLE_NAME,
+        "accounts",
+        "products",
+        "inventory_lots",
+        "activities",
+        "tasks",
+        "problem_photos"
+      ])
     );
     expect(views.rows.map((row) => row.table_name)).toEqual(
       expect.arrayContaining(["inventory_product_balances", "activity_detail_view", "task_detail_view"])
     );
+  });
+
+  it("skips already applied baseline migrations on rerun", async () => {
+    const applied = await applyBaselineMigrations(pool);
+    const migrationRecords = await pool.query<{ count: string }>(`select count(*) from ${MIGRATIONS_TABLE_NAME}`);
+
+    expect(applied).toEqual([]);
+    expect(firstRow(migrationRecords).count).toBe("4");
   });
 
   it("applies seed data deterministically for local/dev/test use", async () => {

@@ -26,6 +26,7 @@ export class DatabaseConfigError extends Error {
 
 export function resolveDatabaseConnectionSettings(config: BackendOnlyConfig): DatabaseConnectionSettings {
   if (config.databaseUrl !== undefined) {
+    assertValidDatabaseUrl(config.databaseUrl);
     return { connectionString: config.databaseUrl };
   }
 
@@ -89,6 +90,31 @@ export function databaseTargetFromSettings(settings: DatabaseConnectionSettings)
 }
 
 export function databaseTargetFromUrl(databaseUrl: string): DatabaseTarget {
+  const parsed = parseDatabaseUrl(databaseUrl);
+  const database = databaseNameFromPath(parsed);
+
+  if (parsed.hostname === "") {
+    throw new DatabaseConfigError("DATABASE_URL must include an explicit host");
+  }
+
+  if (database === undefined) {
+    throw new DatabaseConfigError("DATABASE_URL must include an explicit database name");
+  }
+
+  rejectHostOverrideParameters(parsed);
+
+  return {
+    host: parsed.hostname,
+    database,
+    user: parsed.username === "" ? undefined : decodeURIComponent(parsed.username)
+  };
+}
+
+function assertValidDatabaseUrl(databaseUrl: string): void {
+  databaseTargetFromUrl(databaseUrl);
+}
+
+function parseDatabaseUrl(databaseUrl: string): URL {
   let parsed: URL;
 
   try {
@@ -101,9 +127,23 @@ export function databaseTargetFromUrl(databaseUrl: string): DatabaseTarget {
     throw new DatabaseConfigError("DATABASE_URL must use postgres:// or postgresql://");
   }
 
-  return {
-    host: parsed.hostname,
-    database: parsed.pathname === "" ? undefined : decodeURIComponent(parsed.pathname.slice(1)),
-    user: parsed.username === "" ? undefined : decodeURIComponent(parsed.username)
-  };
+  return parsed;
+}
+
+function databaseNameFromPath(parsed: URL): string | undefined {
+  if (parsed.pathname === "" || parsed.pathname === "/") {
+    return undefined;
+  }
+
+  return decodeURIComponent(parsed.pathname.slice(1));
+}
+
+function rejectHostOverrideParameters(parsed: URL): void {
+  for (const parameterName of parsed.searchParams.keys()) {
+    const normalized = parameterName.toLowerCase();
+
+    if (normalized === "host" || normalized === "hostaddr") {
+      throw new DatabaseConfigError("DATABASE_URL must not use host override query parameters");
+    }
+  }
 }

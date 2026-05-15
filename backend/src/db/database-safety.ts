@@ -1,3 +1,5 @@
+import { isIP } from "node:net";
+
 import type { AppConfig } from "../config/config.js";
 import type { DatabaseTarget } from "./database-config.js";
 
@@ -65,6 +67,10 @@ function containsToken(value: string | undefined, tokens: string[]): boolean {
 function isLocalOrPrivateHost(host: string): boolean {
   const normalized = host.toLowerCase();
 
+  if (normalized === "") {
+    return false;
+  }
+
   if (
     normalized === "localhost" ||
     normalized === "host.docker.internal" ||
@@ -72,6 +78,10 @@ function isLocalOrPrivateHost(host: string): boolean {
     normalized.endsWith(".local")
   ) {
     return true;
+  }
+
+  if (!isIpv4Literal(normalized)) {
+    return !normalized.includes(".");
   }
 
   if (/^127\./.test(normalized) || /^10\./.test(normalized) || /^192\.168\./.test(normalized)) {
@@ -84,5 +94,9 @@ function isLocalOrPrivateHost(host: string): boolean {
     return secondOctet >= 16 && secondOctet <= 31;
   }
 
-  return !normalized.includes(".");
+  return false;
+}
+
+function isIpv4Literal(host: string): boolean {
+  return isIP(host) === 4;
 }
