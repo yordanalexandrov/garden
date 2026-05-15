@@ -1,0 +1,116 @@
+import { isIP } from "node:net";
+
+import type { AppConfig } from "../config/config.js";
+import type { DatabaseTarget } from "./database-config.js";
+
+export class UnsafeDatabaseTargetError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "UnsafeDatabaseTargetError";
+  }
+}
+
+export type DatabaseSafetyOptions = {
+  nodeEnv: AppConfig["nodeEnv"] | undefined;
+  allowReset?: boolean;
+};
+
+export function assertSafeMigrationTarget(target: DatabaseTarget, options: DatabaseSafetyOptions): void {
+  if (options.nodeEnv === "production") {
+    throw new UnsafeDatabaseTargetError("Refusing to run database migrations when NODE_ENV=production");
+  }
+
+  if (hasProductionMarker(target)) {
+    throw new UnsafeDatabaseTargetError("Refusing to target a database name, host, or user marked as production");
+  }
+
+  if (!isLocalOrPrivateHost(target.host)) {
+    throw new UnsafeDatabaseTargetError("Database host must be local or private for backend migration commands");
+  }
+}
+
+export function assertSafeTestResetTarget(target: DatabaseTarget, options: DatabaseSafetyOptions): void {
+  assertSafeMigrationTarget(target, options);
+
+  if (options.allowReset === true) {
+    return;
+  }
+
+  if (!hasTestDatabaseMarker(target.database)) {
+    throw new UnsafeDatabaseTargetError(
+      "Refusing to reset database without a test/ci database name or ALLOW_TEST_DATABASE_RESET=true"
+    );
+  }
+}
+
+function hasProductionMarker(target: DatabaseTarget): boolean {
+  return [target.host, target.database, target.user].some((value) => containsToken(value, ["prod", "production"]));
+}
+
+function hasTestDatabaseMarker(database: string | undefined): boolean {
+  return containsToken(database, ["test", "testing", "ci"]);
+}
+
+function containsToken(value: string | undefined, tokens: string[]): boolean {
+  if (value === undefined) {
+    return false;
+  }
+
+  const valueTokens = value
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter((token) => token.length > 0);
+
+  return valueTokens.some((token) => tokens.includes(token));
+}
+
+function isLocalOrPrivateHost(host: string): boolean {
+  const normalized = stripIpv6Brackets(host.toLowerCase());
+
+  if (normalized === "") {
+    return false;
+  }
+
+  if (
+    normalized === "localhost" ||
+    normalized === "host.docker.internal" ||
+    normalized === "::1" ||
+    normalized.endsWith(".local")
+  ) {
+    return true;
+  }
+
+  const ipVersion = isIP(normalized);
+
+  if (ipVersion === 6) {
+    return isPrivateIpv6Literal(normalized);
+  }
+
+  if (ipVersion !== 4) {
+    return /^[a-z0-9-]+$/.test(normalized);
+  }
+
+  if (/^127\./.test(normalized) || /^10\./.test(normalized) || /^192\.168\./.test(normalized)) {
+    return true;
+  }
+
+  const private172 = normalized.match(/^172\.(\d+)\./);
+  if (private172?.[1] !== undefined) {
+    const secondOctet = Number(private172[1]);
+    return secondOctet >= 16 && secondOctet <= 31;
+  }
+
+  return false;
+}
+
+function stripIpv6Brackets(host: string): string {
+  if (host.startsWith("[") && host.endsWith("]")) {
+    return host.slice(1, -1);
+  }
+
+  return host;
+}
+
+function isPrivateIpv6Literal(host: string): boolean {
+  return host === "::1" || host.startsWith("fc") || host.startsWith("fd") || host.startsWith("fe80:");
+}
