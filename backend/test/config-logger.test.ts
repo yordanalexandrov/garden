@@ -14,6 +14,47 @@ describe("backend config loading", () => {
     expect(config.backendOnly.aiApiKey).toBeUndefined();
   });
 
+  it("loads valid backend-only database settings without exposing them as frontend-safe config", () => {
+    const config = loadConfig({
+      NODE_ENV: "test",
+      DATABASE_URL: "postgres://garden_user:secret@localhost:5432/garden_test",
+      POSTGRES_HOST: "localhost",
+      POSTGRES_PORT: "5432",
+      POSTGRES_DB: "garden_test",
+      POSTGRES_USER: "garden_user",
+      POSTGRES_PASSWORD: "secret"
+    });
+
+    expect(config.backendOnly.databaseUrl).toBe("postgres://garden_user:secret@localhost:5432/garden_test");
+    expect(config.backendOnly.postgresHost).toBe("localhost");
+    expect(config.backendOnly.postgresPort).toBe(5432);
+    expect(config.backendOnly.postgresDb).toBe("garden_test");
+    expect(config.backendOnly.postgresUser).toBe("garden_user");
+    expect(config.backendOnly.postgresPassword).toBe("secret");
+    expect(JSON.stringify(config.frontendSafe)).not.toContain("garden_user");
+    expect(JSON.stringify(config.frontendSafe)).not.toContain("secret");
+    expect(JSON.stringify(config.frontendSafe)).not.toContain("garden_test");
+  });
+
+  it("parses empty optional database settings as undefined", () => {
+    const config = loadConfig({
+      NODE_ENV: "test",
+      DATABASE_URL: "",
+      POSTGRES_HOST: " ",
+      POSTGRES_PORT: "",
+      POSTGRES_DB: "",
+      POSTGRES_USER: "",
+      POSTGRES_PASSWORD: ""
+    });
+
+    expect(config.backendOnly.databaseUrl).toBeUndefined();
+    expect(config.backendOnly.postgresHost).toBeUndefined();
+    expect(config.backendOnly.postgresPort).toBeUndefined();
+    expect(config.backendOnly.postgresDb).toBeUndefined();
+    expect(config.backendOnly.postgresUser).toBeUndefined();
+    expect(config.backendOnly.postgresPassword).toBeUndefined();
+  });
+
   it("rejects invalid NODE_ENV values", () => {
     expect(() => loadConfig({ NODE_ENV: "local" })).toThrow(ConfigError);
   });
@@ -29,6 +70,8 @@ describe("backend logger secret redaction", () => {
       expect.arrayContaining([
         "DATABASE_URL",
         "POSTGRES_PASSWORD",
+        "backendOnly.databaseUrl",
+        "backendOnly.postgresPassword",
         "SUPABASE_SERVICE_ROLE_KEY",
         "SUPABASE_JWT_SECRET",
         "VAPID_PRIVATE_KEY",
