@@ -773,11 +773,20 @@ No autonomous diagnosis wording.
 - notification settings / prompt state
 - app/account basics
 - place weather settings exposed by backend, if implemented
+- future MCP connection status and agent approval history only if MCP user-facing approvals are implemented
 
 ### Notifications settings section
 - current push permission status
 - enable/register action
 - re-register action if needed
+
+### Future MCP section
+If remote/app-user MCP approval is implemented later, settings may expose:
+- connected MCP clients
+- approval queue/status for high-impact agent actions
+- audit/history links for MCP-originated mutations
+
+This is not required for the initial local/dev MCP server.
 
 ---
 
@@ -979,6 +988,8 @@ All application data access goes through the Fastify API under `/api/v1`.
 The frontend may use Supabase Auth for login/session handling only.
 It must not use Supabase generated REST, SQL, or table APIs for Gardening Helper application data.
 Account scoping, authorization, validation, transactions and side effects are backend responsibilities.
+
+The normal Angular app must not call MCP tools as a substitute for first-party app APIs. MCP is an agent interface. Any future UI for MCP approvals or status must still rely on backend-owned authorization, audit and mutation workflows.
 
 ## 9.2.2 Problem photo access boundary
 Problem photo UI uses backend APIs.

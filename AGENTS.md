@@ -78,6 +78,7 @@ The application is:
 - self-hosted Supabase Postgres database
 - modular monolith
 - REST API under `/api/v1`
+- future MCP server for approved agent tooling, documented in `docs/gardening-helper-mcp-server-design-v1.md`
 - backend-owned business logic
 - repository + service + transaction abstraction
 - self-hosted Supabase Postgres/Auth/Storage behind backend ports/adapters
@@ -118,6 +119,8 @@ Always preserve these rules:
 - Weather is advisory and must not auto-fail treatments.
 - Problem photos are supported only for problems in v1.
 - Archive historical business records instead of hard-deleting them.
+- MCP tools are not a privileged bypass channel and must call backend services/API.
+- MCP mutation tools must preserve account scoping, confirmation rules, auditability, and domain invariants.
 
 ---
 

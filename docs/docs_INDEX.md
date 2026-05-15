@@ -43,6 +43,15 @@ These define what the product is and what v1 must support.
 
 ---
 
+# MCP / Agent Tooling
+
+- `gardening-helper-mcp-server-design-v1.md`
+- `MCP_TOOL_TEMPLATE.md`
+
+The MCP server is a future agent interface to existing Gardening Helper backend capabilities. MCP tools do not replace the required task documents, source-of-truth priority, domain invariants, review process, or test requirements.
+
+---
+
 # Production / deployment
 
 - `gardening-helper-production-checklist.md`
@@ -77,6 +86,8 @@ Use these as the schema baseline.
 5. Review Agent leaves comments.
 6. Implementation Agent fixes comments and replies.
 7. Repeat until approved.
+
+When MCP tools become available, agents may use them only as documented in `gardening-helper-mcp-server-design-v1.md`. MCP tool output is helper context, not source of truth when it conflicts with the domain rules, canonical API contract, task documents, or changed code under review.
 
 ---
 

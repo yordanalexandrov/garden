@@ -23,15 +23,16 @@ Before reviewing, read these files in order:
 3. `gardening-helper-domain-rules-and-invariants-v1.md`
 4. `gardening-helper-canonical-api-contract-v1.md`
 5. `gardening-helper-testing-and-acceptance-spec-v1.md`
-6. `gardening-helper-backend-application-design-pack-v1.md`
-7. `gardening-helper-technical-requirements-and-erd.md`
-8. SQL migrations:
+6. `gardening-helper-mcp-server-design-v1.md`
+7. `gardening-helper-backend-application-design-pack-v1.md`
+8. `gardening-helper-technical-requirements-and-erd.md`
+9. SQL migrations:
    - `001_initial_schema_gardening_helper.sql`
    - `002_views_gardening_helper.sql`
    - `003_seed_reference_data_gardening_helper.sql`
    - `004_guards_and_triggers_gardening_helper.sql`
-9. `gardening-helper-frontend-technical-spec-v1.md`
-10. Product/functional docs:
+10. `gardening-helper-frontend-technical-spec-v1.md`
+11. Product/functional docs:
    - `gardening-helper-product-scope.md`
    - `gardening_helper_functional_spec_v_1.md`
 
@@ -501,6 +502,33 @@ Blocking issues:
 - public PostgreSQL port
 - service role key in frontend env/build
 - direct Supabase table access replacing application API
+
+---
+
+## 6.11 MCP tool changes
+
+If PR touches MCP server code, MCP tool definitions, MCP docs, or backend behavior exposed through MCP, verify:
+
+- [ ] MCP tools do not bypass backend services or the canonical API
+- [ ] MCP write tools enforce authenticated account scoping
+- [ ] MCP does not trust model-provided `accountId`
+- [ ] high-impact tools require documented confirmation
+- [ ] tool schemas are typed, documented, and validated
+- [ ] tool outputs are structured and machine-readable
+- [ ] mutation tools return side-effect summaries
+- [ ] backend errors map to structured tool execution errors
+- [ ] MCP invocation/audit logging avoids secrets and sensitive payloads
+- [ ] tests cover safety and domain boundaries
+
+Blocking issues:
+
+- MCP tool writes directly to business tables instead of backend services/API
+- MCP mutation lacks account scoping
+- high-impact mutation can execute without required confirmation
+- MCP tool saves AI output as business truth without acceptance
+- MCP activity/inventory tool bypasses transaction or ledger rules
+- MCP exposes cross-account/global bulk actions
+- MCP exposes secrets, service role keys, unrestricted SQL, or private storage access
 
 ---
 

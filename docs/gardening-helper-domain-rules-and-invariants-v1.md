@@ -900,6 +900,26 @@ Required transactional endpoints:
 ## 23.5 Frontend must not depend on internal DB table names
 API DTO naming can follow camelCase while DB uses snake_case.
 
+## 23.6 MCP / agent tooling invariants
+MCP is not a privileged bypass channel.
+
+MCP tools must obey the same domain rules as the normal API/frontend flows:
+- all tool execution is authenticated and account-scoped
+- model-provided `accountId` is never authority
+- business mutations must go through backend services or the canonical API
+- no direct database writes for business mutations
+- no direct repository access from a separate MCP server
+- mutation tools must preserve auditability
+- high-impact operations require explicit user approval/confirmation
+- tool output must not be treated as business truth unless the backend committed it
+- agent-suggested data follows the same AI acceptance rules
+- weather remains advisory and user-confirmed
+- inventory remains ledger-based
+- activity/task bulk scopes must resolve to concrete target rows through backend logic
+
+MCP tools may help inspect data, prepare drafts, and call approved backend workflows.
+They must not silently create products, rules, planned tasks, inventory movements, AI-accepted data, weather confirmations, or activity side effects outside the existing service layer.
+
 ---
 
 # 24. Frontend invariants
@@ -1065,6 +1085,16 @@ Do not model stock as only one mutable quantity.
 ## 28.9 Treating calendar as source table
 Calendar is a read aggregation.
 
+## 28.10 MCP direct business bypass
+Do not implement MCP tools that bypass backend services/API for business mutations.
+
+Forbidden examples:
+- MCP tool directly updates inventory lot quantities
+- MCP tool directly inserts activity targets
+- MCP tool directly marks AI suggestions accepted and creates products outside `AiService`
+- MCP tool directly confirms tasks without reminder transaction logic
+- MCP tool runs unrestricted SQL supplied by an agent
+
 ---
 
 # 29. Priority invariants for v1 implementation
@@ -1081,6 +1111,7 @@ If implementation time is limited, protect these first:
 8. Problem photos only for problems
 9. AI acceptance boundary
 10. Weather confirmation boundary
+11. MCP tools preserve backend/API/domain boundaries
 
 Everything else is secondary compared to these.
 
@@ -1100,6 +1131,7 @@ The Gardening Helper v1 implementation is correct only if:
 - reminders exist only for planned tasks
 - weather prompts for confirmation, never decides alone
 - AI suggests, user accepts, backend validates
+- MCP tools are scoped agent interfaces, not privileged business backdoors
 - frontend displays intent and side effects clearly
 - database protects structural integrity
 - backend services own domain workflows

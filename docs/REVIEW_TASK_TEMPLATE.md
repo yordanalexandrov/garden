@@ -68,6 +68,20 @@ Task-specific focus:
 
 ---
 
+# MCP review focus
+
+Check if this PR:
+
+- [ ] changes an MCP tool
+- [ ] requires MCP docs update
+- [ ] exposes a mutation through MCP
+- [ ] preserves backend service boundaries
+- [ ] preserves account scoping
+- [ ] returns structured tool results
+- [ ] includes relevant MCP tests
+
+---
+
 # Required documents
 
 Read before reviewing:

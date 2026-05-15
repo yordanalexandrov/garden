@@ -948,6 +948,27 @@ Photo upload endpoint must:
 - reject oversized file according to config
 - reject upload to observation
 
+## 8.11 MCP tool contract tests
+
+When MCP tools are implemented, each exposed tool must test:
+
+- JSON Schema input validation
+- structured `structuredContent` output envelope
+- tool execution error shape and error code mapping
+- authenticated account context derivation
+- account scoping for read tools
+- backend error propagation
+- confirmation requirement for high-impact mutations
+- mutation side-effect summaries
+- no direct DB/repository bypass for business mutations
+- no forbidden automation
+
+At least one high-impact MCP mutation tool must have an integration test proving:
+- missing confirmation is rejected
+- confirmed execution calls the backend service/API path
+- domain side effects match the canonical API behavior
+- audit/log metadata is created or forwarded according to the audit policy
+
 ---
 
 # 9. Frontend acceptance tests
@@ -1345,6 +1366,18 @@ Acceptance:
 - upload endpoint validates file type/size
 - push subscription endpoints require auth
 
+## 12.5 MCP security and safety
+
+When MCP server functionality exists:
+- MCP server does not expose Supabase service role key or provider secrets
+- MCP HTTP transport is authenticated if enabled
+- local HTTP transport binds to localhost unless explicitly secured
+- Streamable HTTP deployments validate origin where browser-reachable
+- MCP tools enforce account scoping through backend services/API
+- high-impact MCP mutation tools require explicit confirmation
+- MCP mutation tools produce audit/log records and side-effect summaries
+- MCP does not expose unrestricted SQL or direct business table mutation
+
 ---
 
 # 13. Test coverage priorities
@@ -1369,6 +1402,7 @@ Acceptance:
 - persistent plant CRUD
 - frontend create activity UX
 - frontend create problem UX
+- MCP read tools and MCP error mapping if MCP is in scope
 
 ## P2 — useful but can be later
 - advanced filtering combinations
@@ -1376,6 +1410,7 @@ Acceptance:
 - notification send job provider behavior
 - image resizing/preview generation
 - AI confidence/warning display details
+- MCP prompts/resources if implemented later
 
 ---
 
@@ -1454,6 +1489,14 @@ The implementation is v1-acceptable only if all of the following work:
 - [ ] No hidden DB side-effect triggers create business records
 - [ ] Critical writes are transactional
 
+## MCP/agent tooling
+- [ ] MCP design doc is followed if MCP is implemented
+- [ ] MCP tools call backend services/API instead of direct DB writes
+- [ ] MCP read tools are account-scoped
+- [ ] MCP high-impact mutation tools require confirmation
+- [ ] MCP mutation tools return side-effect summaries
+- [ ] MCP tests cover schema, auth, error mapping and safety boundaries
+
 ---
 
 # 15. Implementation AI testing instructions
@@ -1474,6 +1517,7 @@ Any implementation AI should be instructed to:
 8. Keep test fixtures deterministic.
 9. Use API contract response shapes exactly.
 10. Treat this document as acceptance authority.
+11. If MCP tools are in scope, test the MCP tool contract and the backend workflow it exposes.
 
 ---
 
