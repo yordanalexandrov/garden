@@ -782,13 +782,56 @@ Critical workflow integration tests:
 
 ## Phase MCP-1 — Server foundation
 
-- create package/project structure
-- set up MCP SDK
-- implement auth/account context mechanism
-- implement typed backend API client/service adapter
-- implement error mapping
-- implement structured result envelope
-- implement `health.check`
+Goal: bootstrap an MCP server foundation without exposing business mutations or broad read access yet.
+
+Bootstrap steps:
+
+1. Create `apps/mcp-server` as a Node/TypeScript package aligned with the repo package manager and TypeScript conventions.
+2. Add the MCP SDK and a minimal stdio server entrypoint.
+3. Add config validation for:
+   - backend API base URL
+   - selected transport
+   - local auth/token source
+   - log level
+4. Do not commit credentials, user tokens, service tokens, Supabase service role keys, or example secrets.
+5. Implement `McpToolContext` creation.
+6. Derive actor/account context from the selected auth/session/config mechanism, not from tool input.
+7. Reject or ignore any model-provided `accountId` fields.
+8. Implement a typed `GardeningApiClient` with only the endpoints needed for bootstrap:
+   - `GET /health`
+9. Implement backend response envelope parsing and backend error envelope parsing.
+10. Implement MCP structured result helpers:
+    - success envelope
+    - tool execution error envelope
+    - correlation/request id propagation
+11. Implement sanitized logging for tool invocation metadata.
+12. Register only bootstrap-safe tools:
+    - `health.check`
+    - optionally `docs.search` / `api.contract.get` if the task explicitly includes local documentation tooling
+13. Add package scripts for:
+    - typecheck
+    - test
+    - local stdio run/dev
+14. Add tests for:
+    - config validation
+    - tool input schema validation
+    - `health.check` success
+    - backend error mapping
+    - structured output shape
+    - no accepted `accountId` tool input
+    - no secret values in logs
+15. Document exact local run instructions and auth assumptions.
+
+Phase MCP-1 must not expose:
+
+- `activities.create`
+- `tasks.confirm`
+- `tasks.dismiss`
+- `weather.confirm_rain`
+- inventory mutation tools
+- AI suggestion acceptance tools
+- direct SQL/admin mutation tools
+- broad dynamic endpoint-to-tool mapping
 
 ## Phase MCP-2 — Read tools
 
