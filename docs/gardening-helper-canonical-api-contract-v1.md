@@ -2072,6 +2072,38 @@ Frontend may display summaries but must not:
 ## 26.4 Backend must preserve user intent
 Bulk target scopes must be accepted as user intent and resolved into concrete target rows on backend.
 
+## 26.5 MCP/API compatibility rules
+MCP tools may expose canonical API behavior, but they must not redefine it.
+
+Safe initial API surfaces for MCP read tools:
+- `GET /health`
+- `GET /places`
+- `GET /places/:placeId`
+- `GET /plants`
+- `GET /places/:placeId/beds`
+- `GET /places/:placeId/perennials`
+- `GET /products`
+- `GET /inventory`
+- `GET /tasks`
+- `GET /calendar`
+
+Controlled mutation surfaces for later MCP tools:
+- `POST /tasks/:taskId/confirm`
+- `POST /tasks/:taskId/dismiss`
+- `POST /weather/events/:weatherEventId/confirm-rain`
+- `POST /activities`
+
+Mutation endpoints used by MCP must return enough structured data for agents and clients to show side effects:
+- created/updated entity ids
+- reminders created
+- inventory effects
+- quarantine periods
+- suggested tasks
+- warnings
+- backend request/correlation id where available
+
+MCP must not invent non-contract endpoints. If an MCP tool needs backend behavior missing from this contract, document the gap as an open decision or explicit API contract change before implementation.
+
 ---
 
 # 27. Idempotency and duplicate submission rules
@@ -2161,5 +2193,6 @@ The API must preserve these domain principles:
 - reminders exist only for planned tasks
 - quarantine periods are generated from treatment/product rule context
 - no hidden state should be treated as source of truth
+- MCP tools expose only documented backend behavior and must not bypass the canonical API/service boundary
 
 This document is the canonical API contract for Gardening Helper v1.

@@ -99,11 +99,35 @@ This task touches:
 - [ ] provider adapter boundary
 - [ ] worker/scheduler responsibility
 - [ ] deployment/security docs
+- [ ] MCP tools / agent interface
 
 Important rules to preserve:
 
 ```text
 <list exact rules relevant to this task>
+```
+
+---
+
+# MCP impact
+
+This task:
+
+- [ ] adds/changes MCP tool(s)
+- [ ] changes backend behavior used by MCP tools
+- [ ] requires MCP documentation update
+- [ ] has no MCP impact
+
+MCP tools affected:
+
+```text
+<tool names>
+```
+
+Required MCP documentation updates:
+
+```text
+<files/sections>
 ```
 
 ---

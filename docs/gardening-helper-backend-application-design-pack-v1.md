@@ -134,6 +134,162 @@ Hard rules:
 
 ---
 
+# 2.2 MCP server integration boundary
+
+Gardening Helper may expose a future MCP server for AI agents, but MCP is an agent interface, not a second business backend.
+
+Recommended initial repo/package structure:
+
+```text
+apps/
+  api/
+  web/
+  mcp-server/
+```
+
+Recommended initial MCP package structure:
+
+```text
+apps/mcp-server/
+  src/
+    server.ts
+    context.ts
+    api/
+      gardening-api-client.ts
+    tools/
+      health.tools.ts
+      docs.tools.ts
+      places.tools.ts
+      plants.tools.ts
+      beds.tools.ts
+      inventory.tools.ts
+      tasks.tools.ts
+      activities.tools.ts
+      weather.tools.ts
+    schemas/
+    errors/
+    observability/
+    tests/
+```
+
+If MCP is later embedded in the API process, this in-process structure is acceptable only if handlers remain service-mediated:
+
+```text
+src/
+  mcp/
+    server.ts
+    context.ts
+    tools/
+      places.tools.ts
+      plants.tools.ts
+      activities.tools.ts
+      tasks.tools.ts
+    schemas/
+    errors/
+```
+
+## MCP execution boundary
+
+Preferred initial pattern:
+
+```text
+MCP tool handler -> typed Gardening API client -> /api/v1 endpoint -> service -> repository/transaction
+```
+
+Allowed later, only inside the same backend process:
+
+```text
+MCP tool handler -> application service -> repository/transaction
+```
+
+Forbidden:
+
+```text
+MCP tool handler -> repository/direct SQL for business mutation
+```
+
+## `McpToolContext`
+
+Recommended context shape:
+
+```ts
+interface McpToolContext {
+  actor: {
+    userId: string;
+    accountId: string;
+    scopes: string[];
+  };
+  requestId: string;
+  transport: 'stdio' | 'streamable_http';
+  apiClient: GardeningApiClient;
+  logger: Logger;
+}
+```
+
+Rules:
+- `accountId` is derived from authentication/session/config, never from model arguments.
+- tool handlers pass authenticated requests to backend services/API.
+- tool handlers do not open transactions directly.
+- tool handlers do not import repositories in a separate MCP package.
+- tool handlers do not calculate inventory allocation, target resolution, quarantine, reminders, or AI acceptance outcomes.
+
+## API client / service adapter
+
+The initial MCP server should use a typed internal API client that:
+
+- calls canonical `/api/v1` endpoints only
+- attaches authenticated credentials according to the selected MCP auth model
+- preserves backend response and error envelopes
+- maps backend request ids into MCP structured results
+- never invents non-contract endpoints
+
+If an endpoint gap is found, document it as an open decision or API contract change. Do not silently add an MCP-only backend path.
+
+## Error mapping
+
+MCP tool execution errors should preserve backend error codes where possible:
+
+- `VALIDATION_ERROR`
+- `UNAUTHORIZED`
+- `NOT_FOUND`
+- `FORBIDDEN`
+- `CONFLICT`
+- `BUSINESS_RULE_VIOLATION`
+- `INVENTORY_SHORTAGE`
+- `EXTERNAL_SERVICE_ERROR`
+- `INTERNAL_ERROR`
+
+Malformed MCP requests and unknown tools are protocol errors. Backend validation and domain failures should be returned as structured MCP tool errors.
+
+## Tool registration pattern
+
+Each tool module should export:
+
+- tool definition metadata
+- JSON Schema input schema
+- output schema if supported
+- handler function receiving `McpToolContext`
+- test fixtures for schema and backend mapping
+
+Tool registration should be explicit and deterministic. Do not dynamically expose all backend endpoints as tools.
+
+## Testing pattern for tool handlers
+
+MCP tests should cover:
+
+- schema validation
+- auth/account context handling
+- backend API client call shape
+- backend error mapping
+- structured output envelope
+- confirmation behavior for mutations
+- no direct DB/repository bypass
+- mutation side-effect summaries where applicable
+
+High-impact MCP mutation tools must also have backend workflow tests before exposure.
+
+---
+
 # 3. Recommended backend module structure
 
 ```text

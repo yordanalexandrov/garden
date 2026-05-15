@@ -20,15 +20,16 @@ Before implementing, read these files in order:
 3. `gardening-helper-domain-rules-and-invariants-v1.md`
 4. `gardening-helper-canonical-api-contract-v1.md`
 5. `gardening-helper-testing-and-acceptance-spec-v1.md`
-6. `gardening-helper-backend-application-design-pack-v1.md`
-7. `gardening-helper-technical-requirements-and-erd.md`
-8. SQL migrations:
+6. `gardening-helper-mcp-server-design-v1.md`
+7. `gardening-helper-backend-application-design-pack-v1.md`
+8. `gardening-helper-technical-requirements-and-erd.md`
+9. SQL migrations:
    - `001_initial_schema_gardening_helper.sql`
    - `002_views_gardening_helper.sql`
    - `003_seed_reference_data_gardening_helper.sql`
    - `004_guards_and_triggers_gardening_helper.sql`
-9. `gardening-helper-frontend-technical-spec-v1.md`
-10. Product/functional docs:
+10. `gardening-helper-frontend-technical-spec-v1.md`
+11. Product/functional docs:
    - `gardening-helper-product-scope.md`
    - `gardening_helper_functional_spec_v_1.md`
 
@@ -84,6 +85,23 @@ Implementation agents must:
 - use Open-Meteo through `WeatherPort`
 - use raw Web Push through `PushPort`
 - keep worker/scheduler responsibility explicit for reminders and weather checks
+
+---
+
+# 1.3 MCP tools
+
+If MCP tools are available, you may use them only as documented in `gardening-helper-mcp-server-design-v1.md`.
+
+Rules:
+
+- MCP tools do not replace reading the required docs.
+- MCP tool output is not source of truth if it conflicts with source-of-truth documents, task scope, changed code, or tests.
+- Mutation tools must be used only inside the assigned task scope.
+- Do not use MCP tools to bypass review, tests, or domain rules.
+- Do not rely on MCP tools to perform hidden database changes.
+- Do not use MCP tools that directly mutate database tables for business workflows.
+- High-impact MCP mutation tools require the documented confirmation behavior.
+- Treat MCP-originated data as helper context unless the backend has committed it through a canonical workflow.
 
 ---
 
