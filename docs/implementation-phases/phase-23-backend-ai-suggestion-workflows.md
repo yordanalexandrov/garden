@@ -100,7 +100,7 @@ Request/response shapes to preserve:
 - Reject response returns `{ rejected: true }`.
 - Errors use canonical envelope.
 
-Status/enum values:
+Schema/domain constrained values:
 
 - AI session kind: `product_ingestion`, `bed_planning`, `problem_assist`.
 - AI suggestion type: `product`, `product_rule`, `bed_plan`, `problem_summary`, `followup_questions`.

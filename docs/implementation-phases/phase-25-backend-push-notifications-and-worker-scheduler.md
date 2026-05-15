@@ -82,7 +82,7 @@ Endpoints involved:
 
 Request/response shapes to preserve:
 
-- Register request uses `endpoint`, `keys.p256dh`, `keys.auth`, and optional `userAgent`.
+- Register request uses `endpoint`, `keys.p256dh`, `keys.auth`, and `userAgent` as shown in the canonical API contract.
 - Register response returns `{ data: { registered: true } }`.
 - List response returns active subscriptions.
 - Deactivate response should use canonical success envelope.

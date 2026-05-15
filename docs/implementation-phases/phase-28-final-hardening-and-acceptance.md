@@ -102,7 +102,7 @@ It must verify:
 - Request shapes match the canonical contract.
 - Response envelopes use `{ data: ... }`.
 - Error envelopes use `{ error: { code, message, details } }`.
-- List endpoints use `{ data: { items, page, pageSize, total } }`.
+- List endpoints match the per-endpoint canonical contract shape; paginated list endpoints use `{ data: { items, page, pageSize, total } }`.
 - Critical mutation responses include required side-effect summaries.
 - Enum/status values match the canonical values.
 - Auth requirements match the contract, with health unauthenticated and business endpoints protected.
