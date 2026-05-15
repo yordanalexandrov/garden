@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { successEnvelope } from "../shared/api/envelope.js";
 import { AppError } from "../shared/errors/app-error.js";
+import { requireActor, hasAuthDecorator } from "../modules/auth/request-actor.js";
 import { validateRequest } from "../shared/validation/request-validation.js";
 
 const validationFixtureSchemas = {
@@ -32,6 +33,20 @@ export const registerTestRoutes: FastifyPluginCallback = (app, _options, done) =
   app.get("/unexpected-error", () => {
     throw new Error("raw unexpected fixture error should not leak");
   });
+
+  if (hasAuthDecorator(app)) {
+    app.get("/protected-auth", { preHandler: app.authenticate }, (request) => {
+      const actor = requireActor(request);
+
+      return successEnvelope({
+        userId: actor.userId,
+        accountId: actor.accountId,
+        accountEmail: actor.account.email,
+        provider: actor.provider,
+        scopes: actor.scopes
+      });
+    });
+  }
 
   done();
 };

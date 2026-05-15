@@ -135,8 +135,9 @@ When acting as Implementation Agent:
 5. Add/update relevant tests.
 6. Run available checks.
 7. Commit focused changes.
-8. Prepare a clear PR description.
-9. Respond to Review Agent comments with specific fixes or justified rejections.
+8. Open a PR before considering each implementation phase complete.
+9. Prepare a clear PR description.
+10. Respond to Review Agent comments with specific fixes or justified rejections.
 
 Do not:
 - redesign the schema/API/product
