@@ -229,25 +229,23 @@ Implement:
 - database connection
 - transaction helper
 - migration runner/instructions
+- MCP server bootstrap foundation:
+  - `apps/mcp-server` package structure
+  - MCP SDK and minimal stdio entrypoint
+  - config validation without committed secrets
+  - `McpToolContext` and authenticated account-context derivation
+  - typed backend API client for `GET /health`
+  - structured result/error helpers
+  - `health.check`
+  - bootstrap tests
 - frontend app shell
 - frontend routing
 - frontend API client base
 - global error display
 
-Do not start AI/weather features here.
+Do not start AI/weather features or MCP business tools here.
 
-If an assigned Phase 1 task explicitly includes MCP bootstrap, keep it limited to the MCP server foundation documented in `gardening-helper-mcp-server-design-v1.md` Phase MCP-1:
-
-- create `apps/mcp-server` package structure
-- add MCP SDK and minimal stdio entrypoint
-- add config validation without committed secrets
-- add `McpToolContext` and authenticated account-context derivation
-- add typed backend API client for `GET /health`
-- add structured result/error helpers
-- register `health.check` only unless docs tooling is explicitly assigned
-- add bootstrap tests for schema/config/error mapping/output shape
-
-Do not expose MCP business read tools or mutation tools during Phase 1 unless the task explicitly scopes that work and the MCP design requirements are satisfied.
+For the Phase 1 MCP item, follow `gardening-helper-mcp-server-design-v1.md` Phase MCP-1. Register `health.check` only unless docs tooling is explicitly assigned. Do not expose MCP business read tools or mutation tools during Phase 1 unless the task explicitly scopes that work and the MCP design requirements are satisfied.
 
 ---
 

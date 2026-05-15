@@ -570,19 +570,18 @@ Implement in this order:
 - standard API response/error handling
 - shared DTO/enums
 - validation setup
+- MCP server bootstrap foundation from `gardening-helper-mcp-server-design-v1.md` Phase MCP-1:
+  - `apps/mcp-server` package skeleton
+  - MCP SDK setup
+  - minimal stdio server entrypoint
+  - config validation with no committed secrets
+  - authenticated `McpToolContext`
+  - typed backend API client for `GET /health`
+  - structured result/error helpers
+  - `health.check`
+  - bootstrap tests
 
-If the assigned Phase 1 task includes MCP bootstrap, implement only the foundation from `gardening-helper-mcp-server-design-v1.md` Phase MCP-1:
-- `apps/mcp-server` package skeleton
-- MCP SDK setup
-- minimal stdio server entrypoint
-- config validation with no committed secrets
-- authenticated `McpToolContext`
-- typed backend API client for `GET /health`
-- structured result/error helpers
-- `health.check`
-- bootstrap tests
-
-Do not expose MCP business read tools or mutation tools as part of generic Phase 1 foundation work.
+Do not expose MCP business read tools or mutation tools as part of Phase 1 foundation work.
 
 ## Phase 2 — basic domain CRUD
 - places

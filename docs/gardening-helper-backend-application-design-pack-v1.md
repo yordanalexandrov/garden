@@ -1907,6 +1907,7 @@ Define:
 - error classes
 - db transaction abstraction
 - repository interfaces
+- MCP server bootstrap package and `health.check` tool shell, if the repo is ready for multi-app structure
 
 ## Step 2
 Implement repositories for:
