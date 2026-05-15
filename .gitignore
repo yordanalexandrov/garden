@@ -11,6 +11,9 @@
 /node_modules/
 /package-lock.json
 /yarn.lock
+backend/node_modules/
+backend/dist/
+backend/coverage/
 
 # Environment files
 /.env
