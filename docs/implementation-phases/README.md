@@ -2,7 +2,7 @@
 
 These files expand `IMPLEMENTATION_PHASES.md` into one detailed specification per implementation phase. They are meant to make each phase implementation-ready by capturing purpose, scope, source documents, domain/API/database impacts, design notes, tests, review focus, risks, and exit criteria.
 
-These files are detailed phase specs, not executable implementation steps yet. Use them as inputs when creating future Implementation Agent tasks from `docs/TASK_TEMPLATE.md` and Review Agent tasks from `docs/REVIEW_TASK_TEMPLATE.md`.
+The top-level `phase-XX-...md` files are detailed phase specs, not executable implementation steps. When a phase has already been converted into implementation tasks, those executable task files live in a phase-specific subfolder such as `phase-01/`. Use the top-level phase specs as inputs when creating future Implementation Agent tasks from `docs/TASK_TEMPLATE.md` and Review Agent tasks from `docs/REVIEW_TASK_TEMPLATE.md`.
 
 ## Phase Files
 
@@ -105,4 +105,4 @@ To create a review task:
 
 ## Important Warning
 
-These phase files intentionally do not contain executable step-by-step implementation tasks. They define the detailed implementation-ready scope and guardrails for each phase. A separate follow-up planning task should convert one phase at a time into smaller executable work items.
+The top-level phase files intentionally do not contain executable step-by-step implementation tasks. They define the detailed implementation-ready scope and guardrails for each phase. A separate follow-up planning task should convert one phase at a time into smaller executable work items in a phase-specific subfolder, as already done for Phase 1 in `phase-01/`.
