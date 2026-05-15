@@ -2,6 +2,8 @@ import type { PoolConfig } from "pg";
 
 import type { BackendOnlyConfig } from "../config/config.js";
 
+const TARGET_OVERRIDE_PARAMETERS = new Set(["host", "hostaddr", "database", "dbname", "user", "password", "port"]);
+
 export type DatabaseConnectionSettings = {
   connectionString?: string;
   host?: string;
@@ -142,8 +144,8 @@ function rejectHostOverrideParameters(parsed: URL): void {
   for (const parameterName of parsed.searchParams.keys()) {
     const normalized = parameterName.toLowerCase();
 
-    if (normalized === "host" || normalized === "hostaddr") {
-      throw new DatabaseConfigError("DATABASE_URL must not use host override query parameters");
+    if (TARGET_OVERRIDE_PARAMETERS.has(normalized)) {
+      throw new DatabaseConfigError("DATABASE_URL must not use target override query parameters");
     }
   }
 }

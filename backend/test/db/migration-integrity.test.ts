@@ -3,7 +3,11 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { loadConfig } from "../../src/config/config.js";
 import { createDbClient } from "../../src/db/db.js";
-import { applyBaselineMigrations, MIGRATIONS_TABLE_NAME } from "../../src/db/migrations/migrator.js";
+import {
+  applyBaselineMigrations,
+  MIGRATIONS_TABLE_NAME,
+  resetPublicSchema
+} from "../../src/db/migrations/migrator.js";
 import {
   FixtureIds,
   insertActivity,
@@ -76,6 +80,16 @@ describeDatabase("phase 2 database migration integrity", () => {
     const migrationRecords = await pool.query<{ count: string }>(`select count(*) from ${MIGRATIONS_TABLE_NAME}`);
 
     expect(applied).toEqual([]);
+    expect(firstRow(migrationRecords).count).toBe("4");
+  });
+
+  it("serializes concurrent baseline migration runs with an advisory lock", async () => {
+    await resetPublicSchema(pool);
+
+    const [first, second] = await Promise.all([applyBaselineMigrations(pool), applyBaselineMigrations(pool)]);
+    const migrationRecords = await pool.query<{ count: string }>(`select count(*) from ${MIGRATIONS_TABLE_NAME}`);
+
+    expect([first.length, second.length].sort()).toEqual([0, 4]);
     expect(firstRow(migrationRecords).count).toBe("4");
   });
 

@@ -65,7 +65,7 @@ function containsToken(value: string | undefined, tokens: string[]): boolean {
 }
 
 function isLocalOrPrivateHost(host: string): boolean {
-  const normalized = host.toLowerCase();
+  const normalized = stripIpv6Brackets(host.toLowerCase());
 
   if (normalized === "") {
     return false;
@@ -80,8 +80,14 @@ function isLocalOrPrivateHost(host: string): boolean {
     return true;
   }
 
-  if (!isIpv4Literal(normalized)) {
-    return !normalized.includes(".");
+  const ipVersion = isIP(normalized);
+
+  if (ipVersion === 6) {
+    return isPrivateIpv6Literal(normalized);
+  }
+
+  if (ipVersion !== 4) {
+    return /^[a-z0-9-]+$/.test(normalized);
   }
 
   if (/^127\./.test(normalized) || /^10\./.test(normalized) || /^192\.168\./.test(normalized)) {
@@ -97,6 +103,14 @@ function isLocalOrPrivateHost(host: string): boolean {
   return false;
 }
 
-function isIpv4Literal(host: string): boolean {
-  return isIP(host) === 4;
+function stripIpv6Brackets(host: string): string {
+  if (host.startsWith("[") && host.endsWith("]")) {
+    return host.slice(1, -1);
+  }
+
+  return host;
+}
+
+function isPrivateIpv6Literal(host: string): boolean {
+  return host === "::1" || host.startsWith("fc") || host.startsWith("fd") || host.startsWith("fe80:");
 }

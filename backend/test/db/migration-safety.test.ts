@@ -43,13 +43,23 @@ describe("database target safety", () => {
     expect(() => databaseTargetFromUrl("postgresql:///garden_test")).toThrow(DatabaseConfigError);
   });
 
-  it("rejects DATABASE_URL host override query parameters", () => {
+  it("rejects DATABASE_URL target override query parameters", () => {
     expect(() => databaseTargetFromUrl("postgresql://localhost/garden_test?host=db.example.com")).toThrow(
       DatabaseConfigError
     );
     expect(() => databaseTargetFromUrl("postgresql://localhost/garden_test?hostaddr=203.0.113.10")).toThrow(
       DatabaseConfigError
     );
+    expect(() => databaseTargetFromUrl("postgresql://localhost/garden_test?database=garden_prod")).toThrow(
+      DatabaseConfigError
+    );
+    expect(() => databaseTargetFromUrl("postgresql://localhost/garden_test?user=prod_user")).toThrow(
+      DatabaseConfigError
+    );
+    expect(() => databaseTargetFromUrl("postgresql://localhost/garden_test?password=secret")).toThrow(
+      DatabaseConfigError
+    );
+    expect(() => databaseTargetFromUrl("postgresql://localhost/garden_test?port=5433")).toThrow(DatabaseConfigError);
   });
 
   it("prefers DATABASE_URL over discrete postgres settings", () => {
@@ -123,6 +133,31 @@ describe("database target safety", () => {
     expect(() =>
       assertSafeMigrationTarget(
         { host: "172.16.example.com", database: "garden_test", user: "garden" },
+        { nodeEnv: "test" }
+      )
+    ).toThrow(UnsafeDatabaseTargetError);
+  });
+
+  it("rejects public IPv6 literals while allowing loopback and private IPv6 literals", () => {
+    expect(() =>
+      assertSafeMigrationTarget({ host: "::1", database: "garden_test", user: "garden" }, { nodeEnv: "test" })
+    ).not.toThrow();
+    expect(() =>
+      assertSafeMigrationTarget({ host: "[fd00::1]", database: "garden_test", user: "garden" }, { nodeEnv: "test" })
+    ).not.toThrow();
+    expect(() =>
+      assertSafeMigrationTarget({ host: "fe80::1", database: "garden_test", user: "garden" }, { nodeEnv: "test" })
+    ).not.toThrow();
+
+    expect(() =>
+      assertSafeMigrationTarget(
+        { host: "2001:4860:4860::8888", database: "garden_test", user: "garden" },
+        { nodeEnv: "test" }
+      )
+    ).toThrow(UnsafeDatabaseTargetError);
+    expect(() =>
+      assertSafeMigrationTarget(
+        { host: "[2001:4860:4860::8888]", database: "garden_test", user: "garden" },
         { nodeEnv: "test" }
       )
     ).toThrow(UnsafeDatabaseTargetError);
