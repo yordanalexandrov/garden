@@ -52,19 +52,48 @@ Document the `structuredContent` shape.
 
 ```json
 {
-  "type": "object",
-  "additionalProperties": false,
-  "properties": {
-    "ok": { "type": "boolean" },
-    "tool": { "type": "string" },
-    "correlationId": { "type": "string" },
-    "data": { "type": "object" },
-    "sideEffects": { "type": "array" },
-    "warnings": { "type": "array" }
-  },
-  "required": ["ok", "tool", "correlationId", "data"]
+  "oneOf": [
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ok": { "const": true },
+        "tool": { "type": "string" },
+        "correlationId": { "type": "string" },
+        "data": { "type": "object" },
+        "sideEffects": { "type": "array", "items": { "type": "object" } },
+        "warnings": { "type": "array", "items": { "type": "object" } }
+      },
+      "required": ["ok", "tool", "correlationId", "data", "sideEffects", "warnings"]
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ok": { "const": false },
+        "tool": { "type": "string" },
+        "correlationId": { "type": "string" },
+        "error": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "code": { "type": "string" },
+            "message": { "type": "string" },
+            "details": { "type": "object" },
+            "retryable": { "type": "boolean" }
+          },
+          "required": ["code", "message", "retryable"]
+        },
+        "sideEffects": { "type": "array", "items": { "type": "object" } },
+        "warnings": { "type": "array", "items": { "type": "object" } }
+      },
+      "required": ["ok", "tool", "correlationId", "error", "sideEffects", "warnings"]
+    }
+  ]
 }
 ```
+
+Return `sideEffects` and `warnings` as arrays in both success and error results. Use empty arrays when there are no entries.
 
 ## Domain rules affected
 
