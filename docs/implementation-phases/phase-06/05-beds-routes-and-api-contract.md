@@ -55,6 +55,7 @@ Implement only:
 - [ ] Return canonical error envelopes through existing app error handling.
 - [ ] Preserve list pagination envelope with `items`, `page`, `pageSize`, and `total`.
 - [ ] Include `currentContents` in list responses and selected-year `persistentPlants`/`yearlyPlantings` in detail responses according to the canonical API.
+- [ ] Include contract-required bed detail `recentActivities` and `openProblems` arrays as empty arrays in Phase 6; do not implement activity or problem modules here.
 - [ ] Add API route tests for success, validation, auth, account scope, selected-year contents, and response shape.
 
 Expected paths, unless existing code clearly establishes a better equivalent:
@@ -226,7 +227,7 @@ Specific test cases:
 4. Bed list honors explicit `year` and returns yearly contents for that year only.
 5. `POST /places/:placeId/beds` creates an account-scoped bed and returns `{ data: { id } }`.
 6. Create rejects cross-account `placeId`.
-7. Detail returns selected-year persistent and yearly contents in canonical camelCase shape.
+7. Detail returns selected-year persistent/yearly contents plus `recentActivities` and `openProblems` arrays in canonical camelCase shape.
 8. Detail returns `NOT_FOUND` or the existing inaccessible-resource policy for account B bed.
 9. Patch rejects zero/negative dimensions and invalid status.
 10. Archive preserves the row and excludes it from default active list behavior.
@@ -243,6 +244,7 @@ The task is complete when:
 - [ ] Request validation and DTO mapping match the canonical API contract.
 - [ ] List responses use canonical pagination envelope.
 - [ ] Bed list/detail returns selected-year contents without mutating historical rows.
+- [ ] Bed detail preserves the canonical response shape, including empty `recentActivities` and `openProblems` arrays in Phase 6.
 - [ ] Errors use canonical error envelope.
 - [ ] Account-scope and cross-account tests pass.
 - [ ] No plantings routes, frontend, provider, MCP, or schema work is introduced.
@@ -284,4 +286,3 @@ PR description must include:
 # Notes for Implementation Agent
 
 Do not redesign the product.
-

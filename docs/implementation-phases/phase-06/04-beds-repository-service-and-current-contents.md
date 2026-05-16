@@ -236,6 +236,8 @@ updatedAt
 archivedAt
 ```
 
+`recentActivities` and `openProblems` preserve the canonical bed detail response shape. In Phase 6 they must be returned as empty arrays/placeholders; do not introduce activity or problem module dependencies in this step.
+
 List responses must be backed by `{ items, page, pageSize, total }`.
 
 ---
@@ -320,4 +322,3 @@ PR description must include:
 # Notes for Implementation Agent
 
 Do not redesign the product.
-

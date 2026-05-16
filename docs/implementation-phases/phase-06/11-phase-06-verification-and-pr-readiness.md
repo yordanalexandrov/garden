@@ -242,6 +242,7 @@ Mutations use { data: { id } } or the existing canonical mutation envelope.
 Errors use { error: { code, message, details } }.
 Perennials use plantId, label, plantedYear, notes, status, and plantName in reads.
 Beds use name, description, notes, widthM, lengthM, areaM2, status, and selected-year contents.
+Bed detail responses include `recentActivities` and `openProblems` as contract-required arrays; Phase 6 may return them empty.
 Persistent bed plants use plantId, plantedYear, quantity, notes, and status.
 Yearly bed plantings use plantId, year, quantity, notes, and status.
 Status values match the canonical API and SQL checks.
@@ -271,7 +272,7 @@ Specific test cases:
 3. Archive behavior is tested for perennials, beds, persistent bed plants, and yearly bed plantings.
 4. Validation failures are tested for statuses, years, dimensions, and quantities.
 5. Parent/child consistency is tested for place, bed, and plant references.
-6. Bed list/detail selected-year contents are tested.
+6. Bed list/detail selected-year contents are tested, including empty `recentActivities` and `openProblems` arrays on bed detail.
 7. Duplicate same bed/plant/year yearly plantings are tested and allowed.
 8. List pagination/envelope shape is tested where endpoints are paginated.
 9. Phase 6 checks prove no frontend direct DB access, provider-call drift, target resolver, activity, inventory, problem, task, MCP, schema redesign, or hard-delete behavior was introduced.
@@ -365,4 +366,3 @@ Implemented backend growing structure APIs.
 Do not redesign the product.
 
 Do not claim tests passed unless they were actually run.
-

@@ -195,7 +195,8 @@ Request/response must follow:
 Yearly bed planting route behavior must include:
 
 ```text
-List query: year required or defaulted to current year consistently with the canonical API; status optional; page and pageSize if list pagination is implemented.
+List query: year required or defaulted to current year consistently with the canonical API; status optional; page and pageSize optional with canonical defaults page=1 and pageSize=20.
+List response: always return the canonical pagination envelope { data: { items, page, pageSize, total } }.
 Create body: plantId, year, quantity, notes, status.
 Update body: only editable yearly planting fields; reject invalid status, negative quantity, and invalid years.
 Duplicate same bed/plant/year rows must be accepted.
@@ -283,4 +284,3 @@ PR description must include:
 # Notes for Implementation Agent
 
 Do not redesign the product.
-
