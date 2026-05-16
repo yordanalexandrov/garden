@@ -53,7 +53,7 @@ Implement only:
 - [ ] Add an API base URL config defaulting to `/api/v1`.
 - [ ] Add a centralized API client/wrapper around Angular `HttpClient`.
 - [ ] Keep raw `HttpClient` usage inside `core/api` and interceptor infrastructure.
-- [ ] Add a `GET /health` client method only as a smoke-test endpoint.
+- [ ] Add a `GET /api/v1/health` client method only as a smoke-test endpoint.
 - [ ] Add an auth token interceptor that attaches `Authorization: Bearer <access_token>` to Fastify API calls when a token exists.
 - [ ] Ensure the auth token interceptor omits the header when no token exists.
 - [ ] Ensure the auth token interceptor does not attach tokens to non-API or Supabase Auth requests.
@@ -78,7 +78,7 @@ frontend/src/app/core/interceptors/*.spec.ts
 
 Do not implement:
 
-- [ ] domain API services beyond `GET /health` smoke support.
+- [ ] domain API services beyond `GET /api/v1/health` smoke support.
 - [ ] backend endpoint changes except narrowly scoped CORS/dev compatibility if a real blocker is documented.
 - [ ] business forms or feature workflows.
 - [ ] frontend business logic or side-effect decisions.
