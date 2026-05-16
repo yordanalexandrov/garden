@@ -133,7 +133,7 @@ Account consistency is mandatory.
 Yearly bed plantings are calendar-year based.
 A bed can contain multiple plantings in the same year.
 Duplicate same plant/bed/year rows are allowed.
-Yearly_bed_planting.account_id must match bed.account_id and plant.account_id.
+yearly_bed_plantings.account_id must match bed.account_id and plant.account_id.
 Historical bed occupancy must remain readable.
 Archive historical business records instead of hard-deleting them.
 Repositories only access data.
@@ -318,4 +318,3 @@ PR description must include:
 # Notes for Implementation Agent
 
 Do not redesign the product.
-

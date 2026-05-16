@@ -131,7 +131,7 @@ Cross-account access is forbidden.
 Account consistency is mandatory.
 Persistent bed plants stay until explicitly removed or archived.
 Persistent bed plants must not be automatically removed when year changes.
-Persistent_bed_plant.account_id must match bed.account_id and plant.account_id.
+persistent_bed_plants.account_id must match bed.account_id and plant.account_id.
 Historical bed occupancy must remain readable.
 Archive historical business records instead of hard-deleting them.
 Repositories only access data.
@@ -311,4 +311,3 @@ PR description must include:
 # Notes for Implementation Agent
 
 Do not redesign the product.
-
