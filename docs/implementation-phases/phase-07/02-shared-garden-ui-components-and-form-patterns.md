@@ -98,6 +98,7 @@ Read before coding:
 - [ ] `docs/gardening-helper-canonical-api-contract-v1.md`
 - [ ] `docs/gardening-helper-testing-and-acceptance-spec-v1.md`
 - [ ] `docs/gardening-helper-frontend-technical-spec-v1.md`
+- [ ] `docs/implementation-phases/phase-06-backend-growing-structure-api.md`
 - [ ] `docs/implementation-phases/phase-07-frontend-garden-structure-pages.md`
 - [ ] `docs/implementation-phases/phase-07/01-garden-structure-api-services-and-feature-scaffold.md`
 - [ ] `docs/TASK_TEMPLATE.md`
@@ -158,6 +159,15 @@ Implement:
 - [ ] year selector
 - [ ] status display/control helpers
 - [ ] tests
+
+Status helpers must expose only the Phase 6 allowed values:
+
+```text
+perennials: active, removed, dead, archived
+beds: active, removed, archived
+persistent bed plants: active, removed, archived
+yearly bed plantings: planned, planted, removed, harvested, archived
+```
 
 Remove or ignore template items that are not relevant.
 
@@ -261,4 +271,3 @@ PR description must include:
 # Notes for Implementation Agent
 
 Do not redesign the product.
-

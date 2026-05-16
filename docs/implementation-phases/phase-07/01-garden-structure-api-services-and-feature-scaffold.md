@@ -65,7 +65,6 @@ frontend/src/app/features/plants/
 frontend/src/app/features/perennials/
 frontend/src/app/features/beds/
 frontend/src/app/features/plantings/
-frontend/src/app/features/garden-structure/
 frontend/src/app/shared/components/
 frontend/src/app/shared/forms/
 frontend/src/app/core/api/
@@ -241,7 +240,7 @@ Specific test cases:
 3. Perennials API service uses nested place list/create paths and direct detail/update/archive paths.
 4. Beds API service uses nested place list/create paths and direct detail/update/archive paths.
 5. Persistent bed plants API service uses canonical bed-nested and direct archive/update paths.
-6. Yearly plantings API service uses canonical bed-nested and direct archive/update paths with `year` and `status` query params.
+6. Yearly plantings API service uses canonical bed-nested list/create paths, direct update/archive paths, and applies `year`/`status` query params only to `GET /api/v1/beds/:bedId/plantings`.
 7. No Phase 7 API service request body includes `accountId`.
 8. Route config maps the Phase 7 URLs without removing later-phase placeholder routes.
 9. Raw `HttpClient` remains centralized in core API infrastructure.
@@ -298,4 +297,3 @@ PR description must include:
 # Notes for Implementation Agent
 
 Do not redesign the product.
-

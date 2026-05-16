@@ -358,8 +358,18 @@ Implemented frontend garden structure pages.
 - Persistent and yearly bed contents remain distinct.
 - Archive behavior is used instead of delete.
 
+## API changes
+- Added frontend calls for the Phase 5 and Phase 6 canonical endpoints only.
+
+## Database changes
+- None.
+
 ## Tests
 - <commands run and results>
+
+## Integration/provider status
+- Auth remains through the existing frontend session/token flow.
+- Storage, Weather, AI, Push, and MCP are not touched.
 
 ## Deferred work
 - Products, inventory, activities, problems, tasks, weather, AI, and push remain deferred.
@@ -378,4 +388,3 @@ Implemented frontend garden structure pages.
 Do not redesign the product.
 
 Do not claim tests passed unless they were actually run.
-

@@ -215,13 +215,19 @@ lengthM
 status on update where backend supports it
 ```
 
-List/detail queries:
+List query parameters for `GET /api/v1/places/:placeId/beds`:
 
 ```text
 year
 q
 page
 pageSize
+```
+
+Detail query parameters for `GET /api/v1/beds/:bedId`:
+
+```text
+year
 ```
 
 Frontend request bodies must not include:
@@ -311,4 +317,3 @@ PR description must include:
 # Notes for Implementation Agent
 
 Do not redesign the product.
-
