@@ -68,7 +68,7 @@ frontend/src/app/shared/components/confirm-dialog/
 frontend/src/app/shared/components/year-selector/
 frontend/src/app/shared/components/status-chip/
 frontend/src/app/shared/forms/api-error-summary/
-frontend/src/app/features/plants/components/plant-selector/
+frontend/src/app/shared/selectors/plant-selector/
 frontend/src/app/shared/**/*.spec.ts
 ```
 
@@ -168,6 +168,8 @@ beds: active, removed, archived
 persistent bed plants: active, removed, archived
 yearly bed plantings: planned, planted, removed, harvested, archived
 ```
+
+`archived` may be exposed for display/filter helpers. Editable status controls must not allow ordinary PATCH-based archiving; archive actions must route through explicit confirmation and the canonical `POST /archive` endpoint for the entity.
 
 Remove or ignore template items that are not relevant.
 

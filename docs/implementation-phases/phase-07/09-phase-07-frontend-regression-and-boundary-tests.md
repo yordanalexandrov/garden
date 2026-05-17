@@ -235,7 +235,7 @@ Specific test cases:
 10. Persistent and yearly bed contents render separately.
 11. Yearly planting UI allows duplicate same bed/plant/year submissions.
 12. Every archive flow requires confirmation and calls canonical POST archive endpoint.
-13. Phase 7 route navigation works for `/places`, `/places/:placeId/overview`, `/places/:placeId/perennials`, `/places/:placeId/beds`, `/plants`, `/plants/new`, and `/plants/:plantId`.
+13. Phase 7 route navigation works for `/places`, `/places/:placeId/overview`, `/places/:placeId/perennials`, `/places/:placeId/beds`, `/beds/:bedId`, `/plants`, `/plants/new`, and `/plants/:plantId`.
 14. Phase 7 code does not introduce products, inventory, activities, problems/photos, task/calendar behavior, weather forecast, AI, push, storage, backend migrations, or MCP tools.
 
 ---
@@ -291,4 +291,3 @@ PR description must include:
 The goal of this step is proof, not new surface area. If a missing behavior is discovered, fix the smallest Phase 7 implementation gap and add the regression test that would have caught it.
 
 Do not claim tests passed unless they were actually run.
-

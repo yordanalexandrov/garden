@@ -253,15 +253,16 @@ Add or update tests for:
 Specific test cases:
 
 1. Place beds page loads beds through `GET /places/:placeId/beds`.
-2. Bed form rejects missing name before submit.
-3. Bed form rejects zero or negative dimensions before submit.
-4. Bed list sends selected `year` as a query param.
-5. Year selector changes visible yearly planting query/view without calling mutation endpoints.
-6. Persistent plant summary and yearly planting summary render separately.
-7. Create/update requests do not include `accountId`.
-8. Backend errors render to the user.
-9. Archive action requires confirmation and calls `POST /beds/:bedId/archive`.
-10. Deferred activity/problem/AI actions do not call later-phase APIs.
+2. Bed detail route loads `GET /beds/:bedId` with the selected `year` query when applicable, renders the detail view, and handles backend errors.
+3. Bed form rejects missing name before submit.
+4. Bed form rejects zero or negative dimensions before submit.
+5. Bed list sends selected `year` as a query param.
+6. Year selector changes visible yearly planting query/view without calling mutation endpoints.
+7. Persistent plant summary and yearly planting summary render separately.
+8. Create/update requests do not include `accountId`.
+9. Backend errors render to the user.
+10. Archive action requires confirmation and calls `POST /beds/:bedId/archive`.
+11. Deferred activity/problem/AI actions do not call later-phase APIs.
 
 ---
 

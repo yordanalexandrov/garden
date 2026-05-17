@@ -227,11 +227,12 @@ Specific test cases:
 2. Plant form rejects missing `commonName` before submit.
 3. Lifecycle options are limited to `annual`, `biennial`, and `perennial`.
 4. Growing style options are limited to canonical values.
-5. Create/update requests do not include `accountId`.
-6. Backend validation errors render on the form.
-7. Archived plants are excluded by default and `includeArchived` behavior is explicit.
-8. Archive action requires confirmation and calls `POST /plants/:plantId/archive`.
-9. Plant pages do not introduce product/rule/inventory behavior.
+5. Opening `/plants/:plantId` loads `GET /plants/:plantId` and populates the edit form.
+6. Create/update requests do not include `accountId`.
+7. Backend validation errors render on the form.
+8. Archived plants are excluded by default and `includeArchived` behavior is explicit.
+9. Archive action requires confirmation and calls `POST /plants/:plantId/archive`.
+10. Plant pages do not introduce product/rule/inventory behavior.
 
 ---
 
@@ -285,4 +286,3 @@ PR description must include:
 # Notes for Implementation Agent
 
 Do not redesign the product.
-

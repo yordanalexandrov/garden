@@ -353,7 +353,7 @@ Implemented frontend garden structure pages.
 - Added typed API services and shared selectors/forms.
 - Added validation, archive confirmations, and API error display.
 
-## Domain rules preserved
+## Domain rules affected
 - Frontend uses Fastify API only.
 - Persistent and yearly bed contents remain distinct.
 - Archive behavior is used instead of delete.
@@ -364,7 +364,7 @@ Implemented frontend garden structure pages.
 ## Database changes
 - None.
 
-## Tests
+## Tests run
 - <commands run and results>
 
 ## Integration/provider status
