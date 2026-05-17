@@ -33,6 +33,8 @@ Before implementing, read these files in order:
    - `gardening-helper-product-scope.md`
    - `gardening_helper_functional_spec_v_1.md`
 
+Also read `docs/gardening-helper-implementation-status-handoff.md` before selecting or starting a phase/task. It tracks current implementation progress only and must not override the source-of-truth priority below.
+
 If there is conflict between files, follow this priority:
 
 1. Domain Rules and Invariants
@@ -137,12 +139,13 @@ Your responsibility is to:
 3. implement only the required scope
 4. add or update tests
 5. run checks
-6. commit changes
-7. open a PR
-8. include a clear PR description
-9. respond to review comments
-10. fix issues raised by the Review Agent
-11. reply to each review comment with what changed or why no change was made
+6. update `docs/gardening-helper-implementation-status-handoff.md` when phase/task progress changes
+7. commit changes
+8. open a PR
+9. include a clear PR description
+10. respond to review comments
+11. fix issues raised by the Review Agent
+12. reply to each review comment with what changed or why no change was made
 
 ---
 

@@ -79,6 +79,8 @@ The AI implementation agent must start with this handoff and the highest-priorit
 
 The agent must not start implementation before reading all files.
 
+Before selecting the next phase or task, also read `gardening-helper-implementation-status-handoff.md`. It tracks current implementation progress only and does not replace the source-of-truth documents or priority order below.
+
 ---
 
 # 4. Source-of-truth priority

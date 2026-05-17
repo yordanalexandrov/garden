@@ -3,8 +3,9 @@
 ## Start here
 
 - `gardening-helper-ai-implementation-handoff-readme-v1.md`
+- `gardening-helper-implementation-status-handoff.md`
 
-This is the master handoff document for AI implementation.
+The master handoff document defines the AI implementation process. The status handoff tracks current phase/step progress and must be updated whenever implementation progress changes.
 
 ---
 
