@@ -31,6 +31,10 @@ Start with:
 4. `gardening-helper-canonical-api-contract-v1.md`
 5. `gardening-helper-testing-and-acceptance-spec-v1.md`
 
+Also read:
+
+- `docs/gardening-helper-implementation-status-handoff.md` for current phase/step progress. This file is progress tracking only and must not override the source-of-truth priority.
+
 Then read the role-specific file:
 
 ## If implementing
@@ -134,9 +138,10 @@ When acting as Implementation Agent:
 4. Follow the specs exactly.
 5. Add/update relevant tests.
 6. Run available checks.
-7. Commit focused changes.
-8. Prepare a clear PR description.
-9. Respond to Review Agent comments with specific fixes or justified rejections.
+7. Update `docs/gardening-helper-implementation-status-handoff.md` when phase/task progress changes.
+8. Commit focused changes.
+9. Prepare a clear PR description.
+10. Respond to Review Agent comments with specific fixes or justified rejections.
 
 Do not:
 - redesign the schema/API/product
