@@ -73,6 +73,8 @@ const forbiddenFrontendSecretNames = [
   'SUPABASE_STORAGE_BUCKET_PROBLEM_PHOTOS',
 ];
 
+const forbiddenRuntimeExternalAssets = ['fonts.googleapis.com', 'fonts.gstatic.com'];
+
 const scanTargets = [
   'src',
   'angular.json',
@@ -101,9 +103,16 @@ const collectTextFiles = (target) => {
 for (const file of scanTargets.flatMap(collectTextFiles)) {
   const content = readFileSync(file, 'utf8');
   const foundSecret = forbiddenFrontendSecretNames.find((name) => content.includes(name));
+  const foundExternalAsset = forbiddenRuntimeExternalAssets.find((host) => content.includes(host));
 
   if (foundSecret) {
     fail(`Frontend code/config must not reference backend-only secret ${foundSecret} in ${file}.`);
+  }
+
+  if (foundExternalAsset) {
+    fail(
+      `PWA app shell assets must be same-origin in this phase; found ${foundExternalAsset} in ${file}.`,
+    );
   }
 }
 

@@ -24,6 +24,7 @@ npm start
 
 - Application data access must go through the Fastify API under `/api/v1`.
 - PWA support caches static app assets only; it does not add offline business write synchronization.
+- Roboto and Material Icons are bundled from frontend dependencies as same-origin static assets, not loaded from third-party font CDNs.
 - Frontend-safe environment values are the API base URL, Supabase Auth URL, and Supabase anon key for Auth session handling.
 - Supabase may be used by the frontend only for Auth session handling in a later step.
 - Do not add direct application table access, Supabase Storage bucket access, or backend-only secrets to this package.
