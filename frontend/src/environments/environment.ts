@@ -1,9 +1,4 @@
-export interface FrontendEnvironment {
-  production: boolean;
-  apiBaseUrl: string;
-  supabaseAuthUrl: string;
-  supabaseAnonKey: string;
-}
+import type { FrontendEnvironment } from './environment.model';
 
 export const environment: FrontendEnvironment = {
   production: true,

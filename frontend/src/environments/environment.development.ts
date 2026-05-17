@@ -1,4 +1,4 @@
-import type { FrontendEnvironment } from './environment';
+import type { FrontendEnvironment } from './environment.model';
 
 export const environment: FrontendEnvironment = {
   production: false,
