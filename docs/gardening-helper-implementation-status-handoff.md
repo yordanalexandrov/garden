@@ -9,14 +9,14 @@ Implementation agents must update this file in the same branch/PR whenever phase
 ## Current Position
 
 - Last implemented phase: Phase 3 - Auth and Account Boundary.
-- Last implemented step: Phase 4 Step 1 - Frontend Workspace and Tooling.
-- Last implemented step file: `docs/implementation-phases/phase-04/01-frontend-workspace-and-tooling.md`.
-- Last implementation commit observed: not merged yet; Phase 4 Step 1 is implemented on `feature/frontend-foundation`.
+- Last implemented step: Phase 4 Step 2 - Angular Material and PWA Baseline.
+- Last implemented step file: `docs/implementation-phases/phase-04/02-angular-material-and-pwa-baseline.md`.
+- Last implementation commit observed: pending in current implementation branch for Phase 4 Step 2.
 - Next implementation phase: Phase 4 - Frontend Project Foundation.
-- Next implementation step: Phase 4 Step 2 - Angular Material and PWA Baseline.
-- Next implementation step file: `docs/implementation-phases/phase-04/02-angular-material-and-pwa-baseline.md`.
+- Next implementation step: Phase 4 Step 3 - App Shell Layout and Navigation.
+- Next implementation step file: `docs/implementation-phases/phase-04/03-app-shell-layout-and-navigation.md`.
 
-Note: Phase 4 through Phase 7 have executable task breakdown documents, but their implementation is not present in the current workspace. Phase 8 through Phase 28 currently have top-level phase specs only.
+Note: Phase 4 Step 1 has been merged to `master`. Phase 4 Step 2 is implemented in the current branch/PR. Phase 4 remaining steps and Phase 5 through Phase 7 have executable task breakdown documents. Phase 8 through Phase 28 currently have top-level phase specs only.
 
 ## Status Legend
 
@@ -93,7 +93,7 @@ Note: Phase 4 through Phase 7 have executable task breakdown documents, but thei
 ### Phase 4 - Frontend Project Foundation
 
 - [x] Step 1 - Frontend Workspace and Tooling.
-- [ ] Step 2 - Angular Material and PWA Baseline.
+- [x] Step 2 - Angular Material and PWA Baseline.
 - [ ] Step 3 - App Shell Layout and Navigation.
 - [ ] Step 4 - Route Placeholders and Initialization.
 - [ ] Step 5 - Supabase Auth Session Foundation.
