@@ -1,0 +1,18 @@
+:host {
+  display: block;
+  min-height: 100dvh;
+}
+
+.app-root {
+  box-sizing: border-box;
+  min-height: 100dvh;
+  padding: 2rem;
+  font-family: Arial, sans-serif;
+}
+
+h1 {
+  margin: 0 0 1rem;
+  font-size: 2rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
