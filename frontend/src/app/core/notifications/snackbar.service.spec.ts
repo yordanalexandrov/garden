@@ -16,7 +16,7 @@ describe('SnackbarService', () => {
     });
   });
 
-  it('opens an informational snackbar with global defaults', () => {
+  it('opens an informational snackbar with an accessible default action', () => {
     const service = TestBed.inject(SnackbarService);
 
     service.showMessage('Saved');
@@ -25,7 +25,7 @@ describe('SnackbarService', () => {
       'Saved',
       'Dismiss',
       expect.objectContaining({
-        duration: 5000,
+        duration: undefined,
         politeness: 'polite',
       }),
     );
@@ -40,8 +40,23 @@ describe('SnackbarService', () => {
       'Request failed',
       'Close',
       expect.objectContaining({
-        duration: 7000,
+        duration: undefined,
         politeness: 'assertive',
+      }),
+    );
+  });
+
+  it('auto-dismisses non-actionable messages', () => {
+    const service = TestBed.inject(SnackbarService);
+
+    service.showMessage('Saved', { action: null });
+
+    expect(snackBar.open).toHaveBeenCalledWith(
+      'Saved',
+      undefined,
+      expect.objectContaining({
+        duration: 5000,
+        politeness: 'polite',
       }),
     );
   });

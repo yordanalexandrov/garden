@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostListener, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
@@ -27,6 +27,8 @@ export const PRIMARY_NAVIGATION_ITEMS: readonly PrimaryNavigationItem[] = [
   { label: 'Settings', route: '/settings', icon: 'settings', exact: false },
 ];
 
+const DESKTOP_MEDIA_QUERY = '(min-width: 56rem)';
+
 @Component({
   selector: 'app-shell',
   imports: [
@@ -54,5 +56,12 @@ export class AppShell {
 
   closeMobileNavigation(): void {
     this.mobileNavigationOpen.set(false);
+  }
+
+  @HostListener('window:resize')
+  closeMobileNavigationAtDesktopBreakpoint(): void {
+    if (this.mobileNavigationOpen() && globalThis.matchMedia?.(DESKTOP_MEDIA_QUERY).matches) {
+      this.closeMobileNavigation();
+    }
   }
 }

@@ -1,4 +1,4 @@
-<mat-drawer-container class="app-shell" autosize>
+<mat-drawer-container class="app-shell">
   <mat-drawer
     class="app-shell__mobile-drawer"
     mode="over"
@@ -31,7 +31,9 @@
           class="app-shell__nav-link"
           [routerLink]="item.route"
           routerLinkActive="app-shell__nav-link--active"
+          #mobileLinkActive="routerLinkActive"
           [routerLinkActiveOptions]="{ exact: item.exact }"
+          [attr.aria-current]="mobileLinkActive.isActive ? 'page' : null"
           (click)="closeMobileNavigation()"
         >
           <mat-icon matListItemIcon aria-hidden="true" [fontIcon]="item.icon" />
@@ -69,7 +71,9 @@
               class="app-shell__nav-link"
               [routerLink]="item.route"
               routerLinkActive="app-shell__nav-link--active"
+              #desktopLinkActive="routerLinkActive"
               [routerLinkActiveOptions]="{ exact: item.exact }"
+              [attr.aria-current]="desktopLinkActive.isActive ? 'page' : null"
             >
               <mat-icon matListItemIcon aria-hidden="true" [fontIcon]="item.icon" />
               <span matListItemTitle>{{ item.label }}</span>

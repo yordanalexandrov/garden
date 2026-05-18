@@ -1,15 +1,20 @@
 import { TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 
+import { routes } from '../../app.routes';
 import { AppShell, PRIMARY_NAVIGATION_ITEMS } from './app-shell';
 
 describe('AppShell', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [AppShell],
-      providers: [provideNoopAnimations(), provideRouter([])],
+      providers: [provideNoopAnimations(), provideRouter(routes)],
     }).compileComponents();
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
   });
 
   it('renders the top app bar, primary navigation, and router outlet without API data', () => {
@@ -68,5 +73,61 @@ describe('AppShell', () => {
 
     expect(iconButtonLabels).toContain('Open primary navigation');
     expect(iconButtonLabels).toContain('Close primary navigation');
+  });
+
+  it('has registered routes for primary navigation links', () => {
+    const registeredPaths = new Set(
+      routes
+        .map((route) => route.path)
+        .filter((path): path is string => typeof path === 'string' && path.length > 0)
+        .map((path) => `/${path}`),
+    );
+
+    for (const item of PRIMARY_NAVIGATION_ITEMS) {
+      expect(registeredPaths.has(item.route)).toBe(true);
+    }
+  });
+
+  it('marks the active desktop navigation link for assistive technology', async () => {
+    const fixture = TestBed.createComponent(AppShell);
+    const router = TestBed.inject(Router);
+
+    fixture.detectChanges();
+    await router.navigateByUrl('/dashboard');
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const activeLink = compiled.querySelector(
+      'nav[aria-label="Primary navigation"] a[aria-current="page"]',
+    );
+
+    expect(activeLink?.textContent).toContain('Dashboard');
+  });
+
+  it('closes the mobile navigation when the viewport reaches desktop size', () => {
+    vi.stubGlobal(
+      'matchMedia',
+      vi.fn().mockReturnValue({
+        matches: true,
+        media: '(min-width: 56rem)',
+        onchange: null,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+      }),
+    );
+
+    const fixture = TestBed.createComponent(AppShell);
+    const component = fixture.componentInstance;
+    component.openMobileNavigation();
+    fixture.detectChanges();
+
+    window.dispatchEvent(new Event('resize'));
+    fixture.detectChanges();
+
+    expect(component.mobileNavigationOpen()).toBe(false);
   });
 });
