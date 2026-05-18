@@ -1,4 +1,10 @@
 <main class="app-root">
-  <h1>{{ title }}</h1>
-  <router-outlet />
+  <header class="app-root__header">
+    <mat-icon class="app-root__icon" aria-hidden="true" fontIcon="local_florist" />
+    <h1>{{ title }}</h1>
+  </header>
+
+  <section class="app-root__content">
+    <router-outlet />
+  </section>
 </main>
