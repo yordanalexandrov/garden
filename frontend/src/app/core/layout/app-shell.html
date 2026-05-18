@@ -62,6 +62,12 @@
       </div>
     </mat-toolbar>
 
+    <div class="app-shell__loading-slot">
+      @if (loading.isLoading()) {
+        <mat-progress-bar mode="indeterminate" aria-label="Application loading" />
+      }
+    </div>
+
     <div class="app-shell__body">
       <nav class="app-shell__desktop-nav" aria-label="Primary navigation">
         <mat-nav-list class="app-shell__nav-list">

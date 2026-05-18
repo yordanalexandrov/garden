@@ -9,14 +9,14 @@ Implementation agents must update this file in the same branch/PR whenever phase
 ## Current Position
 
 - Last implemented phase: Phase 3 - Auth and Account Boundary.
-- Last implemented step: Phase 4 Step 3 - App Shell Layout and Navigation.
-- Last implemented step file: `docs/implementation-phases/phase-04/03-app-shell-layout-and-navigation.md`.
-- Last implementation commit observed: pending in current implementation branch for Phase 4 Step 3.
+- Last implemented step: Phase 4 Step 4 - Route Placeholders and Initialization.
+- Last implemented step file: `docs/implementation-phases/phase-04/04-route-placeholders-and-initialization.md`.
+- Last implementation commit observed: pending in current implementation branch for Phase 4 Step 4.
 - Next implementation phase: Phase 4 - Frontend Project Foundation.
-- Next implementation step: Phase 4 Step 4 - Route Placeholders and Initialization.
-- Next implementation step file: `docs/implementation-phases/phase-04/04-route-placeholders-and-initialization.md`.
+- Next implementation step: Phase 4 Step 5 - Supabase Auth Session Foundation.
+- Next implementation step file: `docs/implementation-phases/phase-04/05-supabase-auth-session-foundation.md`.
 
-Note: Phase 4 Steps 1-2 have been merged to `master`. Phase 4 Step 3 is implemented in the current branch/PR. Phase 4 remaining steps and Phase 5 through Phase 7 have executable task breakdown documents. Phase 8 through Phase 28 currently have top-level phase specs only.
+Note: Phase 4 Steps 1-3 are implemented in the current base. Phase 4 Step 4 is implemented in the current branch/PR. Phase 4 remaining steps and Phase 5 through Phase 7 have executable task breakdown documents. Phase 8 through Phase 28 currently have top-level phase specs only.
 
 ## Status Legend
 
@@ -95,7 +95,7 @@ Note: Phase 4 Steps 1-2 have been merged to `master`. Phase 4 Step 3 is implemen
 - [x] Step 1 - Frontend Workspace and Tooling.
 - [x] Step 2 - Angular Material and PWA Baseline.
 - [x] Step 3 - App Shell Layout and Navigation.
-- [ ] Step 4 - Route Placeholders and Initialization.
+- [x] Step 4 - Route Placeholders and Initialization.
 - [ ] Step 5 - Supabase Auth Session Foundation.
 - [ ] Step 6 - Typed API Client, Interceptors, and Errors.
 - [ ] Step 7 - Phase 04 Verification and PR Readiness.

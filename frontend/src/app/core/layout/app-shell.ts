@@ -1,11 +1,15 @@
-import { ChangeDetectionStrategy, Component, HostListener, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostListener, inject, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+
+import { AppLoadingService } from '../loading/app-loading.service';
+import { RouteLoadingService } from '../loading/route-loading.service';
 
 export interface PrimaryNavigationItem {
   readonly label: string;
@@ -35,6 +39,7 @@ const DESKTOP_MEDIA_QUERY = '(min-width: 56rem)';
     MatButtonModule,
     MatIconModule,
     MatListModule,
+    MatProgressBarModule,
     MatSidenavModule,
     MatToolbarModule,
     MatTooltipModule,
@@ -49,6 +54,9 @@ const DESKTOP_MEDIA_QUERY = '(min-width: 56rem)';
 export class AppShell {
   readonly navigationItems = PRIMARY_NAVIGATION_ITEMS;
   readonly mobileNavigationOpen = signal(false);
+  readonly loading = inject(AppLoadingService);
+
+  private readonly routeLoading = inject(RouteLoadingService);
 
   openMobileNavigation(): void {
     this.mobileNavigationOpen.set(true);

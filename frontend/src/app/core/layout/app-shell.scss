@@ -15,7 +15,7 @@
 .app-shell__toolbar {
   position: sticky;
   top: 0;
-  z-index: 2;
+  z-index: 3;
   display: flex;
   gap: 0.75rem;
   min-height: 4rem;
@@ -52,6 +52,14 @@
   white-space: nowrap;
 }
 
+.app-shell__loading-slot {
+  position: sticky;
+  top: 4rem;
+  z-index: 2;
+  height: 0.25rem;
+  background: var(--mat-sys-surface);
+}
+
 .app-shell__icon-button {
   flex: 0 0 auto;
 }
@@ -86,7 +94,7 @@
 
 .app-shell__body {
   display: grid;
-  min-height: calc(100dvh - 4rem);
+  min-height: calc(100dvh - 4.25rem);
 }
 
 .app-shell__desktop-nav {
@@ -120,10 +128,10 @@
 
   .app-shell__desktop-nav {
     position: sticky;
-    top: 4rem;
+    top: 4.25rem;
     display: block;
     align-self: start;
-    height: calc(100dvh - 4rem);
+    height: calc(100dvh - 4.25rem);
     overflow-y: auto;
     border-right: 1px solid var(--mat-sys-outline-variant);
     background: var(--mat-sys-surface);
