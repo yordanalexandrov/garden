@@ -1,0 +1,127 @@
+:host {
+  display: block;
+  min-height: 100dvh;
+}
+
+.app-shell {
+  min-height: 100dvh;
+  background: var(--app-page-background);
+}
+
+.app-shell__content {
+  min-height: 100dvh;
+}
+
+.app-shell__toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  gap: 0.75rem;
+  min-height: 4rem;
+  padding-inline: 1rem;
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+  background: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+}
+
+.app-shell__brand,
+.app-shell__drawer-header {
+  display: flex;
+  align-items: center;
+}
+
+.app-shell__brand {
+  min-width: 0;
+  gap: 0.75rem;
+}
+
+.app-shell__brand-icon {
+  flex: 0 0 auto;
+  color: var(--mat-sys-primary);
+}
+
+.app-shell__brand-text {
+  overflow: hidden;
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-title-large);
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-shell__icon-button {
+  flex: 0 0 auto;
+}
+
+.app-shell__mobile-drawer {
+  width: min(20rem, 88vw);
+  border-radius: 0;
+  background: var(--mat-sys-surface);
+}
+
+.app-shell__drawer-header {
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 4rem;
+  padding-inline: 1rem 0.5rem;
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+}
+
+.app-shell__nav-list {
+  padding: 0.5rem;
+}
+
+.app-shell__nav-link {
+  margin-block: 0.125rem;
+  border-radius: 0.5rem;
+}
+
+.app-shell__nav-link--active {
+  background: color-mix(in srgb, var(--mat-sys-primary) 12%, transparent);
+  color: var(--mat-sys-primary);
+}
+
+.app-shell__body {
+  display: grid;
+  min-height: calc(100dvh - 4rem);
+}
+
+.app-shell__desktop-nav {
+  display: none;
+}
+
+.app-shell__main {
+  width: min(100%, 90rem);
+  min-width: 0;
+  margin-inline: auto;
+  padding: clamp(1rem, 3vw, 2rem);
+  outline: none;
+}
+
+@media (min-width: 56rem) {
+  .app-shell__toolbar {
+    padding-inline: 1.5rem;
+  }
+
+  .app-shell__menu-button {
+    display: none;
+  }
+
+  .app-shell__body {
+    grid-template-columns: 17rem minmax(0, 1fr);
+  }
+
+  .app-shell__desktop-nav {
+    position: sticky;
+    top: 4rem;
+    display: block;
+    align-self: start;
+    height: calc(100dvh - 4rem);
+    overflow-y: auto;
+    border-right: 1px solid var(--mat-sys-outline-variant);
+    background: var(--mat-sys-surface);
+  }
+}

@@ -1,12 +1,13 @@
 import { TestBed } from '@angular/core/testing';
+import { provideNoopAnimations } from '@angular/platform-browser/animations';
+import { provideRouter } from '@angular/router';
 import { App } from './app';
-import { appConfig } from './app.config';
 
 describe('App', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [App],
-      providers: appConfig.providers,
+      providers: [provideNoopAnimations(), provideRouter([])],
     }).compileComponents();
   });
 
@@ -16,12 +17,10 @@ describe('App', () => {
     expect(app).toBeTruthy();
   });
 
-  it('should render the app title and router outlet', async () => {
+  it('should host the app shell', async () => {
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Gardening Helper');
-    expect(compiled.querySelector('mat-icon')?.getAttribute('fontIcon')).toBe('local_florist');
-    expect(compiled.querySelector('router-outlet')).not.toBeNull();
+    expect(compiled.querySelector('app-shell')).not.toBeNull();
   });
 });
