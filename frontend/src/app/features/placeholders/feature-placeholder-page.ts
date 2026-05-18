@@ -4,35 +4,35 @@ import { ActivatedRoute } from '@angular/router';
 import { map } from 'rxjs';
 
 @Component({
-  selector: 'app-primary-route-placeholder',
+  selector: 'app-feature-placeholder-page',
   template: `
-    <section class="route-placeholder" aria-labelledby="route-placeholder-title">
-      <h1 id="route-placeholder-title">{{ routeTitle() }}</h1>
+    <section class="feature-placeholder" aria-labelledby="feature-placeholder-title">
+      <h1 id="feature-placeholder-title">{{ routeTitle() }}</h1>
     </section>
   `,
   styles: [
     `
-    :host {
-      display: block;
-    }
+      :host {
+        display: block;
+      }
 
-    .route-placeholder {
-      width: min(100%, 64rem);
-    }
+      .feature-placeholder {
+        width: min(100%, 64rem);
+      }
 
-    h1 {
-      margin: 0;
-      color: var(--mat-sys-on-surface);
-      font: var(--mat-sys-headline-small);
-      font-weight: 500;
-      letter-spacing: 0;
-      line-height: 1.2;
-    }
-  `,
+      h1 {
+        margin: 0;
+        color: var(--mat-sys-on-surface);
+        font: var(--mat-sys-headline-small);
+        font-weight: 500;
+        letter-spacing: 0;
+        line-height: 1.2;
+      }
+    `,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PrimaryRoutePlaceholder {
+export class FeaturePlaceholderPage {
   private readonly route = inject(ActivatedRoute);
 
   readonly routeTitle = toSignal(
