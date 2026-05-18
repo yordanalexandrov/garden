@@ -21,10 +21,13 @@ const forbiddenFrontendSecretNames = [
   'OPEN_METEO_BASE_URL',
   'SUPABASE_STORAGE_URL',
   'SUPABASE_STORAGE_BUCKET_PROBLEM_PHOTOS',
+  'SUPABASE_STUDIO_USERNAME',
+  'SUPABASE_STUDIO_PASSWORD',
 ];
 
-const supabaseTableCallPattern = /(?<!Array)\.from\s*\(\s*['"`][A-Za-z0-9_./-]+['"`]\s*\)/;
+const supabaseTableCallPattern = /(?<!\bArray)\.from\s*(?:<[^>\n]+>)?\s*\(/;
 const supabaseStoragePatterns = [/\bsupabase\s*\.\s*storage\b/i, /\.storage\s*\.\s*from\s*\(/i];
+const supabaseSdkImportPattern = /from\s+['"]@supabase\/(?:supabase-js|auth-js|postgrest-js|storage-js)['"]/;
 
 const isAuthInfrastructureFile = (relativePath) => relativePath.startsWith('src/app/core/auth/');
 const isFrontendSourceFile = (relativePath) => relativePath.startsWith('src/');
@@ -54,7 +57,7 @@ const findFrontendBoundaryViolations = (relativePath, content) => {
   if (
     isFrontendSourceFile(relativePath) &&
     !isAuthInfrastructureFile(relativePath) &&
-    (content.includes('@supabase/supabase-js') || /\bcreateClient\s*\(/.test(content))
+    (supabaseSdkImportPattern.test(content) || /\bcreateClient\s*\(/.test(content))
   ) {
     violations.push(
       `@supabase/supabase-js imports and client creation are limited to core/auth in ${relativePath}.`,
@@ -74,7 +77,12 @@ const assertBoundarySelfTestRejects = (label, content, expectedMessagePart) => {
 
 assertBoundarySelfTestRejects(
   'direct Supabase table calls',
-  "const rows = supabase.from('plants').select('*');",
+  'const rows = supabase.from(tableName).select("*");',
+  '.from(...)',
+);
+assertBoundarySelfTestRejects(
+  'typed direct Supabase table calls',
+  "const rows = supabase.from<Row>('plants').select('*');",
   '.from(...)',
 );
 assertBoundarySelfTestRejects(
@@ -84,12 +92,12 @@ assertBoundarySelfTestRejects(
 );
 assertBoundarySelfTestRejects(
   'backend-only frontend secret names',
-  "const secret = 'SUPABASE_SERVICE_ROLE_KEY';",
+  "const secret = 'SUPABASE_STUDIO_PASSWORD';",
   'backend-only secret',
 );
 assertBoundarySelfTestRejects(
   'Supabase SDK imports outside auth infrastructure',
-  "import { createClient } from '@supabase/supabase-js';",
+  "import { SupabaseAuthClient } from '@supabase/auth-js';",
   'limited to core/auth',
 );
 
