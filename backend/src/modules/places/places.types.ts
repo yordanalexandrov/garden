@@ -57,6 +57,10 @@ export type PlaceCountsDto = {
   upcomingTasks: number;
 };
 
+export type PlaceDetail = Place & {
+  counts: PlaceCountsDto;
+};
+
 export type PlaceListItemDto = {
   id: UUID;
   name: string;
@@ -84,7 +88,8 @@ export type PlaceMutationDto = {
 export interface PlacesRepository {
   list(accountId: UUID, filters: ListPlacesFilters, db?: DbHandle): Promise<PaginatedPlaces>;
   findById(accountId: UUID, placeId: UUID, db?: DbHandle): Promise<Place | null>;
+  countDetails(accountId: UUID, placeId: UUID, db?: DbHandle): Promise<PlaceCountsDto>;
   create(input: CreatePlaceInput, db?: DbHandle): Promise<Place>;
-  update(accountId: UUID, placeId: UUID, patch: UpdatePlaceInput, db?: DbHandle): Promise<Place>;
-  archive(accountId: UUID, placeId: UUID, db?: DbHandle): Promise<void>;
+  update(accountId: UUID, placeId: UUID, patch: UpdatePlaceInput, db?: DbHandle): Promise<Place | null>;
+  archive(accountId: UUID, placeId: UUID, db?: DbHandle): Promise<boolean>;
 }
