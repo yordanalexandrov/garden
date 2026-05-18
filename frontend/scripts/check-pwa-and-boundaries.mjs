@@ -1,5 +1,5 @@
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
-import { extname, join } from 'node:path';
+import { extname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
@@ -9,6 +9,89 @@ const readJson = (relativePath) => JSON.parse(readFileSync(join(root, relativePa
 const fail = (message) => {
   throw new Error(message);
 };
+
+const forbiddenFrontendSecretNames = [
+  'SUPABASE_SERVICE_ROLE_KEY',
+  'SUPABASE_JWT_SECRET',
+  'DATABASE_URL',
+  'POSTGRES_PASSWORD',
+  'VAPID_PRIVATE_KEY',
+  'AI_API_KEY',
+  'AI_MODEL',
+  'OPEN_METEO_BASE_URL',
+  'SUPABASE_STORAGE_URL',
+  'SUPABASE_STORAGE_BUCKET_PROBLEM_PHOTOS',
+];
+
+const supabaseTableCallPattern = /(?<!Array)\.from\s*\(\s*['"`][A-Za-z0-9_./-]+['"`]\s*\)/;
+const supabaseStoragePatterns = [/\bsupabase\s*\.\s*storage\b/i, /\.storage\s*\.\s*from\s*\(/i];
+
+const isAuthInfrastructureFile = (relativePath) => relativePath.startsWith('src/app/core/auth/');
+const isFrontendSourceFile = (relativePath) => relativePath.startsWith('src/');
+
+const findFrontendBoundaryViolations = (relativePath, content) => {
+  const violations = [];
+  const foundSecret = forbiddenFrontendSecretNames.find((name) => content.includes(name));
+
+  if (foundSecret) {
+    violations.push(
+      `Frontend code/config must not reference backend-only secret ${foundSecret} in ${relativePath}.`,
+    );
+  }
+
+  if (supabaseTableCallPattern.test(content)) {
+    violations.push(
+      `Frontend code must not call Supabase application tables with .from(...) in ${relativePath}.`,
+    );
+  }
+
+  if (supabaseStoragePatterns.some((pattern) => pattern.test(content))) {
+    violations.push(
+      `Frontend code must not call Supabase Storage directly for business flows in ${relativePath}.`,
+    );
+  }
+
+  if (
+    isFrontendSourceFile(relativePath) &&
+    !isAuthInfrastructureFile(relativePath) &&
+    (content.includes('@supabase/supabase-js') || /\bcreateClient\s*\(/.test(content))
+  ) {
+    violations.push(
+      `@supabase/supabase-js imports and client creation are limited to core/auth in ${relativePath}.`,
+    );
+  }
+
+  return violations;
+};
+
+const assertBoundarySelfTestRejects = (label, content, expectedMessagePart) => {
+  const violations = findFrontendBoundaryViolations('src/app/features/example.ts', content);
+
+  if (!violations.some((violation) => violation.includes(expectedMessagePart))) {
+    fail(`Boundary self-test failed to reject ${label}.`);
+  }
+};
+
+assertBoundarySelfTestRejects(
+  'direct Supabase table calls',
+  "const rows = supabase.from('plants').select('*');",
+  '.from(...)',
+);
+assertBoundarySelfTestRejects(
+  'direct Supabase Storage calls',
+  "const upload = supabase.storage.from('problem-photos').upload('photo.jpg', file);",
+  'Supabase Storage',
+);
+assertBoundarySelfTestRejects(
+  'backend-only frontend secret names',
+  "const secret = 'SUPABASE_SERVICE_ROLE_KEY';",
+  'backend-only secret',
+);
+assertBoundarySelfTestRejects(
+  'Supabase SDK imports outside auth infrastructure',
+  "import { createClient } from '@supabase/supabase-js';",
+  'limited to core/auth',
+);
 
 const angular = readJson('angular.json');
 const productionBuild = angular.projects?.frontend?.architect?.build?.configurations?.production;
@@ -60,19 +143,6 @@ for (const group of ngsw.assetGroups) {
   }
 }
 
-const forbiddenFrontendSecretNames = [
-  'SUPABASE_SERVICE_ROLE_KEY',
-  'SUPABASE_JWT_SECRET',
-  'DATABASE_URL',
-  'POSTGRES_PASSWORD',
-  'VAPID_PRIVATE_KEY',
-  'AI_API_KEY',
-  'AI_MODEL',
-  'OPEN_METEO_BASE_URL',
-  'SUPABASE_STORAGE_URL',
-  'SUPABASE_STORAGE_BUCKET_PROBLEM_PHOTOS',
-];
-
 const forbiddenRuntimeExternalAssets = ['fonts.googleapis.com', 'fonts.gstatic.com'];
 
 const scanTargets = [
@@ -101,12 +171,13 @@ const collectTextFiles = (target) => {
 };
 
 for (const file of scanTargets.flatMap(collectTextFiles)) {
+  const relativePath = relative(root, file).replaceAll('\\', '/');
   const content = readFileSync(file, 'utf8');
-  const foundSecret = forbiddenFrontendSecretNames.find((name) => content.includes(name));
   const foundExternalAsset = forbiddenRuntimeExternalAssets.find((host) => content.includes(host));
+  const boundaryViolations = findFrontendBoundaryViolations(relativePath, content);
 
-  if (foundSecret) {
-    fail(`Frontend code/config must not reference backend-only secret ${foundSecret} in ${file}.`);
+  if (boundaryViolations.length > 0) {
+    fail(boundaryViolations.join('\n'));
   }
 
   if (foundExternalAsset) {
