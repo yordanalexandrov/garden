@@ -83,10 +83,58 @@ export const mapApiError = (error: unknown): ApiError => {
   });
 };
 
+export const formatApiErrorForDisplay = (error: ApiError): string => {
+  const detailEntries = Object.entries(error.details)
+    .map(([field, value]) => formatDetailEntry(field, value))
+    .filter((entry): entry is string => entry !== null);
+
+  if (detailEntries.length === 0) {
+    return error.message;
+  }
+
+  return `${error.message}: ${detailEntries.join('; ')}`;
+};
+
 const fallbackHttpErrorMessage = (error: HttpErrorResponse): string => {
   if (error.status === 0) {
     return 'API request failed. Check the network connection.';
   }
 
   return 'API request failed.';
+};
+
+const formatDetailEntry = (field: string, value: unknown): string | null => {
+  const formattedValue = formatDetailValue(value);
+
+  if (formattedValue === null) {
+    return null;
+  }
+
+  return `${field}: ${formattedValue}`;
+};
+
+const formatDetailValue = (value: unknown): string | null => {
+  if (Array.isArray(value)) {
+    const values = value.map(formatScalarDetailValue).filter((entry): entry is string => entry !== null);
+
+    return values.length > 0 ? values.join(', ') : null;
+  }
+
+  if (isRecord(value)) {
+    return JSON.stringify(value);
+  }
+
+  return formatScalarDetailValue(value);
+};
+
+const formatScalarDetailValue = (value: unknown): string | null => {
+  if (typeof value === 'string') {
+    return messageFromUnknown(value);
+  }
+
+  if (typeof value === 'number' || typeof value === 'boolean') {
+    return String(value);
+  }
+
+  return null;
 };

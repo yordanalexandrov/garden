@@ -4,7 +4,7 @@ import { Observable, map } from 'rxjs';
 
 import { API_BASE_URL } from '../config/api-base-url';
 import { ApiError } from '../errors/api-error';
-import { mapApiError } from '../errors/api-error.mapper';
+import { formatApiErrorForDisplay, mapApiError } from '../errors/api-error.mapper';
 import { SnackbarService } from '../notifications/snackbar.service';
 import { ApiSuccessEnvelope } from './api.types';
 import { joinApiUrl } from './api-url';
@@ -66,7 +66,7 @@ export class ApiClient {
     } catch (error) {
       const apiError = mapApiError(error);
 
-      this.snackbar.showError(apiError.message);
+      this.snackbar.showError(formatApiErrorForDisplay(apiError));
 
       throw apiError;
     }
