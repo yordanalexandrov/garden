@@ -6,7 +6,6 @@ import { provideRouter } from '@angular/router';
 
 import { routes } from './app.routes';
 import { provideAuthSession } from './core/auth/auth.providers';
-import { provideApiBaseUrl } from './core/config/api-base-url';
 import { provideFrontendEnvironment } from './core/config/frontend-environment';
 import { apiErrorInterceptor } from './core/interceptors/api-error.interceptor';
 import { authTokenInterceptor } from './core/interceptors/auth-token.interceptor';
@@ -15,7 +14,6 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideFrontendEnvironment(),
-    provideApiBaseUrl(),
     provideHttpClient(withInterceptors([authTokenInterceptor, apiErrorInterceptor])),
     provideAnimationsAsync(),
     provideRouter(routes),

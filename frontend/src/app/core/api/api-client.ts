@@ -4,6 +4,8 @@ import { Observable, map } from 'rxjs';
 
 import { API_BASE_URL } from '../config/api-base-url';
 import { ApiError } from '../errors/api-error';
+import { mapApiError } from '../errors/api-error.mapper';
+import { SnackbarService } from '../notifications/snackbar.service';
 import { ApiSuccessEnvelope } from './api.types';
 import { joinApiUrl } from './api-url';
 
@@ -26,6 +28,7 @@ export interface ApiRequestWithBodyOptions extends ApiRequestOptions {
 export class ApiClient {
   private readonly http = inject(HttpClient);
   private readonly apiBaseUrl = inject(API_BASE_URL);
+  private readonly snackbar = inject(SnackbarService);
 
   get<TData>(path: string, options: ApiRequestOptions = {}): Observable<TData> {
     return this.request<TData>('GET', path, options);
@@ -54,7 +57,19 @@ export class ApiClient {
         headers: options.headers,
         params: options.params,
       })
-      .pipe(map((response) => unwrapDataEnvelope<TData>(response)));
+      .pipe(map((response) => this.unwrapResponseOrReportError<TData>(response)));
+  }
+
+  private unwrapResponseOrReportError<TData>(response: unknown): TData {
+    try {
+      return unwrapDataEnvelope<TData>(response);
+    } catch (error) {
+      const apiError = mapApiError(error);
+
+      this.snackbar.showError(apiError.message);
+
+      throw apiError;
+    }
   }
 }
 

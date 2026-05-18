@@ -49,6 +49,49 @@ describe('API error mapper', () => {
     expect(mapped.details['field']).toEqual(['Required']);
   });
 
+  it('preserves backend messages and details when the backend sends an unknown error code', () => {
+    const mapped = mapApiError(
+      new HttpErrorResponse({
+        status: 429,
+        error: {
+          error: {
+            code: 'RATE_LIMITED',
+            message: 'Too many requests',
+            details: {
+              retryAfterSeconds: 30,
+            },
+          },
+        },
+      }),
+    );
+
+    expect(mapped.code).toBe('INTERNAL_ERROR');
+    expect(mapped.status).toBe(429);
+    expect(mapped.message).toBe('Too many requests');
+    expect(mapped.details['retryAfterSeconds']).toBe(30);
+  });
+
+  it('keeps known backend error codes when the backend message is blank', () => {
+    const mapped = mapApiError(
+      new HttpErrorResponse({
+        status: 400,
+        error: {
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: '   ',
+            details: {
+              field: ['Required'],
+            },
+          },
+        },
+      }),
+    );
+
+    expect(mapped.code).toBe('VALIDATION_ERROR');
+    expect(mapped.message).toBe('Invalid input');
+    expect(mapped.details['field']).toEqual(['Required']);
+  });
+
   it('falls back to a typed internal error for non-canonical HTTP errors', () => {
     const mapped = mapApiError(
       new HttpErrorResponse({

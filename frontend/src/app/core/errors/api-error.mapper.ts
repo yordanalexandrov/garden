@@ -13,18 +13,39 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 const detailsFromUnknown = (value: unknown): ApiErrorDetails =>
   isRecord(value) ? value : {};
 
+const messageFromUnknown = (value: unknown): string | null => {
+  if (typeof value !== 'string') {
+    return null;
+  }
+
+  const trimmed = value.trim();
+
+  return trimmed.length > 0 ? trimmed : null;
+};
+
+const defaultMessageForCode = (code: ApiErrorEnvelope['error']['code']): string => {
+  if (code === 'VALIDATION_ERROR') {
+    return 'Invalid input';
+  }
+
+  return 'API request failed.';
+};
+
 export const extractApiErrorEnvelope = (value: unknown): ApiErrorEnvelope | null => {
   if (!isRecord(value) || !isRecord(value['error'])) {
     return null;
   }
 
   const error = value['error'];
-  const code = error['code'];
-  const message = error['message'];
+  const rawCode = error['code'];
+  const rawMessage = error['message'];
 
-  if (!isApiErrorCode(code) || typeof message !== 'string' || message.trim().length === 0) {
+  if (typeof rawCode !== 'string' && typeof rawMessage !== 'string') {
     return null;
   }
+
+  const code = isApiErrorCode(rawCode) ? rawCode : 'INTERNAL_ERROR';
+  const message = messageFromUnknown(rawMessage) ?? defaultMessageForCode(code);
 
   return {
     error: {

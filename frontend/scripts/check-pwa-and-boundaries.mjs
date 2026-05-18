@@ -28,8 +28,12 @@ const forbiddenFrontendSecretNames = [
 const supabaseTableCallPattern = /(?<!\bArray)\.from\s*(?:<[^>\n]+>)?\s*\(/;
 const supabaseStoragePatterns = [/\bsupabase\s*\.\s*storage\b/i, /\.storage\s*\.\s*from\s*\(/i];
 const supabaseSdkImportPattern = /from\s+['"]@supabase\/(?:supabase-js|auth-js|postgrest-js|storage-js)['"]/;
-const rawHttpClientImportPattern =
-  /import\s*\{[^}]*\bHttpClient\b[^}]*\}\s*from\s+['"]@angular\/common\/http['"]/;
+const rawHttpClientPatterns = [
+  /import\s*\{[^}]*\bHttpClient\b[^}]*\}\s*from\s+['"]@angular\/common\/http['"]/,
+  /import\s+\*\s+as\s+\w+\s+from\s+['"]@angular\/common\/http['"]/,
+  /import\s*\(\s*['"]@angular\/common\/http['"]\s*\)/,
+  /\bHttpClient\b/,
+];
 
 const isAuthInfrastructureFile = (relativePath) => relativePath.startsWith('src/app/core/auth/');
 const isHttpInfrastructureFile = (relativePath) =>
@@ -73,7 +77,7 @@ const findFrontendBoundaryViolations = (relativePath, content) => {
   if (
     isFrontendSourceFile(relativePath) &&
     !isHttpInfrastructureFile(relativePath) &&
-    rawHttpClientImportPattern.test(content)
+    rawHttpClientPatterns.some((pattern) => pattern.test(content))
   ) {
     violations.push(
       `Raw HttpClient usage is limited to core API/interceptor infrastructure in ${relativePath}.`,
@@ -119,6 +123,21 @@ assertBoundarySelfTestRejects(
 assertBoundarySelfTestRejects(
   'raw HttpClient usage outside API infrastructure',
   "import { HttpClient } from '@angular/common/http';",
+  'Raw HttpClient usage',
+);
+assertBoundarySelfTestRejects(
+  'namespace HttpClient imports outside API infrastructure',
+  "import * as ngHttp from '@angular/common/http';",
+  'Raw HttpClient usage',
+);
+assertBoundarySelfTestRejects(
+  'dynamic common HTTP imports outside API infrastructure',
+  "const http = await import('@angular/common/http');",
+  'Raw HttpClient usage',
+);
+assertBoundarySelfTestRejects(
+  'HttpClient identifier usage outside API infrastructure',
+  'const http = inject(HttpClient);',
   'Raw HttpClient usage',
 );
 

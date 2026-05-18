@@ -4,17 +4,24 @@ import { TestBed } from '@angular/core/testing';
 import { firstValueFrom } from 'rxjs';
 
 import { API_BASE_URL } from '../config/api-base-url';
+import { SnackbarService } from '../notifications/snackbar.service';
 import { HealthApiService } from './health-api.service';
 
 describe('HealthApiService', () => {
   let httpTesting: HttpTestingController;
+  const snackbar = {
+    showError: vi.fn(),
+  };
 
   beforeEach(() => {
+    snackbar.showError.mockReset();
+
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
         { provide: API_BASE_URL, useValue: '/api/v1' },
+        { provide: SnackbarService, useValue: snackbar },
       ],
     });
 

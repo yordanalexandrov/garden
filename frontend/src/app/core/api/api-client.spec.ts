@@ -5,17 +5,24 @@ import { firstValueFrom } from 'rxjs';
 
 import { API_BASE_URL } from '../config/api-base-url';
 import { ApiError } from '../errors/api-error';
+import { SnackbarService } from '../notifications/snackbar.service';
 import { ApiClient } from './api-client';
 
 describe('ApiClient', () => {
   let httpTesting: HttpTestingController;
+  const snackbar = {
+    showError: vi.fn(),
+  };
 
   beforeEach(() => {
+    snackbar.showError.mockReset();
+
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
         { provide: API_BASE_URL, useValue: '/api/v1' },
+        { provide: SnackbarService, useValue: snackbar },
       ],
     });
 
@@ -51,5 +58,8 @@ describe('ApiClient', () => {
     request.flush({ status: 'ok' });
 
     await expect(response).rejects.toBeInstanceOf(ApiError);
+    expect(snackbar.showError).toHaveBeenCalledWith(
+      'API response did not match the expected data envelope.',
+    );
   });
 });
