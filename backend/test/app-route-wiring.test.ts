@@ -61,6 +61,16 @@ describe("business route dependency wiring", () => {
 
     expect(db.destroyed).toBe(true);
   });
+
+  it("keeps app close best-effort when db destroy fails", async () => {
+    const db = new RecordingDbClient({ failDestroy: true });
+    app = await createTestApp({ db });
+
+    await expect(app.close()).resolves.toBeUndefined();
+    app = undefined;
+
+    expect(db.destroyed).toBe(true);
+  });
 });
 
 class StaticAuthPort implements AuthPort {
@@ -91,6 +101,8 @@ class RecordingDbClient implements DbClient {
   transactionCalls = 0;
   destroyed = false;
 
+  constructor(private readonly options: { failDestroy?: boolean } = {}) {}
+
   transaction<T>(fn: (trx: DbTransaction) => Promise<T>): Promise<T> {
     void fn;
     this.transactionCalls += 1;
@@ -104,6 +116,11 @@ class RecordingDbClient implements DbClient {
 
   destroy(): Promise<void> {
     this.destroyed = true;
+
+    if (this.options.failDestroy === true) {
+      return Promise.reject(new Error("RecordingDbClient destroy failure"));
+    }
+
     return Promise.resolve();
   }
 }

@@ -26,8 +26,12 @@ export async function createApp(options: CreateAppOptions = {}): Promise<Fastify
   const db = options.db;
 
   if (db !== undefined) {
-    app.addHook("onClose", async () => {
-      await db.destroy();
+    app.addHook("onClose", async (instance) => {
+      try {
+        await db.destroy();
+      } catch (error) {
+        instance.log.error({ err: error }, "Failed to destroy database client during app close");
+      }
     });
   }
 
