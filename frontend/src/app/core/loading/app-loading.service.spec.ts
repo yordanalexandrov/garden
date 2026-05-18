@@ -32,4 +32,23 @@ describe('AppLoadingService', () => {
 
     expect(service.isLoading()).toBe(false);
   });
+
+  it('keeps loading active for overlapping operations with the same reason', () => {
+    const service = TestBed.inject(AppLoadingService);
+    const stopFirstOperation = service.start('app');
+    const stopSecondOperation = service.start('app');
+
+    expect(service.isLoading()).toBe(true);
+    expect(service.reasons()).toEqual(['app']);
+
+    stopFirstOperation();
+
+    expect(service.isLoading()).toBe(true);
+    expect(service.reasons()).toEqual(['app']);
+
+    stopSecondOperation();
+
+    expect(service.isLoading()).toBe(false);
+    expect(service.reasons()).toEqual([]);
+  });
 });
