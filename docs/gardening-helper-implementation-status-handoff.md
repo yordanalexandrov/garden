@@ -1,6 +1,6 @@
 # Gardening Helper - Implementation Status Handoff
 
-Last updated: 2026-05-17
+Last updated: 2026-05-18
 
 This file tracks implementation progress only. It does not replace the source-of-truth specs, domain rules, canonical API contract, or task documents. If this file conflicts with a higher-priority document, follow the source-of-truth priority in `AGENTS.md`.
 
@@ -9,14 +9,14 @@ Implementation agents must update this file in the same branch/PR whenever phase
 ## Current Position
 
 - Last implemented phase: Phase 3 - Auth and Account Boundary.
-- Last implemented step: Phase 4 Step 2 - Angular Material and PWA Baseline.
-- Last implemented step file: `docs/implementation-phases/phase-04/02-angular-material-and-pwa-baseline.md`.
-- Last implementation commit observed: pending in current implementation branch for Phase 4 Step 2.
+- Last implemented step: Phase 4 Step 3 - App Shell Layout and Navigation.
+- Last implemented step file: `docs/implementation-phases/phase-04/03-app-shell-layout-and-navigation.md`.
+- Last implementation commit observed: pending in current implementation branch for Phase 4 Step 3.
 - Next implementation phase: Phase 4 - Frontend Project Foundation.
-- Next implementation step: Phase 4 Step 3 - App Shell Layout and Navigation.
-- Next implementation step file: `docs/implementation-phases/phase-04/03-app-shell-layout-and-navigation.md`.
+- Next implementation step: Phase 4 Step 4 - Route Placeholders and Initialization.
+- Next implementation step file: `docs/implementation-phases/phase-04/04-route-placeholders-and-initialization.md`.
 
-Note: Phase 4 Step 1 has been merged to `master`. Phase 4 Step 2 is implemented in the current branch/PR. Phase 4 remaining steps and Phase 5 through Phase 7 have executable task breakdown documents. Phase 8 through Phase 28 currently have top-level phase specs only.
+Note: Phase 4 Steps 1-2 have been merged to `master`. Phase 4 Step 3 is implemented in the current branch/PR. Phase 4 remaining steps and Phase 5 through Phase 7 have executable task breakdown documents. Phase 8 through Phase 28 currently have top-level phase specs only.
 
 ## Status Legend
 
@@ -94,7 +94,7 @@ Note: Phase 4 Step 1 has been merged to `master`. Phase 4 Step 2 is implemented 
 
 - [x] Step 1 - Frontend Workspace and Tooling.
 - [x] Step 2 - Angular Material and PWA Baseline.
-- [ ] Step 3 - App Shell Layout and Navigation.
+- [x] Step 3 - App Shell Layout and Navigation.
 - [ ] Step 4 - Route Placeholders and Initialization.
 - [ ] Step 5 - Supabase Auth Session Foundation.
 - [ ] Step 6 - Typed API Client, Interceptors, and Errors.

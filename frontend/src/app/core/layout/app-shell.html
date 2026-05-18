@@ -1,0 +1,90 @@
+<mat-drawer-container class="app-shell">
+  <mat-drawer
+    class="app-shell__mobile-drawer"
+    mode="over"
+    position="start"
+    [opened]="mobileNavigationOpen()"
+    (closedStart)="closeMobileNavigation()"
+    aria-label="Mobile primary navigation"
+  >
+    <div class="app-shell__drawer-header">
+      <div class="app-shell__brand">
+        <mat-icon class="app-shell__brand-icon" aria-hidden="true" fontIcon="local_florist" />
+        <span class="app-shell__brand-text">Gardening Helper</span>
+      </div>
+      <button
+        mat-icon-button
+        class="app-shell__icon-button app-shell__close-button"
+        type="button"
+        aria-label="Close primary navigation"
+        matTooltip="Close primary navigation"
+        (click)="closeMobileNavigation()"
+      >
+        <mat-icon aria-hidden="true" fontIcon="close" />
+      </button>
+    </div>
+
+    <mat-nav-list class="app-shell__nav-list">
+      @for (item of navigationItems; track item.route) {
+        <a
+          mat-list-item
+          class="app-shell__nav-link"
+          [routerLink]="item.route"
+          routerLinkActive="app-shell__nav-link--active"
+          #mobileLinkActive="routerLinkActive"
+          [routerLinkActiveOptions]="{ exact: item.exact }"
+          [attr.aria-current]="mobileLinkActive.isActive ? 'page' : null"
+          (click)="closeMobileNavigation()"
+        >
+          <mat-icon matListItemIcon aria-hidden="true" [fontIcon]="item.icon" />
+          <span matListItemTitle>{{ item.label }}</span>
+        </a>
+      }
+    </mat-nav-list>
+  </mat-drawer>
+
+  <mat-drawer-content class="app-shell__content">
+    <mat-toolbar class="app-shell__toolbar">
+      <button
+        mat-icon-button
+        class="app-shell__icon-button app-shell__menu-button"
+        type="button"
+        aria-label="Open primary navigation"
+        matTooltip="Open primary navigation"
+        (click)="openMobileNavigation()"
+      >
+        <mat-icon aria-hidden="true" fontIcon="menu" />
+      </button>
+
+      <div class="app-shell__brand" aria-label="Gardening Helper">
+        <mat-icon class="app-shell__brand-icon" aria-hidden="true" fontIcon="local_florist" />
+        <span class="app-shell__brand-text">Gardening Helper</span>
+      </div>
+    </mat-toolbar>
+
+    <div class="app-shell__body">
+      <nav class="app-shell__desktop-nav" aria-label="Primary navigation">
+        <mat-nav-list class="app-shell__nav-list">
+          @for (item of navigationItems; track item.route) {
+            <a
+              mat-list-item
+              class="app-shell__nav-link"
+              [routerLink]="item.route"
+              routerLinkActive="app-shell__nav-link--active"
+              #desktopLinkActive="routerLinkActive"
+              [routerLinkActiveOptions]="{ exact: item.exact }"
+              [attr.aria-current]="desktopLinkActive.isActive ? 'page' : null"
+            >
+              <mat-icon matListItemIcon aria-hidden="true" [fontIcon]="item.icon" />
+              <span matListItemTitle>{{ item.label }}</span>
+            </a>
+          }
+        </mat-nav-list>
+      </nav>
+
+      <main class="app-shell__main" id="main-content" aria-label="Main content" tabindex="-1">
+        <router-outlet />
+      </main>
+    </div>
+  </mat-drawer-content>
+</mat-drawer-container>

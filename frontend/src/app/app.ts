@@ -1,13 +1,11 @@
 import { Component } from '@angular/core';
-import { MatIconModule } from '@angular/material/icon';
-import { RouterOutlet } from '@angular/router';
+
+import { AppShell } from './core/layout/app-shell';
 
 @Component({
   selector: 'app-root',
-  imports: [MatIconModule, RouterOutlet],
+  imports: [AppShell],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
-export class App {
-  protected readonly title = 'Gardening Helper';
-}
+export class App {}
