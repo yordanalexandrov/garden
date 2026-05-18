@@ -4,7 +4,7 @@ import { catchError, throwError } from 'rxjs';
 
 import { isApiRequestUrl } from '../api/api-url';
 import { API_BASE_URL } from '../config/api-base-url';
-import { mapApiError } from '../errors/api-error.mapper';
+import { formatApiErrorForDisplay, mapApiError } from '../errors/api-error.mapper';
 import { SnackbarService } from '../notifications/snackbar.service';
 
 export const apiErrorInterceptor: HttpInterceptorFn = (request, next) => {
@@ -19,7 +19,7 @@ export const apiErrorInterceptor: HttpInterceptorFn = (request, next) => {
   return next(request).pipe(
     catchError((error: unknown) => {
       const apiError = mapApiError(error);
-      snackbar.showError(apiError.message);
+      snackbar.showError(formatApiErrorForDisplay(apiError));
 
       return throwError(() => apiError);
     }),

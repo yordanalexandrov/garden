@@ -5,6 +5,7 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
+    "check:frontend-boundaries": "node scripts/check-pwa-and-boundaries.mjs",
     "check:pwa-boundaries": "node scripts/check-pwa-and-boundaries.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "lint": "ng lint",

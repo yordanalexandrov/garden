@@ -8,15 +8,15 @@ Implementation agents must update this file in the same branch/PR whenever phase
 
 ## Current Position
 
-- Last implemented phase: Phase 3 - Auth and Account Boundary.
-- Last implemented step: Phase 4 Step 6 - Typed API Client, Interceptors, and Errors.
-- Last implemented step file: `docs/implementation-phases/phase-04/06-typed-api-client-interceptors-and-errors.md`.
-- Last implementation commit observed: pending in current implementation branch for Phase 4 Step 6.
-- Next implementation phase: Phase 4 - Frontend Project Foundation.
-- Next implementation step: Phase 4 Step 7 - Phase 04 Verification and PR Readiness.
-- Next implementation step file: `docs/implementation-phases/phase-04/07-phase-04-verification-and-pr-readiness.md`.
+- Last implemented phase: Phase 4 - Frontend Project Foundation.
+- Last implemented step: Phase 4 Step 7 - Phase 04 Verification and PR Readiness.
+- Last implemented step file: `docs/implementation-phases/phase-04/07-phase-04-verification-and-pr-readiness.md`.
+- Last implementation commit observed: current implementation branch/PR for Phase 4 Step 7.
+- Next implementation phase: Phase 5 - Backend Places and Plants API.
+- Next implementation step: Phase 5 Step 1 - Module Contracts and Dependency Wiring.
+- Next implementation step file: `docs/implementation-phases/phase-05/01-module-contracts-and-dependency-wiring.md`.
 
-Note: Phase 4 Steps 1-4 are implemented in the current base. Phase 4 Steps 5-6 are implemented in the current branch/PR. Phase 4 remaining steps and Phase 5 through Phase 7 have executable task breakdown documents. Phase 8 through Phase 28 currently have top-level phase specs only.
+Note: Phase 4 Steps 1-7 are implemented in the current branch/PR. Phase 5 through Phase 7 have executable task breakdown documents. Phase 8 through Phase 28 currently have top-level phase specs only.
 
 ## Status Legend
 
@@ -30,7 +30,7 @@ Note: Phase 4 Steps 1-4 are implemented in the current base. Phase 4 Steps 5-6 a
 - [x] Phase 1 - Backend Project Foundation - implemented.
 - [x] Phase 2 - Database Migration and Transaction Foundation - implemented.
 - [x] Phase 3 - Auth and Account Boundary - implemented.
-- [ ] Phase 4 - Frontend Project Foundation - not implemented; task docs ready.
+- [x] Phase 4 - Frontend Project Foundation - implemented.
 - [ ] Phase 5 - Backend Places and Plants API - not implemented; task docs ready.
 - [ ] Phase 6 - Backend Growing Structure API - not implemented; task docs ready.
 - [ ] Phase 7 - Frontend Garden Structure Pages - not implemented; task docs ready.
@@ -88,8 +88,6 @@ Note: Phase 4 Steps 1-4 are implemented in the current base. Phase 4 Steps 5-6 a
 - [x] Step 6 - Auth Account Boundary Tests and Static Checks.
 - [x] Step 7 - Phase 03 Verification and PR Readiness.
 
-## Next Phase Step Checklist
-
 ### Phase 4 - Frontend Project Foundation
 
 - [x] Step 1 - Frontend Workspace and Tooling.
@@ -98,7 +96,19 @@ Note: Phase 4 Steps 1-4 are implemented in the current base. Phase 4 Steps 5-6 a
 - [x] Step 4 - Route Placeholders and Initialization.
 - [x] Step 5 - Supabase Auth Session Foundation.
 - [x] Step 6 - Typed API Client, Interceptors, and Errors.
-- [ ] Step 7 - Phase 04 Verification and PR Readiness.
+- [x] Step 7 - Phase 04 Verification and PR Readiness.
+
+## Next Phase Step Checklist
+
+### Phase 5 - Backend Places and Plants API
+
+- [ ] Step 1 - Module Contracts and Dependency Wiring.
+- [ ] Step 2 - Places Repository and Service.
+- [ ] Step 3 - Places Routes and API Contract.
+- [ ] Step 4 - Plants Repository and Service.
+- [ ] Step 5 - Plants Routes and API Contract.
+- [ ] Step 6 - Phase 05 Account Scope and Regression Tests.
+- [ ] Step 7 - Phase 05 Verification and PR Readiness.
 
 ## Update Rules
 

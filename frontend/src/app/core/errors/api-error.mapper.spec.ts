@@ -1,7 +1,11 @@
 import { HttpErrorResponse } from '@angular/common/http';
 
 import { ApiError } from './api-error';
-import { extractApiErrorEnvelope, mapApiError } from './api-error.mapper';
+import {
+  extractApiErrorEnvelope,
+  formatApiErrorForDisplay,
+  mapApiError,
+} from './api-error.mapper';
 
 describe('API error mapper', () => {
   it('extracts canonical backend error envelopes', () => {
@@ -105,5 +109,29 @@ describe('API error mapper', () => {
     expect(mapped.code).toBe('INTERNAL_ERROR');
     expect(mapped.message).toBe('API request failed.');
     expect(mapped.status).toBe(500);
+  });
+
+  it('formats validation details for global display when available', () => {
+    const error = new ApiError('VALIDATION_ERROR', 'Invalid input', {
+      details: {
+        name: ['Name is required'],
+        weatherEnabled: true,
+      },
+    });
+
+    expect(formatApiErrorForDisplay(error)).toBe(
+      'Invalid input: name: Name is required; weatherEnabled: true',
+    );
+  });
+
+  it('shows only the backend message when no displayable details exist', () => {
+    const error = new ApiError('INTERNAL_ERROR', 'API request failed.', {
+      details: {
+        empty: [],
+        nullish: null,
+      },
+    });
+
+    expect(formatApiErrorForDisplay(error)).toBe('API request failed.');
   });
 });

@@ -35,7 +35,7 @@ describe('apiErrorInterceptor', () => {
     TestBed.resetTestingModule();
   });
 
-  it('maps backend error envelopes and shows their messages through the global snackbar service', async () => {
+  it('maps backend error envelopes and shows messages with validation details globally', async () => {
     const response = firstValueFrom(http.get('/api/v1/health'));
 
     const request = httpTesting.expectOne('/api/v1/health');
@@ -60,7 +60,7 @@ describe('apiErrorInterceptor', () => {
       message: 'Invalid input',
       status: 400,
     });
-    expect(snackbar.showError).toHaveBeenCalledWith('Invalid input');
+    expect(snackbar.showError).toHaveBeenCalledWith('Invalid input: field: Required');
   });
 
   it('does not show snackbar errors for non-API requests', async () => {
