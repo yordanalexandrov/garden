@@ -304,7 +304,8 @@ async function insertCountFixtureRows(pool: Pool): Promise<void> {
      )
      values
        ('12121212-1212-1212-1212-121212121212', $1, 'problem', $2, 'place', $2, 'Open A', 'Open A', 'open', now()),
-       ('13131313-1313-1313-1313-131313131313', $3, 'problem', $4, 'place', $4, 'Open B', 'Open B', 'open', now())`,
+       ('13131313-1313-1313-1313-131313131313', $1, 'observation', $2, 'place', $2, 'Observation A', 'Observation A', 'open', now()),
+       ('16161616-1616-1616-1616-161616161616', $3, 'problem', $4, 'place', $4, 'Open B', 'Open B', 'open', now())`,
     [AccountFixtureIds.accountA, PlaceIds.activeA, AccountFixtureIds.accountB, PlaceIds.activeB]
   );
 

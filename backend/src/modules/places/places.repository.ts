@@ -106,6 +106,7 @@ export class KyselyPlacesRepository implements PlacesRepository {
       .select(sql<string>`count(*)`.as("count"))
       .where("account_id", "=", accountId)
       .where("place_id", "=", placeId)
+      .where("type", "=", "problem")
       .where("status", "=", "open")
       .executeTakeFirst();
     const upcomingTasks = await db.db
