@@ -9,14 +9,14 @@ Implementation agents must update this file in the same branch/PR whenever phase
 ## Current Position
 
 - Last implemented phase: Phase 3 - Auth and Account Boundary.
-- Last implemented step: Phase 4 Step 5 - Supabase Auth Session Foundation.
-- Last implemented step file: `docs/implementation-phases/phase-04/05-supabase-auth-session-foundation.md`.
-- Last implementation commit observed: pending in current implementation branch for Phase 4 Step 5.
+- Last implemented step: Phase 4 Step 6 - Typed API Client, Interceptors, and Errors.
+- Last implemented step file: `docs/implementation-phases/phase-04/06-typed-api-client-interceptors-and-errors.md`.
+- Last implementation commit observed: pending in current implementation branch for Phase 4 Step 6.
 - Next implementation phase: Phase 4 - Frontend Project Foundation.
-- Next implementation step: Phase 4 Step 6 - Typed API Client, Interceptors, and Errors.
-- Next implementation step file: `docs/implementation-phases/phase-04/06-typed-api-client-interceptors-and-errors.md`.
+- Next implementation step: Phase 4 Step 7 - Phase 04 Verification and PR Readiness.
+- Next implementation step file: `docs/implementation-phases/phase-04/07-phase-04-verification-and-pr-readiness.md`.
 
-Note: Phase 4 Steps 1-4 are implemented in the current base. Phase 4 Step 5 is implemented in the current branch/PR. Phase 4 remaining steps and Phase 5 through Phase 7 have executable task breakdown documents. Phase 8 through Phase 28 currently have top-level phase specs only.
+Note: Phase 4 Steps 1-4 are implemented in the current base. Phase 4 Steps 5-6 are implemented in the current branch/PR. Phase 4 remaining steps and Phase 5 through Phase 7 have executable task breakdown documents. Phase 8 through Phase 28 currently have top-level phase specs only.
 
 ## Status Legend
 
@@ -97,7 +97,7 @@ Note: Phase 4 Steps 1-4 are implemented in the current base. Phase 4 Step 5 is i
 - [x] Step 3 - App Shell Layout and Navigation.
 - [x] Step 4 - Route Placeholders and Initialization.
 - [x] Step 5 - Supabase Auth Session Foundation.
-- [ ] Step 6 - Typed API Client, Interceptors, and Errors.
+- [x] Step 6 - Typed API Client, Interceptors, and Errors.
 - [ ] Step 7 - Phase 04 Verification and PR Readiness.
 
 ## Update Rules

@@ -28,8 +28,18 @@ const forbiddenFrontendSecretNames = [
 const supabaseTableCallPattern = /(?<!\bArray)\.from\s*(?:<[^>\n]+>)?\s*\(/;
 const supabaseStoragePatterns = [/\bsupabase\s*\.\s*storage\b/i, /\.storage\s*\.\s*from\s*\(/i];
 const supabaseSdkImportPattern = /from\s+['"]@supabase\/(?:supabase-js|auth-js|postgrest-js|storage-js)['"]/;
+const rawHttpClientPatterns = [
+  /import\s*\{[^}]*\bHttpClient\b[^}]*\}\s*from\s+['"]@angular\/common\/http['"]/,
+  /import\s+\*\s+as\s+\w+\s+from\s+['"]@angular\/common\/http['"]/,
+  /import\s*\(\s*['"]@angular\/common\/http['"]\s*\)/,
+  /\bHttpClient\b/,
+];
 
 const isAuthInfrastructureFile = (relativePath) => relativePath.startsWith('src/app/core/auth/');
+const isHttpInfrastructureFile = (relativePath) =>
+  relativePath.startsWith('src/app/core/api/') ||
+  relativePath.startsWith('src/app/core/interceptors/') ||
+  relativePath === 'src/app/app.config.ts';
 const isFrontendSourceFile = (relativePath) => relativePath.startsWith('src/');
 
 const findFrontendBoundaryViolations = (relativePath, content) => {
@@ -61,6 +71,16 @@ const findFrontendBoundaryViolations = (relativePath, content) => {
   ) {
     violations.push(
       `@supabase/supabase-js imports and client creation are limited to core/auth in ${relativePath}.`,
+    );
+  }
+
+  if (
+    isFrontendSourceFile(relativePath) &&
+    !isHttpInfrastructureFile(relativePath) &&
+    rawHttpClientPatterns.some((pattern) => pattern.test(content))
+  ) {
+    violations.push(
+      `Raw HttpClient usage is limited to core API/interceptor infrastructure in ${relativePath}.`,
     );
   }
 
@@ -99,6 +119,26 @@ assertBoundarySelfTestRejects(
   'Supabase SDK imports outside auth infrastructure',
   "import { SupabaseAuthClient } from '@supabase/auth-js';",
   'limited to core/auth',
+);
+assertBoundarySelfTestRejects(
+  'raw HttpClient usage outside API infrastructure',
+  "import { HttpClient } from '@angular/common/http';",
+  'Raw HttpClient usage',
+);
+assertBoundarySelfTestRejects(
+  'namespace HttpClient imports outside API infrastructure',
+  "import * as ngHttp from '@angular/common/http';",
+  'Raw HttpClient usage',
+);
+assertBoundarySelfTestRejects(
+  'dynamic common HTTP imports outside API infrastructure',
+  "const http = await import('@angular/common/http');",
+  'Raw HttpClient usage',
+);
+assertBoundarySelfTestRejects(
+  'HttpClient identifier usage outside API infrastructure',
+  'const http = inject(HttpClient);',
+  'Raw HttpClient usage',
 );
 
 const angular = readJson('angular.json');
