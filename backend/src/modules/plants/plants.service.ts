@@ -81,6 +81,18 @@ function assertValidPlantCreateInput(input: Partial<CreatePlantServiceInput>): v
     });
   }
 
+  if (typeof input.lifecycleType !== "string" || input.lifecycleType.trim().length === 0) {
+    throw new AppError("VALIDATION_ERROR", "Plant lifecycleType is required", {
+      lifecycleType: ["Required"]
+    });
+  }
+
+  if (typeof input.growingStyle !== "string" || input.growingStyle.trim().length === 0) {
+    throw new AppError("VALIDATION_ERROR", "Plant growingStyle is required", {
+      growingStyle: ["Required"]
+    });
+  }
+
   assertValidPlantEnums(input);
 }
 

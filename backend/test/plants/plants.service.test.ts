@@ -63,6 +63,36 @@ describe("PlantsService", () => {
     expect(repository.createdInputs).toHaveLength(0);
   });
 
+  it("rejects missing required enum fields before repository writes", async () => {
+    const repository = new StubPlantsRepository();
+    const service = new PlantsService(repository);
+
+    await expect(
+      service.createPlant(actorA, {
+        commonName: "Tomato",
+        growingStyle: "vegetable"
+      } as never)
+    ).rejects.toMatchObject({
+      code: "VALIDATION_ERROR",
+      details: {
+        lifecycleType: ["Required"]
+      }
+    });
+    await expect(
+      service.createPlant(actorA, {
+        commonName: "Tomato",
+        lifecycleType: "annual"
+      } as never)
+    ).rejects.toMatchObject({
+      code: "VALIDATION_ERROR",
+      details: {
+        growingStyle: ["Required"]
+      }
+    });
+
+    expect(repository.createdInputs).toHaveLength(0);
+  });
+
   it("rejects invalid lifecycleType and growingStyle values", async () => {
     const repository = new StubPlantsRepository();
     const service = new PlantsService(repository);
