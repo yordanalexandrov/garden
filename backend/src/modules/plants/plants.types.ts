@@ -77,6 +77,6 @@ export interface PlantsRepository {
   list(accountId: UUID, filters: ListPlantsFilters, db?: DbHandle): Promise<PaginatedPlants>;
   findById(accountId: UUID, plantId: UUID, db?: DbHandle): Promise<Plant | null>;
   create(input: CreatePlantInput, db?: DbHandle): Promise<Plant>;
-  update(accountId: UUID, plantId: UUID, patch: UpdatePlantInput, db?: DbHandle): Promise<Plant>;
-  archive(accountId: UUID, plantId: UUID, db?: DbHandle): Promise<void>;
+  update(accountId: UUID, plantId: UUID, patch: UpdatePlantInput, db?: DbHandle): Promise<Plant | null>;
+  archive(accountId: UUID, plantId: UUID, db?: DbHandle): Promise<boolean>;
 }
