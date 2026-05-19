@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { toPlantDetailDto, toPlantListItemDto, toPlantMutationDto } from "../../src/modules/plants/plants.dto.js";
-import type { PlantRow } from "../../src/modules/plants/plants.types.js";
+import type { Plant, PlantRow } from "../../src/modules/plants/plants.types.js";
 
 const createdAt = new Date("2026-05-18T10:00:00.000Z");
 const updatedAt = new Date("2026-05-18T11:00:00.000Z");
@@ -27,6 +27,21 @@ describe("plants DTO mapping", () => {
     });
   });
 
+  it("maps service plant objects without leaking database field names", () => {
+    expect(toPlantDetailDto(createPlant())).toEqual({
+      id: "123e4567-e89b-12d3-a456-426614174000",
+      commonName: "Tomato",
+      variety: "Roma",
+      plantCategory: "vegetable",
+      lifecycleType: "annual",
+      growingStyle: "vegetable",
+      notes: "Seed indoors",
+      archivedAt: null,
+      createdAt: "2026-05-18T10:00:00.000Z",
+      updatedAt: "2026-05-18T11:00:00.000Z"
+    });
+  });
+
   it("maps mutation responses to canonical id", () => {
     expect(toPlantMutationDto(createPlantRow())).toEqual({
       id: "123e4567-e89b-12d3-a456-426614174000"
@@ -47,5 +62,21 @@ function createPlantRow(): PlantRow {
     created_at: createdAt,
     updated_at: updatedAt,
     archived_at: null
+  };
+}
+
+function createPlant(): Plant {
+  return {
+    id: "123e4567-e89b-12d3-a456-426614174000",
+    accountId: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+    commonName: "Tomato",
+    variety: "Roma",
+    plantCategory: "vegetable",
+    lifecycleType: "annual",
+    growingStyle: "vegetable",
+    notes: "Seed indoors",
+    createdAt,
+    updatedAt,
+    archivedAt: null
   };
 }

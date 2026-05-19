@@ -1,37 +1,72 @@
 import type {
   GrowingStyle,
   LifecycleType,
+  Plant,
   PlantDetailDto,
   PlantListItemDto,
   PlantMutationDto,
   PlantRow
 } from "./plants.types.js";
 
-export function toPlantListItemDto(row: PlantRow): PlantListItemDto {
+type PlantDtoSource = Plant | PlantRow;
+
+export function toPlantListItemDto(plant: PlantDtoSource): PlantListItemDto {
   return {
-    id: row.id,
-    commonName: row.common_name,
-    variety: row.variety,
-    plantCategory: row.plant_category,
-    lifecycleType: row.lifecycle_type as LifecycleType,
-    growingStyle: row.growing_style as GrowingStyle,
-    notes: row.notes,
-    archivedAt: toNullableIsoString(row.archived_at)
+    id: plant.id,
+    commonName: commonNameOf(plant),
+    variety: plant.variety,
+    plantCategory: plantCategoryOf(plant),
+    lifecycleType: lifecycleTypeOf(plant),
+    growingStyle: growingStyleOf(plant),
+    notes: plant.notes,
+    archivedAt: toNullableIsoString(archivedAtOf(plant))
   };
 }
 
-export function toPlantDetailDto(row: PlantRow): PlantDetailDto {
+export function toPlantDetailDto(plant: PlantDtoSource): PlantDetailDto {
   return {
-    ...toPlantListItemDto(row),
-    createdAt: row.created_at.toISOString(),
-    updatedAt: row.updated_at.toISOString()
+    ...toPlantListItemDto(plant),
+    createdAt: createdAtOf(plant).toISOString(),
+    updatedAt: updatedAtOf(plant).toISOString()
   };
 }
 
-export function toPlantMutationDto(row: Pick<PlantRow, "id">): PlantMutationDto {
+export function toPlantMutationDto(plant: Pick<PlantRow, "id"> | Pick<Plant, "id">): PlantMutationDto {
   return {
-    id: row.id
+    id: plant.id
   };
+}
+
+function isPlantRow(value: PlantDtoSource): value is PlantRow {
+  return "common_name" in value;
+}
+
+function commonNameOf(plant: PlantDtoSource): string {
+  return isPlantRow(plant) ? plant.common_name : plant.commonName;
+}
+
+function plantCategoryOf(plant: PlantDtoSource): string | null {
+  return isPlantRow(plant) ? plant.plant_category : plant.plantCategory;
+}
+
+function lifecycleTypeOf(plant: PlantDtoSource): LifecycleType {
+  return isPlantRow(plant) ? (plant.lifecycle_type as LifecycleType) : plant.lifecycleType;
+}
+
+function growingStyleOf(plant: PlantDtoSource): GrowingStyle {
+  return isPlantRow(plant) ? (plant.growing_style as GrowingStyle) : plant.growingStyle;
+}
+
+function createdAtOf(plant: PlantDtoSource): Date {
+  return isPlantRow(plant) ? plant.created_at : plant.createdAt;
+}
+
+function updatedAtOf(plant: PlantDtoSource): Date {
+  return isPlantRow(plant) ? plant.updated_at : plant.updatedAt;
+}
+
+function archivedAtOf(plant: PlantDtoSource): Date | null {
+  return isPlantRow(plant) ? plant.archived_at : plant.archivedAt;
 }
 
 function toNullableIsoString(value: Date | null): string | null {
