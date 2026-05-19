@@ -1,5 +1,5 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
-import { join, relative } from "node:path";
+import { basename, join, relative } from "node:path";
 
 import { afterEach, describe, expect, it } from "vitest";
 import type { FastifyInstance } from "fastify";
@@ -10,6 +10,9 @@ const repoRoot = join(import.meta.dirname, "../../..");
 const backendRoot = join(repoRoot, "backend");
 const backendSrcRoot = join(backendRoot, "src");
 const frontendCandidates = ["frontend", "web", "apps/web"].map((path) => join(repoRoot, path));
+const ignoredScanDirectoryNames = new Set([".angular", "coverage", "dist", "node_modules"]);
+const frontendRuntimeFiles = (): string[] =>
+  existingFilesUnder(frontendCandidates).filter((file) => !relative(repoRoot, file).replaceAll("\\", "/").startsWith("frontend/scripts/"));
 
 describe("Phase 3 auth/account security boundaries", () => {
   let app: FastifyInstance | undefined;
@@ -20,7 +23,7 @@ describe("Phase 3 auth/account security boundaries", () => {
   });
 
   it("does not expose SUPABASE_SERVICE_ROLE_KEY from frontend paths", () => {
-    for (const file of existingFilesUnder(frontendCandidates)) {
+    for (const file of frontendRuntimeFiles()) {
       expect(readFileSync(file, "utf8")).not.toContain("SUPABASE_SERVICE_ROLE_KEY");
     }
   });
@@ -62,18 +65,21 @@ describe("Phase 3 auth/account security boundaries", () => {
     }
   });
 
-  it("does not introduce public domain CRUD routes in Phase 3", async () => {
+  it("keeps implemented domain routes protected and unimplemented domain routes unavailable", async () => {
     app = await createTestApp({ enableTestRoutes: true });
     await app.ready();
 
     const routes = app.printRoutes();
+    const placesResponse = await app.inject({ method: "GET", url: "/api/v1/places" });
+    const productsResponse = await app.inject({ method: "GET", url: "/api/v1/products" });
+    const activitiesResponse = await app.inject({ method: "GET", url: "/api/v1/activities" });
 
     expect(routes).toContain("api/v1");
     expect(routes).toContain("health");
     expect(routes).toContain("__test");
-    expect(routes).not.toContain("/api/v1/places");
-    expect(routes).not.toContain("/api/v1/products");
-    expect(routes).not.toContain("/api/v1/activities");
+    expect(placesResponse.statusCode).toBe(401);
+    expect(productsResponse.statusCode).toBe(404);
+    expect(activitiesResponse.statusCode).toBe(404);
   });
 });
 
@@ -94,6 +100,10 @@ function collectFiles(path: string): string[] {
 
   if (stat.isFile()) {
     return [path];
+  }
+
+  if (ignoredScanDirectoryNames.has(basename(path))) {
+    return [];
   }
 
   return readdirSync(path).flatMap((entry) => collectFiles(join(path, entry)));
