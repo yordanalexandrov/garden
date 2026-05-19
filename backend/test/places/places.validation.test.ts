@@ -90,4 +90,10 @@ describe("places validation", () => {
   it("requires at least one field for place updates", () => {
     expect(updatePlaceBodySchema.safeParse({}).success).toBe(false);
   });
+
+  it("lets the service validate merged weather metadata for place updates", () => {
+    expect(updatePlaceBodySchema.parse({ weatherEnabled: true })).toEqual({
+      weatherEnabled: true
+    });
+  });
 });

@@ -140,6 +140,25 @@ describe("Places routes", () => {
       }
     });
   });
+
+  it("does not leak internal route dependency details when db wiring is unavailable", async () => {
+    app = await createAuthenticatedTestApp();
+
+    const response = await app.inject({
+      method: "GET",
+      url: "/api/v1/places",
+      headers: accountAAuthHeaders()
+    });
+
+    expect(response.statusCode).toBe(500);
+    expect(response.json()).toEqual({
+      error: {
+        code: "INTERNAL_ERROR",
+        message: "Unexpected server error",
+        details: {}
+      }
+    });
+  });
 });
 
 describeDatabase("Places routes with database", () => {

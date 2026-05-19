@@ -43,8 +43,7 @@ export const updatePlaceBodySchema = z
   .partial()
   .refine((value) => Object.keys(value).length > 0, {
     message: "At least one field is required"
-  })
-  .superRefine(validateWeatherLocation);
+  });
 
 export type ListPlacesQuery = z.infer<typeof listPlacesQuerySchema>;
 export type CreatePlaceBody = z.infer<typeof createPlaceBodySchema>;

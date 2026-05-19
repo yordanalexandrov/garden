@@ -2,7 +2,6 @@ import type { FastifyPluginCallback } from "fastify";
 
 import type { DbClient } from "../../db/transaction.js";
 import { successEnvelope } from "../../shared/api/envelope.js";
-import { AppError } from "../../shared/errors/app-error.js";
 import { validateRequest } from "../../shared/validation/request-validation.js";
 import { hasAuthDecorator, requireActor } from "../auth/request-actor.js";
 import { toPlaceDetailDto, toPlaceListItemDto, toPlaceMutationDto } from "./places.dto.js";
@@ -81,7 +80,7 @@ export const registerPlacesRoutes: FastifyPluginCallback<PlacesRouteOptions> = (
 
 function requirePlacesService(service: PlacesService | undefined): PlacesService {
   if (service === undefined) {
-    throw new AppError("INTERNAL_ERROR", "Places routes require a database client");
+    throw new Error("Places routes require a database client");
   }
 
   return service;
