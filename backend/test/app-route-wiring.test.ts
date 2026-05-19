@@ -42,13 +42,13 @@ describe("business route dependency wiring", () => {
     expect(db.transactionCalls).toBe(0);
   });
 
-  it("registers future places and plants prefixes without adding public behavior yet", async () => {
+  it("registers places as a protected business route while plants remains a future placeholder", async () => {
     app = await createTestApp({ db: new RecordingDbClient() });
 
     const placesResponse = await app.inject({ method: "GET", url: "/api/v1/places" });
     const plantsResponse = await app.inject({ method: "GET", url: "/api/v1/plants" });
 
-    expect(placesResponse.statusCode).toBe(404);
+    expect(placesResponse.statusCode).toBe(401);
     expect(plantsResponse.statusCode).toBe(404);
   });
 
