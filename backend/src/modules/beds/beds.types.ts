@@ -106,6 +106,10 @@ export type BedListItemDto = {
 
 export type BedDetailDto = BedListItemDto & {
   notes: string | null;
+  persistentPlants: BedCurrentPersistentPlant[];
+  yearlyPlantings: BedCurrentYearlyPlanting[];
+  recentActivities: [];
+  openProblems: [];
   createdAt: string;
   updatedAt: string;
   archivedAt: string | null;
@@ -118,7 +122,7 @@ export type BedMutationDto = {
 export interface BedsRepository {
   listByPlace(accountId: UUID, placeId: UUID, filters: ListBedsFilters, db?: DbHandle): Promise<PaginatedBeds>;
   listActiveByPlace(accountId: UUID, placeId: UUID, db?: DbHandle): Promise<Bed[]>;
-  findById(accountId: UUID, bedId: UUID, db?: DbHandle): Promise<BedWithCurrentContents | null>;
+  findById(accountId: UUID, bedId: UUID, year?: number, db?: DbHandle): Promise<BedWithCurrentContents | null>;
   findManyByIds(accountId: UUID, ids: UUID[], db?: DbHandle): Promise<Bed[]>;
   create(input: CreateBedInput, db?: DbHandle): Promise<Bed>;
   update(accountId: UUID, bedId: UUID, patch: UpdateBedInput, db?: DbHandle): Promise<Bed | null>;

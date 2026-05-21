@@ -74,7 +74,13 @@ describe("growing structure DTO mapping", () => {
         yearlyPlantings: [expect.objectContaining({ plantName: "Tomato (Roma)" })]
       }
     });
-    expect(toBedDetailDto(createBedRow(), currentContents).updatedAt).toBe("2026-05-21T09:00:00.000Z");
+    expect(toBedDetailDto(createBedRow(), currentContents)).toMatchObject({
+      persistentPlants: [expect.objectContaining({ plantName: "Strawberry" })],
+      yearlyPlantings: [expect.objectContaining({ plantName: "Tomato (Roma)" })],
+      recentActivities: [],
+      openProblems: [],
+      updatedAt: "2026-05-21T09:00:00.000Z"
+    });
   });
 
   it("maps persistent bed plant rows to camelCase fields", () => {
