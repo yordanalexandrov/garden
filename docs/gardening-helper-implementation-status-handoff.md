@@ -1,6 +1,6 @@
 # Gardening Helper - Implementation Status Handoff
 
-Last updated: 2026-05-19
+Last updated: 2026-05-21
 
 This file tracks implementation progress only. It does not replace the source-of-truth specs, domain rules, canonical API contract, or task documents. If this file conflicts with a higher-priority document, follow the source-of-truth priority in `AGENTS.md`.
 
@@ -9,14 +9,14 @@ Implementation agents must update this file in the same branch/PR whenever phase
 ## Current Position
 
 - Last implemented phase: Phase 5 - Backend Places and Plants API (in progress).
-- Last implemented step: Phase 5 Step 4 - Plants Repository and Service.
-- Last implemented step file: `docs/implementation-phases/phase-05/04-plants-repository-and-service.md`.
-- Last implementation commit observed: current implementation branch/PR for Phase 5 Step 4.
+- Last implemented step: Phase 5 Step 5 - Plants Routes and API Contract.
+- Last implemented step file: `docs/implementation-phases/phase-05/05-plants-routes-and-api-contract.md`.
+- Last implementation commit observed: current implementation branch/PR for Phase 5 Step 5.
 - Next implementation phase: Phase 5 - Backend Places and Plants API.
-- Next implementation step: Phase 5 Step 5 - Plants Routes and API Contract.
-- Next implementation step file: `docs/implementation-phases/phase-05/05-plants-routes-and-api-contract.md`.
+- Next implementation step: Phase 5 Step 6 - Phase 05 Account Scope and Regression Tests.
+- Next implementation step file: `docs/implementation-phases/phase-05/06-phase-05-account-scope-and-regression-tests.md`.
 
-Note: Phase 5 Step 4 is implemented in the current branch/PR. Phase 5 through Phase 7 have executable task breakdown documents. Phase 8 through Phase 28 currently have top-level phase specs only.
+Note: Phase 5 Step 5 is implemented in the current branch/PR. Phase 5 through Phase 7 have executable task breakdown documents. Phase 8 through Phase 28 currently have top-level phase specs only.
 
 ## Status Legend
 
@@ -106,7 +106,7 @@ Note: Phase 5 Step 4 is implemented in the current branch/PR. Phase 5 through Ph
 - [x] Step 2 - Places Repository and Service.
 - [x] Step 3 - Places Routes and API Contract.
 - [x] Step 4 - Plants Repository and Service.
-- [ ] Step 5 - Plants Routes and API Contract.
+- [x] Step 5 - Plants Routes and API Contract.
 - [ ] Step 6 - Phase 05 Account Scope and Regression Tests.
 - [ ] Step 7 - Phase 05 Verification and PR Readiness.
 
