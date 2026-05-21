@@ -149,6 +149,79 @@ The migration runner applies the baseline SQL files from `docs/` and records
 applied migrations in `gardening_helper_schema_migrations`, so it can be rerun
 against the same local/private database.
 
+### Local Docker Compose
+
+This repository includes a local Supabase infrastructure Compose setup in
+`infra/local`. It is for development only and starts:
+
+- Supabase Postgres
+- Supabase Auth
+- PostgREST for Supabase internal/storage use
+- Supabase Storage
+- imgproxy
+- postgres-meta
+- a loopback-only local gateway on `http://localhost:8000`
+
+Create local env values:
+
+```bash
+cd infra/local
+cp .env.example .env
+node scripts/generate-supabase-jwts.mjs 'replace-with-at-least-32-characters'
+```
+
+Copy the generated `SUPABASE_JWT_SECRET`, `SUPABASE_ANON_KEY`, and
+`SUPABASE_SERVICE_ROLE_KEY` values into `infra/local/.env`, then start the
+stack:
+
+```bash
+docker compose --env-file .env up -d
+docker compose ps
+curl http://localhost:8000/health
+```
+
+Apply the application schema from the backend package:
+
+```bash
+cd ../../backend
+
+export NODE_ENV=development
+export PORT=3000
+export DATABASE_URL='postgres://postgres:replace-with-a-long-local-postgres-password@localhost:54322/postgres'
+export SUPABASE_JWT_SECRET='replace-with-at-least-32-characters'
+export SUPABASE_AUTH_EXTERNAL_URL='http://localhost:8000/auth/v1'
+
+npm run db:migrate
+npm run dev
+```
+
+For protected API smoke tests, the backend currently requires Supabase JWTs to
+carry an application `account_id` claim. The seed migration creates demo account
+`00000000-0000-0000-0000-000000000001`; you can mint a local token for it:
+
+```bash
+cd ../infra/local
+SUPABASE_JWT_SECRET='replace-with-at-least-32-characters' \
+  node scripts/mint-local-access-token.mjs
+```
+
+Use the printed token as `Authorization: Bearer <token>` when calling protected
+backend endpoints.
+
+Stop the local Supabase stack:
+
+```bash
+cd infra/local
+docker compose down
+```
+
+Remove local database/storage volumes only when you intentionally want to delete
+all local Supabase data:
+
+```bash
+docker compose down -v
+```
+
 ## Verification Commands
 
 Backend:
