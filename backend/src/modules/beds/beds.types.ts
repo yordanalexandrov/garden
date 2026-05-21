@@ -30,14 +30,12 @@ export type Bed = {
 
 export type BedCurrentPersistentPlant = {
   id: UUID;
-  plantId: UUID;
   plantName: string;
   quantity: number | null;
 };
 
 export type BedCurrentYearlyPlanting = {
   id: UUID;
-  plantId: UUID;
   plantName: string;
   year: number;
   quantity: number | null;

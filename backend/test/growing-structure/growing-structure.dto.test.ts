@@ -46,7 +46,6 @@ describe("growing structure DTO mapping", () => {
       persistentPlants: [
         {
           id: "33333333-3333-3333-3333-333333333333",
-          plantId,
           plantName: "Strawberry",
           quantity: 10
         }
@@ -54,7 +53,6 @@ describe("growing structure DTO mapping", () => {
       yearlyPlantings: [
         {
           id: "44444444-4444-4444-4444-444444444444",
-          plantId: "eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee",
           plantName: "Tomato (Roma)",
           year: 2026,
           quantity: 12,

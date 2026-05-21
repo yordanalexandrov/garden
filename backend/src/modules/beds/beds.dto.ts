@@ -22,7 +22,6 @@ export function toBedCurrentContentsDto(rows: BedCurrentContentsRow[]): BedCurre
     if (row.source_type === "persistent_bed_plant") {
       currentContents.persistentPlants.push({
         id: row.source_id,
-        plantId: row.plant_id,
         plantName: formatPlantName(row.common_name, row.variety),
         quantity: toNullableNumber(row.quantity)
       });
@@ -36,7 +35,6 @@ export function toBedCurrentContentsDto(rows: BedCurrentContentsRow[]): BedCurre
 
       currentContents.yearlyPlantings.push({
         id: row.source_id,
-        plantId: row.plant_id,
         plantName: formatPlantName(row.common_name, row.variety),
         year: row.year,
         quantity: toNullableNumber(row.quantity),
