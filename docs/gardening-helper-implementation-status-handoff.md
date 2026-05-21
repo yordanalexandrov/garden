@@ -8,15 +8,15 @@ Implementation agents must update this file in the same branch/PR whenever phase
 
 ## Current Position
 
-- Last implemented phase: Phase 6 - Backend Growing Structure API (in progress; perennials repository/service implemented).
-- Last implemented step: Phase 6 Step 2 - Perennials Repository and Service.
-- Last implemented step file: `docs/implementation-phases/phase-06/02-perennials-repository-and-service.md`.
-- Last implementation commit observed: pending Step 2 commit on `feature/backend-growing-structure`.
+- Last implemented phase: Phase 6 - Backend Growing Structure API (in progress; perennials routes/API contract implemented).
+- Last implemented step: Phase 6 Step 3 - Perennials Routes and API Contract.
+- Last implemented step file: `docs/implementation-phases/phase-06/03-perennials-routes-and-api-contract.md`.
+- Last implementation commit observed: Phase 6 Step 3 commit on `feature/backend-growing-structure`.
 - Next implementation phase: Phase 6 - Backend Growing Structure API.
-- Next implementation step: Phase 6 Step 3 - Perennials Routes and API Contract.
-- Next implementation step file: `docs/implementation-phases/phase-06/03-perennials-routes-and-api-contract.md`.
+- Next implementation step: Phase 6 Step 4 - Beds Repository Service and Current Contents.
+- Next implementation step file: `docs/implementation-phases/phase-06/04-beds-repository-service-and-current-contents.md`.
 
-Note: Phase 6 Step 2 implements repository/service behavior only. Public perennials routes remain deferred to Step 3. If a separate Phase 5 verification PR updates shared files, reconcile this branch before merge. Phase 6 and Phase 7 have executable task breakdown documents. Phase 8 through Phase 28 currently have top-level phase specs only.
+Note: Phase 6 Step 3 exposes public authenticated perennials routes backed by the Step 2 service/repository behavior. Beds, persistent bed plants, and yearly bed plantings remain deferred to later Phase 6 steps. If a separate Phase 5 verification PR updates shared files, reconcile this branch before merge. Phase 6 and Phase 7 have executable task breakdown documents. Phase 8 through Phase 28 currently have top-level phase specs only.
 
 ## Status Legend
 
@@ -114,7 +114,7 @@ Note: Phase 6 Step 2 implements repository/service behavior only. Public perenni
 
 - [x] Step 1 - Growing Structure Module Contracts and Validation.
 - [x] Step 2 - Perennials Repository and Service.
-- [ ] Step 3 - Perennials Routes and API Contract.
+- [x] Step 3 - Perennials Routes and API Contract.
 - [ ] Step 4 - Beds Repository Service and Current Contents.
 - [ ] Step 5 - Beds Routes and API Contract.
 - [ ] Step 6 - Persistent Bed Plants Repository and Service.
