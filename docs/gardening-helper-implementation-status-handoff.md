@@ -8,15 +8,15 @@ Implementation agents must update this file in the same branch/PR whenever phase
 
 ## Current Position
 
-- Last implemented phase: Phase 5 - Backend Places and Plants API (in progress).
-- Last implemented step: Phase 5 Step 6 - Phase 05 Account Scope and Regression Tests.
-- Last implemented step file: `docs/implementation-phases/phase-05/06-phase-05-account-scope-and-regression-tests.md`.
-- Last implementation commit observed: current implementation branch/PR for Phase 5 Step 6.
-- Next implementation phase: Phase 5 - Backend Places and Plants API.
-- Next implementation step: Phase 5 Step 7 - Phase 05 Verification and PR Readiness.
-- Next implementation step file: `docs/implementation-phases/phase-05/07-phase-05-verification-and-pr-readiness.md`.
+- Last implemented phase: Phase 5 - Backend Places and Plants API.
+- Last implemented step: Phase 5 Step 7 - Phase 05 Verification and PR Readiness.
+- Last implemented step file: `docs/implementation-phases/phase-05/07-phase-05-verification-and-pr-readiness.md`.
+- Last implementation commit observed: current implementation branch/PR for Phase 5 Step 7.
+- Next implementation phase: Phase 6 - Backend Growing Structure API.
+- Next implementation step: Phase 6 Step 1 - Growing Structure Module Contracts and Validation.
+- Next implementation step file: `docs/implementation-phases/phase-06/01-growing-structure-module-contracts-and-validation.md`.
 
-Note: Phase 5 Step 6 is implemented in the current branch/PR. Phase 5 through Phase 7 have executable task breakdown documents. Phase 8 through Phase 28 currently have top-level phase specs only.
+Note: Phase 5 Step 7 is implemented in the current branch/PR. Phase 6 and Phase 7 have executable task breakdown documents. Phase 8 through Phase 28 currently have top-level phase specs only.
 
 ## Status Legend
 
@@ -31,7 +31,7 @@ Note: Phase 5 Step 6 is implemented in the current branch/PR. Phase 5 through Ph
 - [x] Phase 2 - Database Migration and Transaction Foundation - implemented.
 - [x] Phase 3 - Auth and Account Boundary - implemented.
 - [x] Phase 4 - Frontend Project Foundation - implemented.
-- [ ] Phase 5 - Backend Places and Plants API - not implemented; task docs ready.
+- [x] Phase 5 - Backend Places and Plants API - implemented.
 - [ ] Phase 6 - Backend Growing Structure API - not implemented; task docs ready.
 - [ ] Phase 7 - Frontend Garden Structure Pages - not implemented; task docs ready.
 - [ ] Phase 8 - Backend Products and Usage Rules API - not implemented; top-level spec only.
@@ -98,8 +98,6 @@ Note: Phase 5 Step 6 is implemented in the current branch/PR. Phase 5 through Ph
 - [x] Step 6 - Typed API Client, Interceptors, and Errors.
 - [x] Step 7 - Phase 04 Verification and PR Readiness.
 
-## Next Phase Step Checklist
-
 ### Phase 5 - Backend Places and Plants API
 
 - [x] Step 1 - Module Contracts and Dependency Wiring.
@@ -108,7 +106,23 @@ Note: Phase 5 Step 6 is implemented in the current branch/PR. Phase 5 through Ph
 - [x] Step 4 - Plants Repository and Service.
 - [x] Step 5 - Plants Routes and API Contract.
 - [x] Step 6 - Phase 05 Account Scope and Regression Tests.
-- [ ] Step 7 - Phase 05 Verification and PR Readiness.
+- [x] Step 7 - Phase 05 Verification and PR Readiness.
+
+## Next Phase Step Checklist
+
+### Phase 6 - Backend Growing Structure API
+
+- [ ] Step 1 - Growing Structure Module Contracts and Validation.
+- [ ] Step 2 - Perennials Repository and Service.
+- [ ] Step 3 - Perennials Routes and API Contract.
+- [ ] Step 4 - Beds Repository Service and Current Contents.
+- [ ] Step 5 - Beds Routes and API Contract.
+- [ ] Step 6 - Persistent Bed Plants Repository and Service.
+- [ ] Step 7 - Persistent Bed Plants Routes and API Contract.
+- [ ] Step 8 - Yearly Bed Plantings Repository and Service.
+- [ ] Step 9 - Yearly Bed Plantings Routes and API Contract.
+- [ ] Step 10 - Phase 06 Account Consistency and Regression Tests.
+- [ ] Step 11 - Phase 06 Verification and PR Readiness.
 
 ## Update Rules
 
