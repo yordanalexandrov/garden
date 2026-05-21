@@ -58,7 +58,11 @@ export class KyselyPerennialsRepository implements PerennialsRepository {
   ): Promise<PaginatedPerennials> {
     let itemsQuery = db.db
       .selectFrom("perennials")
-      .innerJoin("plants", "plants.id", "perennials.plant_id")
+      .innerJoin("plants", (join) =>
+        join
+          .onRef("plants.id", "=", "perennials.plant_id")
+          .onRef("plants.account_id", "=", "perennials.account_id")
+      )
       .select(PERENNIAL_WITH_PLANT_COLUMNS)
       .where("perennials.account_id", "=", accountId)
       .where("perennials.place_id", "=", placeId)
@@ -70,7 +74,11 @@ export class KyselyPerennialsRepository implements PerennialsRepository {
 
     let countQuery = db.db
       .selectFrom("perennials")
-      .innerJoin("plants", "plants.id", "perennials.plant_id")
+      .innerJoin("plants", (join) =>
+        join
+          .onRef("plants.id", "=", "perennials.plant_id")
+          .onRef("plants.account_id", "=", "perennials.account_id")
+      )
       .select(sql<string>`count(*)`.as("count"))
       .where("perennials.account_id", "=", accountId)
       .where("perennials.place_id", "=", placeId);
@@ -122,7 +130,11 @@ export class KyselyPerennialsRepository implements PerennialsRepository {
   async findById(accountId: UUID, perennialId: UUID, db: DbHandle = this.dbHandle): Promise<PerennialWithPlant | null> {
     const row = await db.db
       .selectFrom("perennials")
-      .innerJoin("plants", "plants.id", "perennials.plant_id")
+      .innerJoin("plants", (join) =>
+        join
+          .onRef("plants.id", "=", "perennials.plant_id")
+          .onRef("plants.account_id", "=", "perennials.account_id")
+      )
       .select(PERENNIAL_WITH_PLANT_COLUMNS)
       .where("perennials.account_id", "=", accountId)
       .where("perennials.id", "=", perennialId)

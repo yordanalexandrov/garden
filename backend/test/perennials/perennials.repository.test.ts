@@ -29,7 +29,8 @@ const PerennialIds = {
   deadA: "99999999-9999-9999-9999-999999999999",
   archivedA: "10101010-1010-1010-1010-101010101010",
   otherPlaceA: "12121212-1212-1212-1212-121212121212",
-  activeB: "13131313-1313-1313-1313-131313131313"
+  activeB: "13131313-1313-1313-1313-131313131313",
+  corruptedPlantA: "14141414-1414-1414-1414-141414141414"
 } as const;
 
 describeDatabase("KyselyPerennialsRepository", () => {
@@ -262,6 +263,29 @@ describeDatabase("KyselyPerennialsRepository", () => {
       repository.update(AccountFixtureIds.accountA, PerennialIds.activeB, { label: "Nope" })
     ).resolves.toBeNull();
     await expect(repository.archive(AccountFixtureIds.accountA, PerennialIds.activeB)).resolves.toBe(false);
+  });
+
+  it("does not join plant details across accounts when stored references are inconsistent", async () => {
+    await pool.query("alter table perennials disable trigger trg_perennials_validate_consistency");
+    try {
+      await insertPerennial(pool, {
+        id: PerennialIds.corruptedPlantA,
+        accountId: AccountFixtureIds.accountA,
+        placeId: PlaceIds.placeA,
+        plantId: PlantIds.pearB,
+        label: "Corrupted pear reference"
+      });
+    } finally {
+      await pool.query("alter table perennials enable trigger trg_perennials_validate_consistency");
+    }
+
+    const listed = await repository.listByPlace(AccountFixtureIds.accountA, PlaceIds.placeA, defaultFilters());
+
+    expect(listed).toMatchObject({
+      items: [],
+      total: 0
+    });
+    await expect(repository.findById(AccountFixtureIds.accountA, PerennialIds.corruptedPlantA)).resolves.toBeNull();
   });
 
   it("can operate on an explicit transaction handle", async () => {
