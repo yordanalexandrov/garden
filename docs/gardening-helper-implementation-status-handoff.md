@@ -8,15 +8,15 @@ Implementation agents must update this file in the same branch/PR whenever phase
 
 ## Current Position
 
-- Last implemented phase: Phase 6 - Backend Growing Structure API (in progress; contracts/validation only).
-- Last implemented step: Phase 6 Step 1 - Growing Structure Module Contracts and Validation.
-- Last implemented step file: `docs/implementation-phases/phase-06/01-growing-structure-module-contracts-and-validation.md`.
-- Last implementation commit observed: pending commit on `feature/backend-growing-structure`.
+- Last implemented phase: Phase 6 - Backend Growing Structure API (in progress; perennials repository/service implemented).
+- Last implemented step: Phase 6 Step 2 - Perennials Repository and Service.
+- Last implemented step file: `docs/implementation-phases/phase-06/02-perennials-repository-and-service.md`.
+- Last implementation commit observed: pending Step 2 commit on `feature/backend-growing-structure`.
 - Next implementation phase: Phase 6 - Backend Growing Structure API.
-- Next implementation step: Phase 6 Step 2 - Perennials Repository and Service.
-- Next implementation step file: `docs/implementation-phases/phase-06/02-perennials-repository-and-service.md`.
+- Next implementation step: Phase 6 Step 3 - Perennials Routes and API Contract.
+- Next implementation step file: `docs/implementation-phases/phase-06/03-perennials-routes-and-api-contract.md`.
 
-Note: Phase 6 Step 1 is contracts/validation only and is implemented on top of the Phase 5 places/plants work. If a separate Phase 5 verification PR updates shared files, reconcile this branch before merge. Phase 6 and Phase 7 have executable task breakdown documents. Phase 8 through Phase 28 currently have top-level phase specs only.
+Note: Phase 6 Step 2 implements repository/service behavior only. Public perennials routes remain deferred to Step 3. If a separate Phase 5 verification PR updates shared files, reconcile this branch before merge. Phase 6 and Phase 7 have executable task breakdown documents. Phase 8 through Phase 28 currently have top-level phase specs only.
 
 ## Status Legend
 
@@ -32,7 +32,7 @@ Note: Phase 6 Step 1 is contracts/validation only and is implemented on top of t
 - [x] Phase 3 - Auth and Account Boundary - implemented.
 - [x] Phase 4 - Frontend Project Foundation - implemented.
 - [x] Phase 5 - Backend Places and Plants API - implemented.
-- [ ] Phase 6 - Backend Growing Structure API - in progress; Step 1 contracts/validation implemented and remaining task docs ready.
+- [ ] Phase 6 - Backend Growing Structure API - in progress; Steps 1-2 implemented and remaining task docs ready.
 - [ ] Phase 7 - Frontend Garden Structure Pages - not implemented; task docs ready.
 - [ ] Phase 8 - Backend Products and Usage Rules API - not implemented; top-level spec only.
 - [ ] Phase 9 - Backend Inventory Ledger API - not implemented; top-level spec only.
@@ -113,7 +113,7 @@ Note: Phase 6 Step 1 is contracts/validation only and is implemented on top of t
 ### Phase 6 - Backend Growing Structure API
 
 - [x] Step 1 - Growing Structure Module Contracts and Validation.
-- [ ] Step 2 - Perennials Repository and Service.
+- [x] Step 2 - Perennials Repository and Service.
 - [ ] Step 3 - Perennials Routes and API Contract.
 - [ ] Step 4 - Beds Repository Service and Current Contents.
 - [ ] Step 5 - Beds Routes and API Contract.
