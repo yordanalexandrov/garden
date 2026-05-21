@@ -394,6 +394,54 @@ describeDatabase("Plants routes with database", () => {
     });
   });
 
+  it("does not update or archive cross-account plants", async () => {
+    await insertPlant(pool, {
+      id: PlantIds.tomatoB,
+      accountId: AccountFixtureIds.accountB,
+      commonName: "Other Account Tomato"
+    });
+
+    const patchResponse = await app!.inject({
+      method: "PATCH",
+      url: `/api/v1/plants/${PlantIds.tomatoB}`,
+      headers: accountAAuthHeaders(),
+      payload: {
+        commonName: "Leaked Tomato"
+      }
+    });
+    const archiveResponse = await app!.inject({
+      method: "POST",
+      url: `/api/v1/plants/${PlantIds.tomatoB}/archive`,
+      headers: accountAAuthHeaders()
+    });
+
+    expect(patchResponse.statusCode).toBe(404);
+    expect(patchResponse.json()).toEqual({
+      error: {
+        code: "NOT_FOUND",
+        message: "Plant not found",
+        details: {}
+      }
+    });
+    expect(archiveResponse.statusCode).toBe(404);
+    expect(archiveResponse.json()).toEqual({
+      error: {
+        code: "NOT_FOUND",
+        message: "Plant not found",
+        details: {}
+      }
+    });
+
+    const stored = await pool.query<{ common_name: string; archived_at: Date | null }>(
+      "select common_name, archived_at from plants where id = $1",
+      [PlantIds.tomatoB]
+    );
+    expect(stored.rows[0]).toEqual({
+      common_name: "Other Account Tomato",
+      archived_at: null
+    });
+  });
+
   it("updates only actor-account plants and returns the canonical mutation envelope", async () => {
     await insertPlant(pool, {
       id: PlantIds.tomatoA,

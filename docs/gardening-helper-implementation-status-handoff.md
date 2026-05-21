@@ -9,14 +9,14 @@ Implementation agents must update this file in the same branch/PR whenever phase
 ## Current Position
 
 - Last implemented phase: Phase 5 - Backend Places and Plants API (in progress).
-- Last implemented step: Phase 5 Step 5 - Plants Routes and API Contract.
-- Last implemented step file: `docs/implementation-phases/phase-05/05-plants-routes-and-api-contract.md`.
-- Last implementation commit observed: current implementation branch/PR for Phase 5 Step 5.
+- Last implemented step: Phase 5 Step 6 - Phase 05 Account Scope and Regression Tests.
+- Last implemented step file: `docs/implementation-phases/phase-05/06-phase-05-account-scope-and-regression-tests.md`.
+- Last implementation commit observed: current implementation branch/PR for Phase 5 Step 6.
 - Next implementation phase: Phase 5 - Backend Places and Plants API.
-- Next implementation step: Phase 5 Step 6 - Phase 05 Account Scope and Regression Tests.
-- Next implementation step file: `docs/implementation-phases/phase-05/06-phase-05-account-scope-and-regression-tests.md`.
+- Next implementation step: Phase 5 Step 7 - Phase 05 Verification and PR Readiness.
+- Next implementation step file: `docs/implementation-phases/phase-05/07-phase-05-verification-and-pr-readiness.md`.
 
-Note: Phase 5 Step 5 is implemented in the current branch/PR. Phase 5 through Phase 7 have executable task breakdown documents. Phase 8 through Phase 28 currently have top-level phase specs only.
+Note: Phase 5 Step 6 is implemented in the current branch/PR. Phase 5 through Phase 7 have executable task breakdown documents. Phase 8 through Phase 28 currently have top-level phase specs only.
 
 ## Status Legend
 
@@ -107,7 +107,7 @@ Note: Phase 5 Step 5 is implemented in the current branch/PR. Phase 5 through Ph
 - [x] Step 3 - Places Routes and API Contract.
 - [x] Step 4 - Plants Repository and Service.
 - [x] Step 5 - Plants Routes and API Contract.
-- [ ] Step 6 - Phase 05 Account Scope and Regression Tests.
+- [x] Step 6 - Phase 05 Account Scope and Regression Tests.
 - [ ] Step 7 - Phase 05 Verification and PR Readiness.
 
 ## Update Rules

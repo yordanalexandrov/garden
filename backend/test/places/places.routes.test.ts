@@ -393,6 +393,53 @@ describeDatabase("Places routes with database", () => {
     });
   });
 
+  it("does not update or archive cross-account places", async () => {
+    await insertPlace(pool, {
+      id: PlaceIds.activeB,
+      accountId: AccountFixtureIds.accountB,
+      name: "Other Account Garden"
+    });
+
+    const patchResponse = await app!.inject({
+      method: "PATCH",
+      url: `/api/v1/places/${PlaceIds.activeB}`,
+      headers: accountAAuthHeaders(),
+      payload: {
+        name: "Leaked Garden"
+      }
+    });
+    const archiveResponse = await app!.inject({
+      method: "POST",
+      url: `/api/v1/places/${PlaceIds.activeB}/archive`,
+      headers: accountAAuthHeaders()
+    });
+
+    expect(patchResponse.statusCode).toBe(404);
+    expect(patchResponse.json()).toEqual({
+      error: {
+        code: "NOT_FOUND",
+        message: "Place not found",
+        details: {}
+      }
+    });
+    expect(archiveResponse.statusCode).toBe(404);
+    expect(archiveResponse.json()).toEqual({
+      error: {
+        code: "NOT_FOUND",
+        message: "Place not found",
+        details: {}
+      }
+    });
+
+    const stored = await pool.query<{ name: string; archived_at: Date | null }>("select name, archived_at from places where id = $1", [
+      PlaceIds.activeB
+    ]);
+    expect(stored.rows[0]).toEqual({
+      name: "Other Account Garden",
+      archived_at: null
+    });
+  });
+
   it("updates only actor-account places and returns the canonical mutation envelope", async () => {
     await insertPlace(pool, {
       id: PlaceIds.activeA,
