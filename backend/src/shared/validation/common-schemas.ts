@@ -2,6 +2,17 @@ import { z } from "zod";
 
 export const uuidSchema = z.string().uuid();
 
+export const SANE_YEAR_MIN = 1900;
+export const SANE_YEAR_MAX = 3000;
+
+export const saneYearSchema = z.number().int().min(SANE_YEAR_MIN).max(SANE_YEAR_MAX);
+export const saneYearQuerySchema = z.preprocess(
+  (value) => (value === undefined || value === "" ? undefined : value),
+  z.coerce.number().int().min(SANE_YEAR_MIN).max(SANE_YEAR_MAX).optional()
+);
+export const positiveNumberSchema = z.number().positive();
+export const nonNegativeNumberSchema = z.number().min(0);
+
 export const optionalSearchQuerySchema = z.preprocess(
   (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
   z.string().trim().min(1).optional()
