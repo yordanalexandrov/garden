@@ -61,7 +61,7 @@ export class BedsService {
   }
 
   async updateBed(actor: AuthenticatedActor, bedId: UUID, patch: UpdateBedInput, db?: DbHandle): Promise<Bed> {
-    const existing = await this.bedsRepository.findById(actor.accountId, bedId, undefined, db);
+    const existing = await this.bedsRepository.findBaseById(actor.accountId, bedId, db);
 
     if (existing === null) {
       throw bedNotFoundError();
@@ -176,8 +176,12 @@ function assertValidYear(value: unknown): void {
 function normalizeBedFilters(filters: ListBedsFilters): ListBedsFilters {
   return {
     ...filters,
-    year: filters.year ?? new Date().getFullYear()
+    year: filters.year ?? currentUtcYear()
   };
+}
+
+function currentUtcYear(): number {
+  return new Date().getUTCFullYear();
 }
 
 function withDerivedCreateArea(input: CreateBedServiceInput): CreateBedServiceInput {

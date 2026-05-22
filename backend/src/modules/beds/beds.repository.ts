@@ -80,7 +80,10 @@ export class KyselyBedsRepository implements BedsRepository {
       itemsQuery = itemsQuery.where("status", "=", filters.status);
       countQuery = countQuery.where("status", "=", filters.status);
 
-      if (filters.status !== "archived") {
+      if (filters.status === "archived") {
+        itemsQuery = itemsQuery.where("archived_at", "is not", null);
+        countQuery = countQuery.where("archived_at", "is not", null);
+      } else {
         itemsQuery = itemsQuery.where("archived_at", "is", null);
         countQuery = countQuery.where("archived_at", "is", null);
       }
@@ -134,6 +137,21 @@ export class KyselyBedsRepository implements BedsRepository {
     year?: number,
     db: DbHandle = this.dbHandle
   ): Promise<BedWithCurrentContents | null> {
+    const bed = await this.findBaseById(accountId, bedId, db);
+
+    if (bed === null) {
+      return null;
+    }
+
+    const contentsByBedId = await this.loadCurrentContents(accountId, [bed.id], selectedYear(year), db);
+
+    return {
+      ...bed,
+      currentContents: contentsByBedId.get(bed.id) ?? emptyCurrentContents()
+    };
+  }
+
+  async findBaseById(accountId: UUID, bedId: UUID, db: DbHandle = this.dbHandle): Promise<Bed | null> {
     const row = await db.db
       .selectFrom("beds")
       .select(BED_COLUMNS)
@@ -147,9 +165,7 @@ export class KyselyBedsRepository implements BedsRepository {
       return null;
     }
 
-    const contentsByBedId = await this.loadCurrentContents(accountId, [row.id], selectedYear(year), db);
-
-    return withCurrentContents(row, contentsByBedId.get(row.id));
+    return toBed(row);
   }
 
   async findManyByIds(accountId: UUID, ids: UUID[], db: DbHandle = this.dbHandle): Promise<Bed[]> {
@@ -382,7 +398,11 @@ function toCurrentYearlyPlanting(row: SelectedYearlyContent): BedCurrentYearlyPl
 }
 
 function selectedYear(year: number | undefined): number {
-  return year ?? new Date().getFullYear();
+  return year ?? currentUtcYear();
+}
+
+function currentUtcYear(): number {
+  return new Date().getUTCFullYear();
 }
 
 function emptyCurrentContents(): BedCurrentContents {

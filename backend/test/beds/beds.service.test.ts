@@ -147,6 +147,24 @@ describe("BedsService", () => {
     await service.updateBed(actorA, bedId, { lengthM: null });
     await service.updateBed(actorA, bedId, { widthM: 3, areaM2: 99 });
 
+    expect(repositories.beds.baseFindCalls).toEqual([
+      {
+        accountId: TestAuthIds.accountA,
+        bedId,
+        db: undefined
+      },
+      {
+        accountId: TestAuthIds.accountA,
+        bedId,
+        db: undefined
+      },
+      {
+        accountId: TestAuthIds.accountA,
+        bedId,
+        db: undefined
+      }
+    ]);
+    expect(repositories.beds.findCalls).toEqual([]);
     expect(repositories.beds.updatedPatches).toEqual([
       expect.objectContaining({
         widthM: 2,
@@ -242,6 +260,7 @@ class StubBedsRepository implements BedsRepository {
   archiveResult = true;
   listCalls: Array<{ accountId: string; placeId: string; filters: ListBedsFilters; db: DbHandle | undefined }> = [];
   findCalls: Array<{ accountId: string; bedId: string; year: number | undefined; db: DbHandle | undefined }> = [];
+  baseFindCalls: Array<{ accountId: string; bedId: string; db: DbHandle | undefined }> = [];
   findManyCalls: Array<{ accountId: string; ids: string[]; db: DbHandle | undefined }> = [];
   listActiveCalls: Array<{ accountId: string; placeId: string; db: DbHandle | undefined }> = [];
 
@@ -266,6 +285,12 @@ class StubBedsRepository implements BedsRepository {
     this.findCalls.push({ accountId, bedId: requestedBedId, year, db });
 
     return Promise.resolve(this.bedWithCurrentContents);
+  }
+
+  findBaseById(accountId: string, requestedBedId: string, db?: DbHandle): Promise<Bed | null> {
+    this.baseFindCalls.push({ accountId, bedId: requestedBedId, db });
+
+    return Promise.resolve(this.bedWithCurrentContents === null ? null : this.bed);
   }
 
   findManyByIds(accountId: string, ids: string[], db?: DbHandle): Promise<Bed[]> {

@@ -28,6 +28,7 @@ const BedIds = {
   activeA: "88888888-8888-8888-8888-888888888888",
   removedA: "99999999-9999-9999-9999-999999999999",
   archivedA: "10101010-1010-1010-1010-101010101010",
+  inconsistentArchivedA: "11110000-1111-1111-1111-111111111111",
   otherPlaceA: "12121212-1212-1212-1212-121212121212",
   activeB: "13131313-1313-1313-1313-131313131313"
 } as const;
@@ -140,6 +141,13 @@ describeDatabase("KyselyBedsRepository", () => {
       name: "Archived South Bed",
       status: "archived",
       archivedAt: new Date("2026-05-18T00:00:00.000Z")
+    });
+    await insertBed(pool, {
+      id: BedIds.inconsistentArchivedA,
+      accountId: AccountFixtureIds.accountA,
+      placeId: PlaceIds.placeA,
+      name: "Inconsistent archived bed",
+      status: "archived"
     });
 
     const removed = await repository.listByPlace(AccountFixtureIds.accountA, PlaceIds.placeA, {
