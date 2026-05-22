@@ -64,9 +64,15 @@ export function toBedListItemDto(bed: BedDtoSource, contentRows: BedCurrentConte
 }
 
 export function toBedDetailDto(bed: BedDtoSource, contentRows: BedCurrentContentsRow[] = []): BedDetailDto {
+  const currentContents = currentContentsOf(bed, contentRows);
+
   return {
     ...toBedListItemDto(bed, contentRows),
     notes: bed.notes,
+    persistentPlants: currentContents.persistentPlants,
+    yearlyPlantings: currentContents.yearlyPlantings,
+    recentActivities: [],
+    openProblems: [],
     createdAt: createdAtOf(bed).toISOString(),
     updatedAt: updatedAtOf(bed).toISOString(),
     archivedAt: toNullableIsoString(archivedAtOf(bed))
