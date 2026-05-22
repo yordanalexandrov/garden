@@ -236,6 +236,7 @@ describeDatabase("Persistent bed plants routes with database", () => {
   afterEach(async () => {
     await app?.close();
     app = undefined;
+    await dbClient.destroy();
     await pool.end();
   });
 
