@@ -25,7 +25,7 @@ const PlantIds = {
 
 const BedIds = {
   bedA: "77777777-7777-7777-7777-777777777777",
-  otherPlaceA: "88888888-8888-8888-8888-888888888888",
+  bedOtherPlaceA: "88888888-8888-8888-8888-888888888888",
   bedB: "99999999-9999-9999-9999-999999999999"
 } as const;
 
@@ -82,7 +82,7 @@ describeDatabase("KyselyPersistentBedPlantsRepository", () => {
     await insertPersistentBedPlant(pool, {
       id: PersistentPlantIds.otherBedA,
       accountId: AccountFixtureIds.accountA,
-      bedId: BedIds.otherPlaceA,
+      bedId: BedIds.bedOtherPlaceA,
       plantId: PlantIds.mintA
     });
     await insertPersistentBedPlant(pool, {
@@ -371,7 +371,7 @@ async function insertBasePlacesPlantsAndBeds(pool: Pool): Promise<void> {
     name: "Bed A"
   });
   await insertBed(pool, {
-    id: BedIds.otherPlaceA,
+    id: BedIds.bedOtherPlaceA,
     accountId: AccountFixtureIds.accountA,
     placeId: PlaceIds.otherPlaceA,
     name: "Other place bed"
