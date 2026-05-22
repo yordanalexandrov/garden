@@ -8,15 +8,15 @@ Implementation agents must update this file in the same branch/PR whenever phase
 
 ## Current Position
 
-- Last implemented phase: Phase 6 - Backend Growing Structure API (in progress; beds routes implemented).
-- Last implemented step: Phase 6 Step 5 - Beds Routes and API Contract.
-- Last implemented step file: `docs/implementation-phases/phase-06/05-beds-routes-and-api-contract.md`.
-- Last implementation commit observed: Phase 6 Step 5 implementation on `feature/backend-growing-structure`.
+- Last implemented phase: Phase 6 - Backend Growing Structure API (in progress; persistent bed plants repository/service implemented).
+- Last implemented step: Phase 6 Step 6 - Persistent Bed Plants Repository and Service.
+- Last implemented step file: `docs/implementation-phases/phase-06/06-persistent-bed-plants-repository-and-service.md`.
+- Last implementation commit observed: Phase 6 Step 6 implementation on `feature/backend-growing-structure`.
 - Next implementation phase: Phase 6 - Backend Growing Structure API.
-- Next implementation step: Phase 6 Step 6 - Persistent Bed Plants Repository and Service.
-- Next implementation step file: `docs/implementation-phases/phase-06/06-persistent-bed-plants-repository-and-service.md`.
+- Next implementation step: Phase 6 Step 7 - Persistent Bed Plants Routes and API Contract.
+- Next implementation step file: `docs/implementation-phases/phase-06/07-persistent-bed-plants-routes-and-api-contract.md`.
 
-Note: Phase 6 Step 5 exposes beds list/create/detail/update/archive routes through authenticated Fastify handlers. `BedsService` derives `areaM2` from `widthM * lengthM` when dimensions are available and `areaM2` is omitted; explicit `areaM2` remains supported. Persistent bed plants and yearly bed planting mutations remain deferred to later Phase 6 steps. If a separate Phase 5 verification PR updates shared files, reconcile this branch before merge. Phase 6 and Phase 7 have executable task breakdown documents. Phase 8 through Phase 28 currently have top-level phase specs only.
+Note: Phase 6 Step 5 exposes beds list/create/detail/update/archive routes through authenticated Fastify handlers. `BedsService` derives `areaM2` from `widthM * lengthM` when dimensions are available and `areaM2` is omitted; explicit `areaM2` remains supported. Phase 6 Step 6 adds account-scoped persistent bed plant repository/service behavior, including bed/plant access checks, non-negative quantity and sane planted-year validation, archive behavior, and target-resolver-ready lookup helpers. Persistent bed plant routes and yearly bed planting mutations remain deferred to later Phase 6 steps. If a separate Phase 5 verification PR updates shared files, reconcile this branch before merge. Phase 6 and Phase 7 have executable task breakdown documents. Phase 8 through Phase 28 currently have top-level phase specs only.
 
 ## Status Legend
 
@@ -32,7 +32,7 @@ Note: Phase 6 Step 5 exposes beds list/create/detail/update/archive routes throu
 - [x] Phase 3 - Auth and Account Boundary - implemented.
 - [x] Phase 4 - Frontend Project Foundation - implemented.
 - [x] Phase 5 - Backend Places and Plants API - implemented.
-- [ ] Phase 6 - Backend Growing Structure API - in progress; Steps 1-2 implemented and remaining task docs ready.
+- [ ] Phase 6 - Backend Growing Structure API - in progress; Steps 1-6 implemented and remaining task docs ready.
 - [ ] Phase 7 - Frontend Garden Structure Pages - not implemented; task docs ready.
 - [ ] Phase 8 - Backend Products and Usage Rules API - not implemented; top-level spec only.
 - [ ] Phase 9 - Backend Inventory Ledger API - not implemented; top-level spec only.
@@ -117,7 +117,7 @@ Note: Phase 6 Step 5 exposes beds list/create/detail/update/archive routes throu
 - [x] Step 3 - Perennials Routes and API Contract.
 - [x] Step 4 - Beds Repository Service and Current Contents.
 - [x] Step 5 - Beds Routes and API Contract.
-- [ ] Step 6 - Persistent Bed Plants Repository and Service.
+- [x] Step 6 - Persistent Bed Plants Repository and Service.
 - [ ] Step 7 - Persistent Bed Plants Routes and API Contract.
 - [ ] Step 8 - Yearly Bed Plantings Repository and Service.
 - [ ] Step 9 - Yearly Bed Plantings Routes and API Contract.
