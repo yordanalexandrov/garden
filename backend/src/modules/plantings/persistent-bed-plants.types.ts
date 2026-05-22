@@ -89,6 +89,7 @@ export interface PersistentBedPlantsRepository {
     filters: ListPersistentBedPlantsFilters,
     db?: DbHandle
   ): Promise<PaginatedPersistentBedPlants>;
+  listActiveByBed(accountId: UUID, bedId: UUID, db?: DbHandle): Promise<PersistentBedPlant[]>;
   findById(accountId: UUID, id: UUID, db?: DbHandle): Promise<PersistentBedPlantWithPlant | null>;
   findManyByIds(accountId: UUID, ids: UUID[], db?: DbHandle): Promise<PersistentBedPlant[]>;
   create(input: CreatePersistentBedPlantInput, db?: DbHandle): Promise<PersistentBedPlant>;
