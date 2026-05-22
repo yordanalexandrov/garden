@@ -38,6 +38,10 @@ export const listBedsQuerySchema = paginationQuerySchema.extend({
   year: saneYearQuerySchema
 });
 
+export const bedDetailQuerySchema = z.object({
+  year: saneYearQuerySchema
+});
+
 export const createBedBodySchema = z.object(bedWritableShape);
 
 export const updateBedBodySchema = z
@@ -53,5 +57,6 @@ export const updateBedBodySchema = z
 export type PlaceBedsParams = z.infer<typeof placeBedsParamsSchema>;
 export type BedParams = z.infer<typeof bedParamsSchema>;
 export type ListBedsQuery = z.infer<typeof listBedsQuerySchema>;
+export type BedDetailQuery = z.infer<typeof bedDetailQuerySchema>;
 export type CreateBedBody = z.infer<typeof createBedBodySchema>;
 export type UpdateBedBody = z.infer<typeof updateBedBodySchema>;

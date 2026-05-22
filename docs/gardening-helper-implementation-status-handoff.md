@@ -1,6 +1,6 @@
 # Gardening Helper - Implementation Status Handoff
 
-Last updated: 2026-05-21
+Last updated: 2026-05-22
 
 This file tracks implementation progress only. It does not replace the source-of-truth specs, domain rules, canonical API contract, or task documents. If this file conflicts with a higher-priority document, follow the source-of-truth priority in `AGENTS.md`.
 
@@ -8,15 +8,15 @@ Implementation agents must update this file in the same branch/PR whenever phase
 
 ## Current Position
 
-- Last implemented phase: Phase 6 - Backend Growing Structure API (in progress; beds repository/service implemented).
-- Last implemented step: Phase 6 Step 4 - Beds Repository, Service, and Current Contents.
-- Last implemented step file: `docs/implementation-phases/phase-06/04-beds-repository-service-and-current-contents.md`.
-- Last implementation commit observed: Phase 6 Step 4 commit on `feature/backend-growing-structure`.
+- Last implemented phase: Phase 6 - Backend Growing Structure API (in progress; beds routes implemented).
+- Last implemented step: Phase 6 Step 5 - Beds Routes and API Contract.
+- Last implemented step file: `docs/implementation-phases/phase-06/05-beds-routes-and-api-contract.md`.
+- Last implementation commit observed: Phase 6 Step 5 implementation on `feature/backend-growing-structure`.
 - Next implementation phase: Phase 6 - Backend Growing Structure API.
-- Next implementation step: Phase 6 Step 5 - Beds Routes and API Contract.
-- Next implementation step file: `docs/implementation-phases/phase-06/05-beds-routes-and-api-contract.md`.
+- Next implementation step: Phase 6 Step 6 - Persistent Bed Plants Repository and Service.
+- Next implementation step file: `docs/implementation-phases/phase-06/06-persistent-bed-plants-repository-and-service.md`.
 
-Note: Phase 6 Step 4 adds beds repository/service behavior only; public beds routes remain deferred to Step 5. `BedsService` derives `areaM2` from `widthM * lengthM` when dimensions are available and `areaM2` is omitted; explicit `areaM2` remains supported. Persistent bed plants and yearly bed planting mutations remain deferred to later Phase 6 steps. If a separate Phase 5 verification PR updates shared files, reconcile this branch before merge. Phase 6 and Phase 7 have executable task breakdown documents. Phase 8 through Phase 28 currently have top-level phase specs only.
+Note: Phase 6 Step 5 exposes beds list/create/detail/update/archive routes through authenticated Fastify handlers. `BedsService` derives `areaM2` from `widthM * lengthM` when dimensions are available and `areaM2` is omitted; explicit `areaM2` remains supported. Persistent bed plants and yearly bed planting mutations remain deferred to later Phase 6 steps. If a separate Phase 5 verification PR updates shared files, reconcile this branch before merge. Phase 6 and Phase 7 have executable task breakdown documents. Phase 8 through Phase 28 currently have top-level phase specs only.
 
 ## Status Legend
 
@@ -116,7 +116,7 @@ Note: Phase 6 Step 4 adds beds repository/service behavior only; public beds rou
 - [x] Step 2 - Perennials Repository and Service.
 - [x] Step 3 - Perennials Routes and API Contract.
 - [x] Step 4 - Beds Repository Service and Current Contents.
-- [ ] Step 5 - Beds Routes and API Contract.
+- [x] Step 5 - Beds Routes and API Contract.
 - [ ] Step 6 - Persistent Bed Plants Repository and Service.
 - [ ] Step 7 - Persistent Bed Plants Routes and API Contract.
 - [ ] Step 8 - Yearly Bed Plantings Repository and Service.
