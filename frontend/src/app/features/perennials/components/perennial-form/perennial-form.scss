@@ -1,0 +1,29 @@
+:host {
+  display: block;
+}
+
+.perennial-form {
+  display: grid;
+  gap: 0.875rem;
+}
+
+.perennial-form__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 0.75rem;
+}
+
+.perennial-form__error {
+  margin: -0.5rem 0 0;
+  color: var(--mat-sys-error);
+}
+
+.perennial-form__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+mat-form-field {
+  width: 100%;
+}

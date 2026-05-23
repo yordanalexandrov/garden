@@ -1,0 +1,86 @@
+<section class="perennials-page" aria-labelledby="place-perennials-title">
+  <div class="perennials-page__header">
+    <div>
+      <h2 id="place-perennials-title">Trees / Perennials</h2>
+      <p>Individually tracked long-lived plants in this place.</p>
+    </div>
+    <button mat-flat-button type="button" (click)="openCreateForm()">
+      <mat-icon aria-hidden="true" fontIcon="add" />
+      Add perennial
+    </button>
+  </div>
+
+  <form class="perennials-page__filters" [formGroup]="filters" (ngSubmit)="loadPerennials()">
+    <mat-form-field appearance="outline">
+      <mat-label>Search</mat-label>
+      <input matInput type="search" formControlName="q" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Status</mat-label>
+      <mat-select formControlName="status">
+        <mat-option value="">Any</mat-option>
+        @for (status of statuses; track status) {
+          <mat-option [value]="status">{{ status }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <button mat-stroked-button type="submit">
+      <mat-icon aria-hidden="true" fontIcon="search" />
+      Search
+    </button>
+  </form>
+
+  <app-api-error-summary [error]="listError()" />
+
+  @if (formOpen()) {
+    <mat-card class="perennials-page__form-card">
+      <mat-card-header>
+        <mat-card-title>
+          {{ editingPerennial() === null ? 'Add perennial' : 'Edit perennial' }}
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <app-perennial-form
+          [perennial]="editingPerennial()"
+          [apiError]="formError()"
+          [saving]="saving()"
+          (submitted)="savePerennial($event)"
+          (cancelled)="closeForm()"
+        />
+      </mat-card-content>
+    </mat-card>
+  }
+
+  @if (loading()) {
+    <p class="perennials-page__muted">Loading perennials...</p>
+  } @else if (perennials().length === 0) {
+    <app-empty-state
+      title="No perennials yet"
+      message="Add trees, vines, shrubs, or other long-lived individual plants."
+      icon="park"
+    />
+  } @else {
+    <div class="perennials-page__grid">
+      @for (perennial of perennials(); track perennial.id) {
+        <mat-card class="perennials-page__card">
+          <mat-card-header>
+            <mat-card-title>{{ perennial.plantName }}</mat-card-title>
+            <mat-card-subtitle>{{ perennial.label || 'No label' }}</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <p>Planted year: {{ perennial.plantedYear ?? 'Unknown' }}</p>
+            <app-status-chip [status]="perennial.status" />
+          </mat-card-content>
+          <mat-card-actions align="end">
+            <button mat-button type="button" (click)="openEditForm(perennial)">Edit</button>
+            <button mat-button type="button" color="warn" (click)="archivePerennial(perennial)">
+              Archive
+            </button>
+          </mat-card-actions>
+        </mat-card>
+      }
+    </div>
+  }
+</section>
