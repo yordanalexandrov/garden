@@ -302,6 +302,56 @@ describeDatabase("KyselyBedsRepository", () => {
     expect(Number(historicalRows.rows[0]?.count)).toBe(3);
   });
 
+  it("keeps bed contents readable when referenced plant definitions are archived", async () => {
+    await insertBed(pool, {
+      id: BedIds.activeA,
+      accountId: AccountFixtureIds.accountA,
+      placeId: PlaceIds.placeA,
+      name: "Bed A"
+    });
+    await insertPersistentBedPlant(pool, {
+      id: PersistentPlantIds.strawberryA,
+      accountId: AccountFixtureIds.accountA,
+      bedId: BedIds.activeA,
+      plantId: PlantIds.strawberryA,
+      quantity: 10
+    });
+    await insertYearlyBedPlanting(pool, {
+      id: YearlyPlantingIds.tomato2025A,
+      accountId: AccountFixtureIds.accountA,
+      bedId: BedIds.activeA,
+      plantId: PlantIds.tomatoA,
+      year: 2025,
+      quantity: 12
+    });
+    await pool.query("update plants set archived_at = $1 where id in ($2, $3)", [
+      new Date("2026-05-18T00:00:00.000Z"),
+      PlantIds.strawberryA,
+      PlantIds.tomatoA
+    ]);
+
+    const detail = await repository.findById(AccountFixtureIds.accountA, BedIds.activeA, 2025);
+
+    expect(detail?.currentContents).toEqual({
+      persistentPlants: [
+        {
+          id: PersistentPlantIds.strawberryA,
+          plantName: "Strawberry",
+          quantity: 10
+        }
+      ],
+      yearlyPlantings: [
+        {
+          id: YearlyPlantingIds.tomato2025A,
+          plantName: "Tomato (Roma)",
+          year: 2025,
+          quantity: 12,
+          status: "planted"
+        }
+      ]
+    });
+  });
+
   it("findManyByIds and listActiveByPlace preserve account and active-row boundaries", async () => {
     await insertBed(pool, {
       id: BedIds.activeA,

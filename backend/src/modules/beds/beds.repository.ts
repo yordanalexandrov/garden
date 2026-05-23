@@ -271,7 +271,6 @@ export class KyselyBedsRepository implements BedsRepository {
       .where("persistent_bed_plants.bed_id", "in", bedIds)
       .where("persistent_bed_plants.status", "=", "active")
       .where("persistent_bed_plants.archived_at", "is", null)
-      .where("plants.archived_at", "is", null)
       .orderBy("plants.common_name", "asc")
       .orderBy("persistent_bed_plants.created_at", "asc")
       .execute();
@@ -297,7 +296,6 @@ export class KyselyBedsRepository implements BedsRepository {
       .where("yearly_bed_plantings.year", "=", year)
       .where("yearly_bed_plantings.status", "in", CURRENT_YEARLY_CONTENT_STATUSES)
       .where("yearly_bed_plantings.archived_at", "is", null)
-      .where("plants.archived_at", "is", null)
       .orderBy("plants.common_name", "asc")
       .orderBy("yearly_bed_plantings.created_at", "asc")
       .execute();
