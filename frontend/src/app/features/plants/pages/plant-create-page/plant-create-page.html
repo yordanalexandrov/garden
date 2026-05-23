@@ -1,0 +1,19 @@
+<section class="plant-create-page" aria-labelledby="plant-create-title">
+  <app-page-header
+    title="New Plant"
+    titleId="plant-create-title"
+    subtitle="Create a reusable plant definition"
+    icon="local_florist"
+  />
+
+  <mat-card class="plant-create-page__card">
+    <mat-card-content>
+      <app-plant-form
+        [apiError]="apiError()"
+        [saving]="saving()"
+        (submitted)="savePlant($event)"
+        (cancelled)="cancel()"
+      />
+    </mat-card-content>
+  </mat-card>
+</section>

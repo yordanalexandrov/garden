@@ -1,0 +1,32 @@
+<section class="plant-detail-page" aria-labelledby="plant-detail-title">
+  <app-page-header
+    [title]="plant()?.commonName ?? 'Plant Detail'"
+    titleId="plant-detail-title"
+    subtitle="Reusable plant definition"
+    icon="local_florist"
+  >
+    <button mat-button type="button" color="warn" page-actions (click)="archivePlant()">
+      <mat-icon aria-hidden="true" fontIcon="archive" />
+      Archive
+    </button>
+  </app-page-header>
+
+  @if (loading()) {
+    <p class="plant-detail-page__muted">Loading plant...</p>
+  }
+
+  <app-api-error-summary [error]="apiError()" />
+
+  @if (plant(); as currentPlant) {
+    <mat-card class="plant-detail-page__card">
+      <mat-card-content>
+        <app-plant-form
+          [plant]="currentPlant"
+          [apiError]="apiError()"
+          [saving]="saving()"
+          (submitted)="savePlant($event)"
+        />
+      </mat-card-content>
+    </mat-card>
+  }
+</section>

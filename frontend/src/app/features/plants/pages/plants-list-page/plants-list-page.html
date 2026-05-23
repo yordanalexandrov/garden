@@ -1,0 +1,81 @@
+<section class="plants-page" aria-labelledby="plants-title">
+  <app-page-header
+    title="Plants"
+    titleId="plants-title"
+    subtitle="Reusable plant definitions"
+    icon="local_florist"
+  >
+    <a mat-flat-button page-actions routerLink="/plants/new">
+      <mat-icon aria-hidden="true" fontIcon="add" />
+      Add plant
+    </a>
+  </app-page-header>
+
+  <form class="plants-page__filters" [formGroup]="filters" (ngSubmit)="search()">
+    <mat-form-field appearance="outline">
+      <mat-label>Search</mat-label>
+      <input matInput type="search" formControlName="q" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Lifecycle</mat-label>
+      <mat-select formControlName="lifecycleType">
+        <mat-option value="">Any</mat-option>
+        @for (lifecycleType of lifecycleTypes; track lifecycleType) {
+          <mat-option [value]="lifecycleType">{{ lifecycleType }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Growing style</mat-label>
+      <mat-select formControlName="growingStyle">
+        <mat-option value="">Any</mat-option>
+        @for (growingStyle of growingStyles; track growingStyle) {
+          <mat-option [value]="growingStyle">{{ growingStyle }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-checkbox formControlName="includeArchived">Include archived</mat-checkbox>
+
+    <button mat-stroked-button type="submit">
+      <mat-icon aria-hidden="true" fontIcon="search" />
+      Search
+    </button>
+  </form>
+
+  <app-api-error-summary [error]="error()" />
+
+  @if (loading()) {
+    <p class="plants-page__muted">Loading plants...</p>
+  } @else if (plants().length === 0) {
+    <app-empty-state
+      title="No plants found"
+      message="Search existing definitions before adding a new plant."
+      icon="local_florist"
+    />
+  } @else {
+    <div class="plants-page__grid">
+      @for (plant of plants(); track plant.id) {
+        <mat-card class="plants-page__card">
+          <mat-card-header>
+            <mat-card-title>{{ displayPlant(plant) }}</mat-card-title>
+            <mat-card-subtitle>{{ plant.lifecycleType }} · {{ plant.growingStyle }}</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            @if (plant.plantCategory) {
+              <p>{{ plant.plantCategory }}</p>
+            }
+            @if (plant.archivedAt) {
+              <p class="plants-page__muted">Archived</p>
+            }
+          </mat-card-content>
+          <mat-card-actions align="end">
+            <a mat-button [routerLink]="['/plants', plant.id]">Open</a>
+          </mat-card-actions>
+        </mat-card>
+      }
+    </div>
+  }
+</section>
