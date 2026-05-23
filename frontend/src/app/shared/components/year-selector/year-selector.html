@@ -1,0 +1,21 @@
+<div class="year-selector" aria-label="Selected planting year">
+  <button
+    mat-icon-button
+    type="button"
+    aria-label="Previous year"
+    matTooltip="Previous year"
+    (click)="previousYear()"
+  >
+    <mat-icon aria-hidden="true" fontIcon="chevron_left" />
+  </button>
+  <span class="year-selector__value" aria-live="polite">{{ label() }}</span>
+  <button
+    mat-icon-button
+    type="button"
+    aria-label="Next year"
+    matTooltip="Next year"
+    (click)="nextYear()"
+  >
+    <mat-icon aria-hidden="true" fontIcon="chevron_right" />
+  </button>
+</div>

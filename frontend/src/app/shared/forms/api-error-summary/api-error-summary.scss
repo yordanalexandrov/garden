@@ -1,0 +1,32 @@
+:host {
+  display: block;
+}
+
+.api-error-summary {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--mat-sys-error) 55%, transparent);
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, var(--mat-sys-error) 8%, var(--mat-sys-surface));
+  color: var(--mat-sys-on-surface);
+}
+
+.api-error-summary mat-icon {
+  color: var(--mat-sys-error);
+}
+
+.api-error-summary__message,
+.api-error-summary__details {
+  margin: 0;
+}
+
+.api-error-summary__message {
+  font-weight: 500;
+}
+
+.api-error-summary__details {
+  margin-block-start: 0.35rem;
+  padding-inline-start: 1.25rem;
+}

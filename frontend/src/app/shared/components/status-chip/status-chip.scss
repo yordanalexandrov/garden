@@ -1,0 +1,11 @@
+:host {
+  display: inline-flex;
+}
+
+.status-chip {
+  min-height: 1.75rem;
+}
+
+.status-chip--archived {
+  opacity: 0.72;
+}
