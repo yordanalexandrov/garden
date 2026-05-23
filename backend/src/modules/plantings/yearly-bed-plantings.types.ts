@@ -92,6 +92,7 @@ export interface YearlyBedPlantingsRepository {
     db?: DbHandle
   ): Promise<PaginatedYearlyBedPlantings>;
   listByBedAndYear(accountId: UUID, bedId: UUID, year: number, db?: DbHandle): Promise<YearlyBedPlanting[]>;
+  listCurrentByBedAndYear(accountId: UUID, bedId: UUID, year: number, db?: DbHandle): Promise<YearlyBedPlanting[]>;
   findById(accountId: UUID, id: UUID, db?: DbHandle): Promise<YearlyBedPlantingWithPlant | null>;
   findManyByIds(accountId: UUID, ids: UUID[], db?: DbHandle): Promise<YearlyBedPlanting[]>;
   create(input: CreateYearlyBedPlantingInput, db?: DbHandle): Promise<YearlyBedPlanting>;
