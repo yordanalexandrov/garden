@@ -5,6 +5,8 @@ import { of } from 'rxjs';
 
 import { SnackbarService } from '../../core/notifications/snackbar.service';
 import { ArchiveConfirmationService } from '../../shared/components/confirm-dialog/confirm-dialog';
+import { PersistentBedPlantsApiService } from '../plantings/persistent-bed-plants-api.service';
+import { YearlyBedPlantingsApiService } from '../plantings/yearly-bed-plantings-api.service';
 import { BedForm } from './components/bed-form/bed-form';
 import { BedCurrentContentsComponent } from './components/bed-current-contents/bed-current-contents';
 import { BedDetailPage } from './pages/bed-detail-page/bed-detail-page';
@@ -50,6 +52,18 @@ describe('beds Phase 7 pages', () => {
   const archiveConfirmation = {
     confirmArchive: vi.fn(),
   };
+  const persistentPlantsApi = {
+    listByBed: vi.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
+    archive: vi.fn(),
+  };
+  const yearlyPlantingsApi = {
+    listByBed: vi.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
+    archive: vi.fn(),
+  };
   const snackbar = {
     showMessage: vi.fn(),
     showError: vi.fn(),
@@ -64,6 +78,18 @@ describe('beds Phase 7 pages', () => {
     bedsApi.get.mockReturnValue(of(bedDetail));
     bedsApi.update.mockReturnValue(of({ id: 'bed-1' }));
     bedsApi.archive.mockReturnValue(of({ archived: true }));
+    persistentPlantsApi.listByBed.mockReturnValue(
+      of({ items: [], page: 1, pageSize: 100, total: 0 }),
+    );
+    yearlyPlantingsApi.listByBed.mockReturnValue(
+      of({ items: [], page: 1, pageSize: 100, total: 0 }),
+    );
+    persistentPlantsApi.create.mockReturnValue(of({ id: 'persistent-2' }));
+    persistentPlantsApi.update.mockReturnValue(of({ id: 'persistent-1' }));
+    persistentPlantsApi.archive.mockReturnValue(of({ archived: true }));
+    yearlyPlantingsApi.create.mockReturnValue(of({ id: 'planting-2' }));
+    yearlyPlantingsApi.update.mockReturnValue(of({ id: 'planting-1' }));
+    yearlyPlantingsApi.archive.mockReturnValue(of({ archived: true }));
     archiveConfirmation.confirmArchive.mockReturnValue(of(false));
 
     TestBed.configureTestingModule({
@@ -78,6 +104,8 @@ describe('beds Phase 7 pages', () => {
           },
         },
         { provide: BedsApiService, useValue: bedsApi },
+        { provide: PersistentBedPlantsApiService, useValue: persistentPlantsApi },
+        { provide: YearlyBedPlantingsApiService, useValue: yearlyPlantingsApi },
         { provide: ArchiveConfirmationService, useValue: archiveConfirmation },
         { provide: SnackbarService, useValue: snackbar },
         { provide: Router, useValue: router },
