@@ -1,0 +1,70 @@
+<section class="bed-detail-page" aria-labelledby="bed-detail-title">
+  <app-page-header
+    [title]="bed()?.name ?? 'Bed Detail'"
+    titleId="bed-detail-title"
+    subtitle="Bed metadata and selected-year contents"
+    icon="grid_view"
+  >
+    @if (bed(); as currentBed) {
+      <a mat-button page-actions [routerLink]="['/places', currentBed.placeId, 'beds']">Back</a>
+    }
+    <button mat-button type="button" page-actions (click)="openForm()">
+      <mat-icon aria-hidden="true" fontIcon="edit" />
+      Edit
+    </button>
+    <button mat-button type="button" color="warn" page-actions (click)="archiveBed()">
+      <mat-icon aria-hidden="true" fontIcon="archive" />
+      Archive
+    </button>
+  </app-page-header>
+
+  <div class="bed-detail-page__toolbar">
+    <app-year-selector [year]="selectedYear()" (yearChange)="selectYear($event)" />
+  </div>
+
+  @if (loading()) {
+    <p class="bed-detail-page__muted">Loading bed...</p>
+  }
+
+  <app-api-error-summary [error]="apiError()" />
+
+  @if (formOpen()) {
+    <mat-card class="bed-detail-page__card">
+      <mat-card-content>
+        <app-bed-form
+          [bed]="bed()"
+          [apiError]="apiError()"
+          [saving]="saving()"
+          (submitted)="saveBed($event)"
+          (cancelled)="closeForm()"
+        />
+      </mat-card-content>
+    </mat-card>
+  }
+
+  @if (bed(); as currentBed) {
+    <mat-card class="bed-detail-page__card">
+      <mat-card-header>
+        <mat-card-title>Metadata</mat-card-title>
+      </mat-card-header>
+      <mat-card-content class="bed-detail-page__metadata">
+        <span>Width: {{ currentBed.widthM ?? 'not set' }}</span>
+        <span>Length: {{ currentBed.lengthM ?? 'not set' }}</span>
+        <span>Area: {{ currentBed.areaM2 ?? 'not set' }}</span>
+        <app-status-chip [status]="currentBed.status" />
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="bed-detail-page__card">
+      <mat-card-header>
+        <mat-card-title>Contents for {{ selectedYear() }}</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <app-bed-current-contents
+          [persistentPlants]="currentBed.persistentPlants"
+          [yearlyPlantings]="currentBed.yearlyPlantings"
+        />
+      </mat-card-content>
+    </mat-card>
+  }
+</section>

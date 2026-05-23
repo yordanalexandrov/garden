@@ -1,0 +1,82 @@
+<section class="beds-page" aria-labelledby="place-beds-title">
+  <div class="beds-page__header">
+    <div>
+      <h2 id="place-beds-title">Beds</h2>
+      <p>Physical growing areas and selected-year contents.</p>
+    </div>
+    <button mat-flat-button type="button" (click)="openCreateForm()">
+      <mat-icon aria-hidden="true" fontIcon="add" />
+      Add bed
+    </button>
+  </div>
+
+  <div class="beds-page__toolbar">
+    <form class="beds-page__filters" [formGroup]="filters" (ngSubmit)="loadBeds()">
+      <mat-form-field appearance="outline">
+        <mat-label>Search beds</mat-label>
+        <input matInput type="search" formControlName="q" />
+      </mat-form-field>
+      <button mat-stroked-button type="submit">
+        <mat-icon aria-hidden="true" fontIcon="search" />
+        Search
+      </button>
+    </form>
+    <app-year-selector [year]="selectedYear()" (yearChange)="selectYear($event)" />
+  </div>
+
+  <app-api-error-summary [error]="listError()" />
+
+  @if (formOpen()) {
+    <mat-card class="beds-page__form-card">
+      <mat-card-header>
+        <mat-card-title>{{ editingBed() === null ? 'Add bed' : 'Edit bed' }}</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <app-bed-form
+          [bed]="editingBed()"
+          [apiError]="formError()"
+          [saving]="saving()"
+          (submitted)="saveBed($event)"
+          (cancelled)="closeForm()"
+        />
+      </mat-card-content>
+    </mat-card>
+  }
+
+  @if (loading()) {
+    <p class="beds-page__muted">Loading beds...</p>
+  } @else if (beds().length === 0) {
+    <app-empty-state title="No beds yet" message="Add a physical growing area." icon="grid_view" />
+  } @else {
+    <div class="beds-page__grid">
+      @for (bed of beds(); track bed.id) {
+        <mat-card class="beds-page__card">
+          <mat-card-header>
+            <mat-card-title>{{ bed.name }}</mat-card-title>
+            <mat-card-subtitle>
+              @if (bed.widthM !== null && bed.lengthM !== null) {
+                {{ bed.widthM }}m x {{ bed.lengthM }}m
+              } @else {
+                Dimensions not set
+              }
+            </mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <app-status-chip [status]="bed.status" />
+            <app-bed-current-contents
+              [persistentPlants]="bed.currentContents.persistentPlants"
+              [yearlyPlantings]="bed.currentContents.yearlyPlantings"
+            />
+          </mat-card-content>
+          <mat-card-actions align="end">
+            <a mat-button [routerLink]="['/beds', bed.id]" [queryParams]="{ year: selectedYear() }">
+              Open
+            </a>
+            <button mat-button type="button" (click)="openEditForm(bed)">Edit</button>
+            <button mat-button type="button" color="warn" (click)="archiveBed(bed)">Archive</button>
+          </mat-card-actions>
+        </mat-card>
+      }
+    </div>
+  }
+</section>
