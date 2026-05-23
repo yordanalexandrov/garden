@@ -13,7 +13,16 @@ export const FixtureIds = {
   taskA: "88888888-8888-8888-8888-888888888888",
   problemA: "99999999-9999-9999-9999-999999999999",
   lotA: "12121212-1212-1212-1212-121212121212",
-  ruleA: "13131313-1313-1313-1313-131313131313"
+  ruleA: "13131313-1313-1313-1313-131313131313",
+  perennialA: "14141414-1414-4141-8141-141414141414",
+  perennialB: "15151515-1515-4151-8151-151515151515",
+  bedA: "16161616-1616-4161-8161-161616161616",
+  bedB: "17171717-1717-4171-8171-171717171717",
+  persistentBedPlantA: "18181818-1818-4181-8181-181818181818",
+  persistentBedPlantB: "19191919-1919-4191-8191-191919191919",
+  yearlyBedPlantingA2026: "20202020-2020-4202-8202-202020202020",
+  yearlyBedPlantingA2027: "21212121-2121-4212-8212-212121212121",
+  yearlyBedPlantingB2026: "23232323-2323-4232-8232-232323232323"
 } as const;
 
 export async function insertAccount(pool: pg.Pool, id: string, email: string): Promise<void> {
@@ -106,6 +115,142 @@ export async function insertProblem(
   );
 }
 
+export async function insertPerennial(
+  pool: pg.Pool,
+  input: {
+    id: string;
+    accountId: string;
+    placeId: string;
+    plantId: string;
+    label?: string | null;
+    plantedYear?: number | null;
+    notes?: string | null;
+    status?: "active" | "removed" | "dead" | "archived";
+    archivedAt?: Date | null;
+  }
+): Promise<void> {
+  await pool.query(
+    `insert into perennials (
+       id, account_id, place_id, plant_id, label, planted_year, notes, status, archived_at
+     )
+     values ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+    [
+      input.id,
+      input.accountId,
+      input.placeId,
+      input.plantId,
+      input.label ?? null,
+      input.plantedYear ?? null,
+      input.notes ?? null,
+      input.status ?? "active",
+      input.archivedAt ?? null
+    ]
+  );
+}
+
+export async function insertBed(
+  pool: pg.Pool,
+  input: {
+    id: string;
+    accountId: string;
+    placeId: string;
+    name?: string;
+    description?: string | null;
+    notes?: string | null;
+    widthM?: number | null;
+    lengthM?: number | null;
+    areaM2?: number | null;
+    status?: "active" | "removed" | "archived";
+    archivedAt?: Date | null;
+  }
+): Promise<void> {
+  await pool.query(
+    `insert into beds (
+       id, account_id, place_id, name, description, notes, width_m, length_m, area_m2, status, archived_at
+     )
+     values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+    [
+      input.id,
+      input.accountId,
+      input.placeId,
+      input.name ?? "Fixture Bed",
+      input.description ?? null,
+      input.notes ?? null,
+      input.widthM ?? null,
+      input.lengthM ?? null,
+      input.areaM2 ?? null,
+      input.status ?? "active",
+      input.archivedAt ?? null
+    ]
+  );
+}
+
+export async function insertPersistentBedPlant(
+  pool: pg.Pool,
+  input: {
+    id: string;
+    accountId: string;
+    bedId: string;
+    plantId: string;
+    plantedYear?: number | null;
+    quantity?: number | null;
+    notes?: string | null;
+    status?: "active" | "removed" | "archived";
+    archivedAt?: Date | null;
+  }
+): Promise<void> {
+  await pool.query(
+    `insert into persistent_bed_plants (
+       id, account_id, bed_id, plant_id, planted_year, quantity, notes, status, archived_at
+     )
+     values ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+    [
+      input.id,
+      input.accountId,
+      input.bedId,
+      input.plantId,
+      input.plantedYear ?? null,
+      input.quantity ?? null,
+      input.notes ?? null,
+      input.status ?? "active",
+      input.archivedAt ?? null
+    ]
+  );
+}
+
+export async function insertYearlyBedPlanting(
+  pool: pg.Pool,
+  input: {
+    id: string;
+    accountId: string;
+    bedId: string;
+    plantId: string;
+    year: number;
+    quantity?: number | null;
+    notes?: string | null;
+    status?: "planned" | "planted" | "removed" | "harvested" | "archived";
+    archivedAt?: Date | null;
+  }
+): Promise<void> {
+  await pool.query(
+    `insert into yearly_bed_plantings (
+       id, account_id, bed_id, plant_id, year, quantity, notes, status, archived_at
+     )
+     values ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+    [
+      input.id,
+      input.accountId,
+      input.bedId,
+      input.plantId,
+      input.year,
+      input.quantity ?? null,
+      input.notes ?? null,
+      input.status ?? "planted",
+      input.archivedAt ?? null
+    ]
+  );
+}
+
 export async function insertCoreFixture(pool: pg.Pool): Promise<void> {
   await insertAccount(pool, FixtureIds.accountA, "account-a@example.com");
   await insertAccount(pool, FixtureIds.accountB, "account-b@example.com");
@@ -115,4 +260,82 @@ export async function insertCoreFixture(pool: pg.Pool): Promise<void> {
   await insertPlant(pool, FixtureIds.plantB, FixtureIds.accountB, "Fixture Plant B");
   await insertProduct(pool, FixtureIds.productA, FixtureIds.accountA, "Fixture Product A");
   await insertProduct(pool, FixtureIds.productB, FixtureIds.accountB, "Fixture Product B");
+}
+
+export async function insertGrowingStructureFixture(pool: pg.Pool): Promise<void> {
+  await insertCoreFixture(pool);
+  await insertPerennial(pool, {
+    id: FixtureIds.perennialA,
+    accountId: FixtureIds.accountA,
+    placeId: FixtureIds.placeA,
+    plantId: FixtureIds.plantA,
+    label: "Fixture Perennial A",
+    plantedYear: 2022
+  });
+  await insertPerennial(pool, {
+    id: FixtureIds.perennialB,
+    accountId: FixtureIds.accountB,
+    placeId: FixtureIds.placeB,
+    plantId: FixtureIds.plantB,
+    label: "Fixture Perennial B",
+    plantedYear: 2023
+  });
+  await insertBed(pool, {
+    id: FixtureIds.bedA,
+    accountId: FixtureIds.accountA,
+    placeId: FixtureIds.placeA,
+    name: "Fixture Bed A",
+    widthM: 1,
+    lengthM: 4,
+    areaM2: 4
+  });
+  await insertBed(pool, {
+    id: FixtureIds.bedB,
+    accountId: FixtureIds.accountB,
+    placeId: FixtureIds.placeB,
+    name: "Fixture Bed B"
+  });
+  await insertPersistentBedPlant(pool, {
+    id: FixtureIds.persistentBedPlantA,
+    accountId: FixtureIds.accountA,
+    bedId: FixtureIds.bedA,
+    plantId: FixtureIds.plantA,
+    plantedYear: 2021,
+    quantity: 10
+  });
+  await insertPersistentBedPlant(pool, {
+    id: FixtureIds.persistentBedPlantB,
+    accountId: FixtureIds.accountB,
+    bedId: FixtureIds.bedB,
+    plantId: FixtureIds.plantB,
+    plantedYear: 2021,
+    quantity: 20
+  });
+  await insertYearlyBedPlanting(pool, {
+    id: FixtureIds.yearlyBedPlantingA2026,
+    accountId: FixtureIds.accountA,
+    bedId: FixtureIds.bedA,
+    plantId: FixtureIds.plantA,
+    year: 2026,
+    quantity: 12,
+    status: "planted"
+  });
+  await insertYearlyBedPlanting(pool, {
+    id: FixtureIds.yearlyBedPlantingA2027,
+    accountId: FixtureIds.accountA,
+    bedId: FixtureIds.bedA,
+    plantId: FixtureIds.plantA,
+    year: 2027,
+    quantity: 14,
+    status: "planted"
+  });
+  await insertYearlyBedPlanting(pool, {
+    id: FixtureIds.yearlyBedPlantingB2026,
+    accountId: FixtureIds.accountB,
+    bedId: FixtureIds.bedB,
+    plantId: FixtureIds.plantB,
+    year: 2026,
+    quantity: 8,
+    status: "planted"
+  });
 }

@@ -8,15 +8,15 @@ Implementation agents must update this file in the same branch/PR whenever phase
 
 ## Current Position
 
-- Last implemented phase: Phase 6 - Backend Growing Structure API (in progress; yearly bed plantings routes/API contract implemented).
-- Last implemented step: Phase 6 Step 9 - Yearly Bed Plantings Routes and API Contract.
-- Last implemented step file: `docs/implementation-phases/phase-06/09-yearly-bed-plantings-routes-and-api-contract.md`.
-- Last implementation commit observed: Phase 6 Step 9 implementation on `feature/backend-growing-structure`.
+- Last implemented phase: Phase 6 - Backend Growing Structure API (in progress; account consistency and regression tests implemented).
+- Last implemented step: Phase 6 Step 10 - Phase 06 Account Consistency and Regression Tests.
+- Last implemented step file: `docs/implementation-phases/phase-06/10-phase-06-account-consistency-and-regression-tests.md`.
+- Last implementation commit observed: Phase 6 Step 10 implementation on `feature/backend-growing-structure`.
 - Next implementation phase: Phase 6 - Backend Growing Structure API.
-- Next implementation step: Phase 6 Step 10 - Phase 06 Account Consistency and Regression Tests.
-- Next implementation step file: `docs/implementation-phases/phase-06/10-phase-06-account-consistency-and-regression-tests.md`.
+- Next implementation step: Phase 6 Step 11 - Phase 06 Verification and PR Readiness.
+- Next implementation step file: `docs/implementation-phases/phase-06/11-phase-06-verification-and-pr-readiness.md`.
 
-Note: Phase 6 Step 5 exposes beds list/create/detail/update/archive routes through authenticated Fastify handlers. `BedsService` derives `areaM2` from `widthM * lengthM` when dimensions are available and `areaM2` is omitted; explicit `areaM2` remains supported. Phase 6 Step 6 adds account-scoped persistent bed plant repository/service behavior, including bed/plant access checks, non-negative quantity and sane planted-year validation, archive behavior, and target-resolver-ready lookup helpers. Phase 6 Step 7 exposes persistent bed plant list/create/update/archive routes with authenticated Fastify handlers, validation, canonical envelopes, and route tests. Phase 6 Step 8 adds account-scoped yearly bed planting repository/service behavior, including bed/plant access checks, year/status/quantity validation, duplicate same bed/plant/year support, archive behavior, historical reads, current-list helpers, and target-resolver-ready lookup helpers. Phase 6 Step 9 exposes yearly bed planting list/create/update/archive routes with authenticated Fastify handlers, validation, canonical envelopes, current-year default list behavior, duplicate-row allowance coverage, and route tests. If a separate Phase 5 verification PR updates shared files, reconcile this branch before merge. Phase 6 and Phase 7 have executable task breakdown documents. Phase 8 through Phase 28 currently have top-level phase specs only.
+Note: Phase 6 Step 5 exposes beds list/create/detail/update/archive routes through authenticated Fastify handlers. `BedsService` derives `areaM2` from `widthM * lengthM` when dimensions are available and `areaM2` is omitted; explicit `areaM2` remains supported. Phase 6 Step 6 adds account-scoped persistent bed plant repository/service behavior, including bed/plant access checks, non-negative quantity and sane planted-year validation, archive behavior, and target-resolver-ready lookup helpers. Phase 6 Step 7 exposes persistent bed plant list/create/update/archive routes with authenticated Fastify handlers, validation, canonical envelopes, and route tests. Phase 6 Step 8 adds account-scoped yearly bed planting repository/service behavior, including bed/plant access checks, year/status/quantity validation, duplicate same bed/plant/year support, archive behavior, historical reads, current-list helpers, and target-resolver-ready lookup helpers. Phase 6 Step 9 exposes yearly bed planting list/create/update/archive routes with authenticated Fastify handlers, validation, canonical envelopes, current-year default list behavior, duplicate-row allowance coverage, and route tests. Phase 6 Step 10 adds shared growing-structure fixtures plus cross-cutting API/account consistency regression tests, database guard smoke tests, archive/historical occupancy/duplicate yearly planting coverage, and static scope checks for out-of-scope frontend/provider/MCP/target resolver/schema drift. If a separate Phase 5 verification PR updates shared files, reconcile this branch before merge. Phase 6 and Phase 7 have executable task breakdown documents. Phase 8 through Phase 28 currently have top-level phase specs only.
 
 ## Status Legend
 
@@ -121,7 +121,7 @@ Note: Phase 6 Step 5 exposes beds list/create/detail/update/archive routes throu
 - [x] Step 7 - Persistent Bed Plants Routes and API Contract.
 - [x] Step 8 - Yearly Bed Plantings Repository and Service.
 - [x] Step 9 - Yearly Bed Plantings Routes and API Contract.
-- [ ] Step 10 - Phase 06 Account Consistency and Regression Tests.
+- [x] Step 10 - Phase 06 Account Consistency and Regression Tests.
 - [ ] Step 11 - Phase 06 Verification and PR Readiness.
 
 ## Update Rules
