@@ -10,6 +10,7 @@ import { MatIconModule } from '@angular/material/icon';
 })
 export class PageHeader {
   readonly title = input.required<string>();
+  readonly titleId = input<string | null>(null);
   readonly subtitle = input<string | null>(null);
   readonly icon = input<string | null>(null);
 }
