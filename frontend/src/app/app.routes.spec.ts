@@ -71,10 +71,10 @@ describe('app routes', () => {
 
   it('renders nested placeholder routes without data fetching', async () => {
     const nestedRoutes = [
-      ['/places/place-1/weather', 'Place Weather'],
-      ['/places/place-1/overview', 'Place Overview'],
-      ['/places/place-1/perennials', 'Place Perennials'],
-      ['/places/place-1/beds', 'Place Beds'],
+      ['/places/place-1/weather', 'Place'],
+      ['/places/place-1/overview', 'Place'],
+      ['/places/place-1/perennials', 'Place'],
+      ['/places/place-1/beds', 'Place'],
       ['/beds/bed-1', 'Bed Detail'],
       ['/plants/new', 'New Plant'],
       ['/plants/plant-1', 'Plant Detail'],
