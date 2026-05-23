@@ -1,8 +1,8 @@
 import { TestBed } from '@angular/core/testing';
-import { FormControl, FormGroup } from '@angular/forms';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
-import { of } from 'rxjs';
+import { of, Subject } from 'rxjs';
 
 import { ApiError } from '../core/errors/api-error';
 import { PlantsApiService } from '../features/plants/plants-api.service';
@@ -79,6 +79,23 @@ describe('shared garden UI components and helpers', () => {
     expect(form.controls.name.touched).toBe(true);
   });
 
+  it('clears stale backend field errors while preserving local validation errors', () => {
+    const form = new FormGroup({
+      name: new FormControl('', { validators: [Validators.required] }),
+    });
+
+    applyApiErrorToForm(
+      form,
+      new ApiError('VALIDATION_ERROR', 'Invalid input', {
+        details: { name: 'Name is already used.' },
+      }),
+    );
+    applyApiErrorToForm(form, null);
+
+    expect(form.controls.name.hasError('api')).toBe(false);
+    expect(form.controls.name.hasError('required')).toBe(true);
+  });
+
   it('emits calendar year changes without mutating planting data', () => {
     const fixture = TestBed.configureTestingModule({
       imports: [YearSelector],
@@ -138,5 +155,63 @@ describe('shared garden UI components and helpers', () => {
     expect(fixture.componentInstance.plants()).toEqual([tomato]);
     expect(fixture.componentInstance.displayPlant(tomato)).toBe('Tomato (Roma)');
     expect(emittedPlantIds).toEqual(['plant-1']);
+  });
+
+  it('keeps plant selector results aligned with the latest search request', () => {
+    const tomato: PlantListItem = {
+      id: 'plant-1',
+      commonName: 'Tomato',
+      variety: null,
+      plantCategory: 'vegetable',
+      lifecycleType: 'annual',
+      growingStyle: 'vegetable',
+      notes: null,
+      archivedAt: null,
+    };
+    const basil: PlantListItem = {
+      id: 'plant-2',
+      commonName: 'Basil',
+      variety: null,
+      plantCategory: 'herb',
+      lifecycleType: 'annual',
+      growingStyle: 'herb',
+      notes: null,
+      archivedAt: null,
+    };
+    const firstSearch = new Subject<{
+      items: readonly PlantListItem[];
+      page: number;
+      pageSize: number;
+      total: number;
+    }>();
+    const secondSearch = new Subject<{
+      items: readonly PlantListItem[];
+      page: number;
+      pageSize: number;
+      total: number;
+    }>();
+    const plantsApi = {
+      list: vi
+        .fn()
+        .mockReturnValueOnce(firstSearch.asObservable())
+        .mockReturnValueOnce(secondSearch.asObservable()),
+    };
+    const fixture = TestBed.configureTestingModule({
+      imports: [PlantSelector],
+      providers: [provideNoopAnimations(), { provide: PlantsApiService, useValue: plantsApi }],
+    }).createComponent(PlantSelector);
+
+    fixture.componentInstance.searchText.set('tom');
+    fixture.componentInstance.search();
+    fixture.componentInstance.searchText.set('bas');
+    fixture.componentInstance.search();
+
+    secondSearch.next({ items: [basil], page: 1, pageSize: 20, total: 1 });
+    firstSearch.next({ items: [tomato], page: 1, pageSize: 20, total: 1 });
+
+    expect(plantsApi.list).toHaveBeenNthCalledWith(1, { q: 'tom', page: 1, pageSize: 20 });
+    expect(plantsApi.list).toHaveBeenNthCalledWith(2, { q: 'bas', page: 1, pageSize: 20 });
+    expect(fixture.componentInstance.plants()).toEqual([basil]);
+    expect(fixture.componentInstance.loading()).toBe(false);
   });
 });

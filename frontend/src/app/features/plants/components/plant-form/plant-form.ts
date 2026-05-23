@@ -77,11 +77,7 @@ export class PlantForm {
     });
 
     effect(() => {
-      const error = this.apiError();
-
-      if (error !== null) {
-        applyApiErrorToForm(this.form, error);
-      }
+      applyApiErrorToForm(this.form, this.apiError());
     });
   }
 

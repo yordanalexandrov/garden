@@ -6,6 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectChange, MatSelectModule } from '@angular/material/select';
+import { Subscription } from 'rxjs';
 
 import { ApiError } from '../../../core/errors/api-error';
 import { mapApiError } from '../../../core/errors/api-error.mapper';
@@ -40,12 +41,14 @@ export class PlantSelector {
 
   private readonly plantsApi = inject(PlantsApiService);
   private readonly destroyRef = inject(DestroyRef);
+  private searchSubscription: Subscription | null = null;
 
   search(): void {
+    this.searchSubscription?.unsubscribe();
     this.loading.set(true);
     this.error.set(null);
 
-    this.plantsApi
+    this.searchSubscription = this.plantsApi
       .list({
         q: this.searchText().trim() || undefined,
         page: 1,

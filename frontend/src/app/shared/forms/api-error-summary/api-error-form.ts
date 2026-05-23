@@ -14,7 +14,13 @@ export const apiErrorMessages = (error: ApiError | null): readonly string[] => {
     .filter((message): message is string => message !== null);
 };
 
-export const applyApiErrorToForm = (form: FormGroup, error: ApiError): void => {
+export const applyApiErrorToForm = (form: FormGroup, error: ApiError | null): void => {
+  clearApiErrorFromControl(form);
+
+  if (error === null) {
+    return;
+  }
+
   for (const [field, value] of Object.entries(error.details)) {
     const control = form.get(field);
 
@@ -29,6 +35,30 @@ export const applyApiErrorToForm = (form: FormGroup, error: ApiError): void => {
 const mergeControlApiError = (control: AbstractControl, message: string): void => {
   control.setErrors({ ...(control.errors ?? {}), [apiFieldErrorKey]: message });
   control.markAsTouched();
+};
+
+const clearApiErrorFromControl = (control: AbstractControl): void => {
+  const childControls = (control as { controls?: unknown }).controls;
+
+  if (Array.isArray(childControls)) {
+    for (const childControl of childControls) {
+      clearApiErrorFromControl(childControl as AbstractControl);
+    }
+  } else if (typeof childControls === 'object' && childControls !== null) {
+    for (const childControl of Object.values(childControls)) {
+      clearApiErrorFromControl(childControl as AbstractControl);
+    }
+  }
+
+  const errors = control.errors;
+
+  if (errors === null || !(apiFieldErrorKey in errors)) {
+    return;
+  }
+
+  const nextErrors = { ...errors };
+  delete nextErrors[apiFieldErrorKey];
+  control.setErrors(Object.keys(nextErrors).length > 0 ? nextErrors : null);
 };
 
 const formatDetail = (field: string, value: unknown): string | null => {

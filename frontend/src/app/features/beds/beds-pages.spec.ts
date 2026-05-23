@@ -139,6 +139,7 @@ describe('beds Phase 7 pages', () => {
 
     fixture.detectChanges();
 
+    expect(bedsApi.get).toHaveBeenCalledTimes(1);
     expect(bedsApi.get).toHaveBeenCalledWith('bed-1', 2026);
     expect((fixture.nativeElement as HTMLElement).textContent).toContain('Persistent plants');
     expect((fixture.nativeElement as HTMLElement).textContent).toContain('Yearly plantings');

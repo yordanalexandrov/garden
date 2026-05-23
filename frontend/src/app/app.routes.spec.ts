@@ -50,11 +50,9 @@ describe('app routes', () => {
   it('renders primary placeholder routes without API providers', async () => {
     const primaryRoutes = [
       ['/dashboard', 'Dashboard'],
-      ['/places', 'Places'],
       ['/calendar', 'Calendar'],
       ['/activities', 'Activities'],
       ['/problems', 'Problems'],
-      ['/plants', 'Plants'],
       ['/products', 'Products'],
       ['/inventory', 'Inventory'],
       ['/ai', 'AI Assistant'],
@@ -71,15 +69,13 @@ describe('app routes', () => {
 
   it('renders nested placeholder routes without data fetching', async () => {
     const nestedRoutes = [
-      ['/places/place-1/weather', 'Place'],
-      ['/places/place-1/overview', 'Place'],
-      ['/places/place-1/perennials', 'Place'],
-      ['/places/place-1/beds', 'Place'],
-      ['/beds/bed-1', 'Bed Detail'],
-      ['/plants/new', 'New Plant'],
-      ['/plants/plant-1', 'Plant Detail'],
       ['/products/product-1/rules/new', 'New Product Usage Rule'],
+      ['/product-rules/rule-1/edit', 'Edit Product Usage Rule'],
       ['/inventory/products/product-1/lots/new', 'New Inventory Lot'],
+      ['/inventory/adjustments/new', 'New Inventory Adjustment'],
+      ['/activities/activity-1', 'Activity Detail'],
+      ['/problems/problem-1', 'Problem Detail'],
+      ['/tasks/task-1', 'Task Detail'],
       ['/ai/problem-assist', 'AI Problem Assist'],
       ['/settings/notifications', 'Notification Settings'],
     ] as const;

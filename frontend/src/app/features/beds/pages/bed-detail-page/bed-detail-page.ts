@@ -4,6 +4,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { combineLatest } from 'rxjs';
 
 import { ApiError } from '../../../../core/errors/api-error';
 import { mapApiError } from '../../../../core/errors/api-error.mapper';
@@ -74,17 +75,15 @@ export class BedDetailPage {
   private readonly destroyRef = inject(DestroyRef);
 
   constructor() {
-    this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
-      this.bedId.set(params.get('bedId'));
-      this.loadBed();
-    });
-
-    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
-      const rawYear = params.get('year');
-      const year = rawYear === null ? new Date().getFullYear() : Number(rawYear);
-      this.selectedYear.set(Number.isFinite(year) ? year : new Date().getFullYear());
-      this.loadBed();
-    });
+    combineLatest([this.route.paramMap, this.route.queryParamMap])
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(([params, queryParams]) => {
+        this.bedId.set(params.get('bedId'));
+        const rawYear = queryParams.get('year');
+        const year = rawYear === null ? new Date().getFullYear() : Number(rawYear);
+        this.selectedYear.set(Number.isFinite(year) ? year : new Date().getFullYear());
+        this.loadBed();
+      });
   }
 
   selectYear(year: number): void {
