@@ -182,6 +182,11 @@ services:
       SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY:?Set SUPABASE_ANON_KEY in infra/local/.env}
       SUPABASE_SERVICE_KEY: ${SUPABASE_SERVICE_ROLE_KEY:?Set SUPABASE_SERVICE_ROLE_KEY in infra/local/.env}
       AUTH_JWT_SECRET: ${SUPABASE_JWT_SECRET:?Set SUPABASE_JWT_SECRET in infra/local/.env}
+      SNIPPETS_MANAGEMENT_FOLDER: /app/snippets
+      EDGE_FUNCTIONS_MANAGEMENT_FOLDER: /app/edge-functions
+    volumes:
+      - ./volumes/snippets:/app/snippets
+      - ./volumes/functions:/app/edge-functions
 
   supabase-gateway:
     image: nginx:1.27-alpine
