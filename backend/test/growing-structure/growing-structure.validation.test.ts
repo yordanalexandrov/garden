@@ -15,8 +15,20 @@ import {
 } from "../../src/modules/perennials/perennials.validation.js";
 
 const validPlantId = "123e4567-e89b-12d3-a456-426614174000";
+const seedPlantId = "10000000-0000-0000-0000-000000000006";
 
 describe("growing structure validation", () => {
+  it("accepts PostgreSQL UUID values used by deterministic seed data", () => {
+    expect(
+      createPerennialBodySchema.parse({
+        plantId: seedPlantId,
+        label: null,
+        plantedYear: 2018,
+        notes: null
+      }).plantId
+    ).toBe(seedPlantId);
+  });
+
   it("accepts canonical perennial status values and rejects invalid statuses", () => {
     expect(listPerennialsQuerySchema.parse({ status: "active" }).status).toBe("active");
     expect(listPerennialsQuerySchema.parse({ status: "removed" }).status).toBe("removed");

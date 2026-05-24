@@ -1,6 +1,7 @@
 import { z } from "zod";
 
-export const uuidSchema = z.string().uuid();
+export const POSTGRES_UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+export const uuidSchema = z.string().regex(POSTGRES_UUID_PATTERN, "Invalid UUID");
 
 export const SANE_YEAR_MIN = 1900;
 export const SANE_YEAR_MAX = 3000;
