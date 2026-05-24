@@ -153,6 +153,7 @@ services:
       PG_META_DB_NAME: ${POSTGRES_DB:-postgres}
       PG_META_DB_USER: supabase_admin
       PG_META_DB_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in infra/local/.env}
+      CRYPTO_KEY: ${PG_META_CRYPTO_KEY:-local-dev-pg-meta-crypto-key-32-bytes}
 
   supabase-studio:
     image: supabase/studio:2026.04.27-sha-5f60601
