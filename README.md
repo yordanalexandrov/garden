@@ -72,10 +72,14 @@ npm start
 
 Open `http://localhost:4200`.
 
-The frontend defaults to `apiBaseUrl: '/api/v1'`. The repository does not
-currently include an Angular dev proxy, so API calls from `localhost:4200` need
-either a local proxy/reverse proxy to the backend on `localhost:3000`, or a
-frontend-safe local environment value that points at the backend.
+The frontend defaults to `apiBaseUrl: '/api/v1'`. `npm start` uses the Angular
+dev proxy in `frontend/proxy.conf.json` so same-origin `/api` requests from
+`localhost:4200` are forwarded to the backend on `localhost:3000`.
+
+The `/login` route signs in through Supabase Auth. In local development, use
+the generated `SUPABASE_ANON_KEY` from `infra/local/.env` in the login page's
+local Supabase config. The default local Supabase URL is
+`http://localhost:8000`.
 
 The current frontend environment files expose only frontend-safe values:
 
@@ -179,6 +183,9 @@ docker compose --env-file .env up -d
 docker compose ps
 curl http://localhost:8000/health
 ```
+
+Supabase Studio is available locally at `http://localhost:54323` by default.
+It is bound to `127.0.0.1` only and must not be exposed publicly.
 
 Apply the application schema from the backend package:
 

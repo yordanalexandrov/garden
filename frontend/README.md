@@ -26,6 +26,12 @@ the Angular dev server on `http://localhost:4200` to the Fastify backend on
 `http://localhost:3000`. Start the backend separately with `npm run dev` from
 the `backend/` package before using application data pages.
 
+The `/login` route signs in through Supabase Auth. For local development, paste
+the generated `SUPABASE_ANON_KEY` from `infra/local/.env` into the login page's
+local Supabase config. The default local Supabase URL is
+`http://localhost:8000`. The anon key is frontend-safe for Auth session
+handling only.
+
 ## Boundaries
 
 - Application data access must go through the Fastify API under `/api/v1`.
@@ -48,7 +54,8 @@ Do not add database credentials, Supabase service role keys, JWT secrets, storag
 ## Integration Status
 
 - Auth: Supabase Auth session bootstrap only.
-- API: typed Fastify API client foundation with `GET /api/v1/health` smoke support.
+- Auth UI: minimal password login through Supabase Auth.
+- API: typed Fastify API client foundation and garden structure services under `/api/v1`.
 - Storage: no frontend storage integration.
 - Weather: not touched.
 - AI: not touched.

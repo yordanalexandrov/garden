@@ -11,6 +11,7 @@ class MockAuthPort implements AuthPort {
   private handler: ((session: AuthSession | null) => void) | null = null;
 
   readonly getSession = vi.fn(async (): Promise<AuthSession | null> => null);
+  readonly signInWithPassword = vi.fn(async (): Promise<AuthSession> => session('signed-in-token'));
   readonly signOut = vi.fn(async (): Promise<void> => undefined);
   readonly unsubscribe = vi.fn();
   readonly onSessionChange = vi.fn(

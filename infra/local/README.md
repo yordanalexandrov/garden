@@ -23,6 +23,9 @@ docker compose ps
 curl http://localhost:8000/health
 ```
 
+Supabase Studio is available locally at `http://localhost:54323` by default.
+It is bound to `127.0.0.1` only and must not be exposed publicly.
+
 Supabase Postgres owns its internal role, schema, extension, Auth, and Storage
 bootstrap through the image-provided init scripts. The local init file only sets
 passwords on image-created login roles so sibling containers can connect over
@@ -68,6 +71,23 @@ Use the output as:
 ```http
 Authorization: Bearer <token>
 ```
+
+## Local UI Login
+
+The Angular login page uses Supabase Auth for session handling only. Create a
+local Auth user in Studio, then make sure the issued JWT includes the demo
+application account id:
+
+```sql
+update auth.users
+set raw_app_meta_data = coalesce(raw_app_meta_data, '{}'::jsonb)
+  || '{"account_id":"00000000-0000-0000-0000-000000000001"}'::jsonb
+where email = 'demo@example.com';
+```
+
+Use the generated `SUPABASE_ANON_KEY` from `infra/local/.env` in the frontend
+login page's local Supabase config. The default local Supabase URL is
+`http://localhost:8000`.
 
 ## Stop
 

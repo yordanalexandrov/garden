@@ -1,6 +1,11 @@
 import type { Session, SupabaseClient } from '@supabase/supabase-js';
 
-import { AuthPort, AuthSession, AuthStateSubscription } from './auth.port';
+import {
+  AuthPort,
+  AuthSession,
+  AuthStateSubscription,
+  SignInWithPasswordRequest,
+} from './auth.port';
 
 export interface SupabaseAuthConfig {
   readonly supabaseAuthUrl: string;
@@ -62,6 +67,26 @@ export class SupabaseAuthAdapter implements AuthPort {
     };
   }
 
+  async signInWithPassword(request: SignInWithPasswordRequest): Promise<AuthSession> {
+    const client = await this.getClient();
+    const { data, error } = await client.auth.signInWithPassword({
+      email: request.email,
+      password: request.password,
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    const session = mapSupabaseSession(data.session);
+
+    if (session === null) {
+      throw new Error('Supabase Auth did not return a session.');
+    }
+
+    return session;
+  }
+
   async signOut(): Promise<void> {
     const client = await this.getClient();
     const { error } = await client.auth.signOut();
@@ -101,6 +126,9 @@ export const createUnavailableAuthPort = (message: string): AuthPort => ({
   onSessionChange: () => ({
     unsubscribe: () => undefined,
   }),
+  signInWithPassword: async () => {
+    throw new FrontendAuthConfigurationError(message);
+  },
   signOut: async () => {
     throw new FrontendAuthConfigurationError(message);
   },
