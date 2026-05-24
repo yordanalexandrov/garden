@@ -170,6 +170,47 @@ describe('bed planting flows', () => {
     expect(fixture.componentInstance.form.controls.quantity.hasError('nonNegative')).toBe(true);
   });
 
+  it('planting forms reject non-finite numeric input with visible feedback', () => {
+    const persistentFixture = TestBed.createComponent(PersistentBedPlantForm);
+    const yearlyFixture = TestBed.createComponent(YearlyBedPlantingForm);
+    const persistentSubmitted = vi.fn();
+    const yearlySubmitted = vi.fn();
+
+    persistentFixture.componentInstance.submitted.subscribe(persistentSubmitted);
+    yearlyFixture.componentInstance.submitted.subscribe(yearlySubmitted);
+    persistentFixture.detectChanges();
+    yearlyFixture.detectChanges();
+
+    persistentFixture.componentInstance.form.patchValue({
+      plantId: 'plant-1',
+      plantedYear: Number.NaN,
+      quantity: Number.NaN,
+    });
+    yearlyFixture.componentInstance.form.patchValue({
+      plantId: 'plant-2',
+      year: Number.NaN,
+      quantity: Number.NaN,
+    });
+
+    persistentFixture.componentInstance.submit();
+    yearlyFixture.componentInstance.submit();
+    persistentFixture.detectChanges();
+    yearlyFixture.detectChanges();
+
+    expect(persistentSubmitted).not.toHaveBeenCalled();
+    expect(yearlySubmitted).not.toHaveBeenCalled();
+    expect(persistentFixture.componentInstance.form.controls.plantedYear.hasError('number')).toBe(true);
+    expect(persistentFixture.componentInstance.form.controls.quantity.hasError('number')).toBe(true);
+    expect(yearlyFixture.componentInstance.form.controls.year.hasError('number')).toBe(true);
+    expect(yearlyFixture.componentInstance.form.controls.quantity.hasError('number')).toBe(true);
+    expect((persistentFixture.nativeElement as HTMLElement).textContent).toContain(
+      'Enter a valid number.',
+    );
+    expect((yearlyFixture.nativeElement as HTMLElement).textContent).toContain(
+      'Enter a valid number.',
+    );
+  });
+
   it('status controls expose only editable canonical values', () => {
     expect(EDITABLE_PERSISTENT_BED_PLANT_STATUSES).toEqual(['active', 'removed']);
     expect(EDITABLE_YEARLY_BED_PLANTING_STATUSES).toEqual([

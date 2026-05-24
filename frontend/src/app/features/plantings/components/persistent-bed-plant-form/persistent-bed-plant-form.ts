@@ -109,13 +109,21 @@ export class PersistentBedPlantForm {
 }
 
 export const saneYearValidator = (control: AbstractControl) => {
-  const value = nullableNumber(control.value);
+  const value = parseOptionalNumber(control.value);
+
+  if (value === 'invalid') {
+    return { number: true };
+  }
 
   return value === null || (value >= 1900 && value <= 3000) ? null : { saneYear: true };
 };
 
 export const nonNegativeValidator = (control: AbstractControl) => {
-  const value = nullableNumber(control.value);
+  const value = parseOptionalNumber(control.value);
+
+  if (value === 'invalid') {
+    return { number: true };
+  }
 
   return value === null || value >= 0 ? null : { nonNegative: true };
 };
@@ -127,11 +135,17 @@ const nullableText = (value: string): string | null => {
 };
 
 const nullableNumber = (value: unknown): number | null => {
+  const parsed = parseOptionalNumber(value);
+
+  return parsed === 'invalid' ? null : parsed;
+};
+
+const parseOptionalNumber = (value: unknown): number | null | 'invalid' => {
   if (value === null || value === undefined || value === '') {
     return null;
   }
 
   const parsed = Number(value);
 
-  return Number.isFinite(parsed) ? parsed : null;
+  return Number.isFinite(parsed) ? parsed : 'invalid';
 };
