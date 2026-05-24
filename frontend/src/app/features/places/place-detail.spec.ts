@@ -72,6 +72,7 @@ describe('place detail shell and overview', () => {
     expect(router.url).toBe('/places/place-1/overview');
     expect(compiled.textContent).toContain('Home Garden');
     expect(compiled.textContent).toContain('12 perennials');
+    expect(placesApi.get).toHaveBeenCalledTimes(1);
     expect(placesApi.get).toHaveBeenCalledWith('place-1');
 
     fixture.destroy();
@@ -95,6 +96,7 @@ describe('place detail shell and overview', () => {
     expect(compiled.textContent).toContain('Add perennial');
     expect(compiled.textContent).toContain('Add bed');
     expect(compiled.querySelector('router-outlet')).not.toBeNull();
+    expect(placesApi.get).toHaveBeenCalledTimes(1);
 
     fixture.destroy();
   });

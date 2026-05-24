@@ -191,6 +191,17 @@ describe('beds Phase 7 pages', () => {
     expect(bedsApi.create.mock.calls[0][1]).not.toHaveProperty(forbiddenKey);
   });
 
+  it('loads full bed detail before opening the edit form from the place beds list', () => {
+    const fixture = TestBed.createComponent(PlaceBedsPage);
+
+    fixture.componentInstance.selectedYear.set(2026);
+    fixture.componentInstance.openEditForm(bedListItem);
+
+    expect(bedsApi.get).toHaveBeenCalledWith('bed-1', 2026);
+    expect(fixture.componentInstance.editingBed()).toEqual(bedDetail);
+    expect(fixture.componentInstance.formOpen()).toBe(true);
+  });
+
   it('requires confirmation before archive calls', () => {
     const fixture = TestBed.createComponent(PlaceBedsPage);
 

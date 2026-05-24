@@ -8,7 +8,7 @@ import { SnackbarService } from '../../core/notifications/snackbar.service';
 import { ArchiveConfirmationService } from '../../shared/components/confirm-dialog/confirm-dialog';
 import { PlaceForm } from './components/place-form/place-form';
 import { PlacesListPage } from './pages/places-list-page/places-list-page';
-import { PlaceListItem } from './places.models';
+import { PlaceDetail, PlaceListItem } from './places.models';
 import { PlacesApiService } from './places-api.service';
 
 describe('places Phase 7 pages', () => {
@@ -22,8 +22,22 @@ describe('places Phase 7 pages', () => {
     createdAt: '2026-05-23T00:00:00.000Z',
     archivedAt: null,
   };
+  const placeDetail: PlaceDetail = {
+    ...place,
+    notes: 'Irrigated beds',
+    latitude: 43.84,
+    longitude: 25.95,
+    counts: {
+      perennials: 12,
+      beds: 4,
+      openProblems: 0,
+      upcomingTasks: 0,
+    },
+    updatedAt: '2026-05-23T00:00:00.000Z',
+  };
   const placesApi = {
     list: vi.fn(),
+    get: vi.fn(),
     create: vi.fn(),
     update: vi.fn(),
     archive: vi.fn(),
@@ -38,6 +52,7 @@ describe('places Phase 7 pages', () => {
 
   beforeEach(() => {
     placesApi.list.mockReturnValue(of({ items: [place], page: 1, pageSize: 20, total: 1 }));
+    placesApi.get.mockReturnValue(of(placeDetail));
     placesApi.create.mockReturnValue(of({ id: 'place-2', name: 'Orchard' }));
     placesApi.update.mockReturnValue(of({ id: 'place-1', name: 'Home Garden' }));
     placesApi.archive.mockReturnValue(of({ archived: true }));
@@ -116,6 +131,16 @@ describe('places Phase 7 pages', () => {
       weatherEnabled: false,
     });
     expect(placesApi.create.mock.calls[0][0]).not.toHaveProperty(forbiddenKey);
+  });
+
+  it('loads full place detail before opening the edit form from the list', () => {
+    const fixture = TestBed.createComponent(PlacesListPage);
+
+    fixture.componentInstance.openEditForm(place);
+
+    expect(placesApi.get).toHaveBeenCalledWith('place-1');
+    expect(fixture.componentInstance.editingPlace()).toEqual(placeDetail);
+    expect(fixture.componentInstance.formOpen()).toBe(true);
   });
 
   it('renders backend validation errors on the form', () => {

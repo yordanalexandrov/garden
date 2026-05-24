@@ -18,7 +18,7 @@ import { YearSelector } from '../../../../shared/components/year-selector/year-s
 import { ApiErrorSummary } from '../../../../shared/forms/api-error-summary/api-error-summary';
 import { BedCurrentContentsComponent } from '../../components/bed-current-contents/bed-current-contents';
 import { BedForm } from '../../components/bed-form/bed-form';
-import { BedListItem, UpdateBedRequest } from '../../beds.models';
+import { BedDetail, BedListItem, UpdateBedRequest } from '../../beds.models';
 import { BedsApiService } from '../../beds-api.service';
 
 @Component({
@@ -47,7 +47,7 @@ export class PlaceBedsPage {
   readonly loading = signal(false);
   readonly saving = signal(false);
   readonly formOpen = signal(false);
-  readonly editingBed = signal<BedListItem | null>(null);
+  readonly editingBed = signal<BedDetail | null>(null);
   readonly listError = signal<ApiError | null>(null);
   readonly formError = signal<ApiError | null>(null);
   readonly placeId = signal<string | null>(null);
@@ -116,9 +116,26 @@ export class PlaceBedsPage {
   }
 
   openEditForm(bed: BedListItem): void {
-    this.editingBed.set(bed);
+    this.loading.set(true);
+    this.listError.set(null);
     this.formError.set(null);
-    this.formOpen.set(true);
+    this.formOpen.set(false);
+    this.editingBed.set(null);
+
+    this.bedsApi
+      .get(bed.id, this.selectedYear())
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (bedDetail) => {
+          this.editingBed.set(bedDetail);
+          this.formOpen.set(true);
+          this.loading.set(false);
+        },
+        error: (error: unknown) => {
+          this.listError.set(mapApiError(error));
+          this.loading.set(false);
+        },
+      });
   }
 
   closeForm(): void {

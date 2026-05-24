@@ -13,7 +13,7 @@ import { EmptyState } from '../../../../shared/components/empty-state/empty-stat
 import { PageHeader } from '../../../../shared/components/page-header/page-header';
 import { ApiErrorSummary } from '../../../../shared/forms/api-error-summary/api-error-summary';
 import { PlaceForm } from '../../components/place-form/place-form';
-import { CreatePlaceRequest, PlaceListItem } from '../../places.models';
+import { CreatePlaceRequest, PlaceDetail, PlaceListItem } from '../../places.models';
 import { PlacesApiService } from '../../places-api.service';
 
 @Component({
@@ -37,7 +37,7 @@ export class PlacesListPage {
   readonly loading = signal(false);
   readonly saving = signal(false);
   readonly formOpen = signal(false);
-  readonly editingPlace = signal<PlaceListItem | null>(null);
+  readonly editingPlace = signal<PlaceDetail | null>(null);
   readonly listError = signal<ApiError | null>(null);
   readonly formError = signal<ApiError | null>(null);
 
@@ -76,9 +76,26 @@ export class PlacesListPage {
   }
 
   openEditForm(place: PlaceListItem): void {
-    this.editingPlace.set(place);
+    this.loading.set(true);
+    this.listError.set(null);
     this.formError.set(null);
-    this.formOpen.set(true);
+    this.formOpen.set(false);
+    this.editingPlace.set(null);
+
+    this.placesApi
+      .get(place.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (placeDetail) => {
+          this.editingPlace.set(placeDetail);
+          this.formOpen.set(true);
+          this.loading.set(false);
+        },
+        error: (error: unknown) => {
+          this.listError.set(mapApiError(error));
+          this.loading.set(false);
+        },
+      });
   }
 
   closeForm(): void {
