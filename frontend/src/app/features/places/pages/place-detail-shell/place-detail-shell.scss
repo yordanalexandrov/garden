@@ -1,0 +1,33 @@
+:host {
+  display: block;
+}
+
+.place-shell {
+  display: grid;
+  gap: 1rem;
+}
+
+.place-shell__loading {
+  margin: 0;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.place-shell__nav {
+  display: flex;
+  gap: 0.25rem;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+}
+
+.place-shell__nav-link {
+  flex: 0 0 auto;
+  padding: 0.75rem 0.875rem;
+  border-bottom: 0.1875rem solid transparent;
+  color: var(--mat-sys-on-surface-variant);
+  text-decoration: none;
+}
+
+.place-shell__nav-link--active {
+  border-bottom-color: var(--mat-sys-primary);
+  color: var(--mat-sys-primary);
+}

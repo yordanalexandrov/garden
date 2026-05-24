@@ -42,5 +42,11 @@ describe('Supabase Auth adapter configuration', () => {
     await expect(unavailableAuthPort.getSession()).rejects.toThrow(
       'Supabase Auth configuration is missing. Missing: supabaseAuthUrl.',
     );
+    await expect(
+      unavailableAuthPort.signInWithPassword({
+        email: 'demo@example.com',
+        password: 'password',
+      }),
+    ).rejects.toThrow('Supabase Auth configuration is missing. Missing: supabaseAuthUrl.');
   });
 });

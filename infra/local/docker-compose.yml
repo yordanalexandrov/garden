@@ -153,6 +153,41 @@ services:
       PG_META_DB_NAME: ${POSTGRES_DB:-postgres}
       PG_META_DB_USER: supabase_admin
       PG_META_DB_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in infra/local/.env}
+      CRYPTO_KEY: ${PG_META_CRYPTO_KEY:-local-dev-pg-meta-crypto-key-32-bytes}
+
+  supabase-studio:
+    image: supabase/studio:2026.04.27-sha-5f60601
+    restart: unless-stopped
+    depends_on:
+      supabase-meta:
+        condition: service_started
+      supabase-gateway:
+        condition: service_started
+    ports:
+      - "127.0.0.1:${SUPABASE_STUDIO_PORT:-54323}:3000"
+    environment:
+      HOSTNAME: "0.0.0.0"
+      STUDIO_PG_META_URL: http://supabase-meta:8080
+      POSTGRES_HOST: supabase-db
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in infra/local/.env}
+      PG_META_CRYPTO_KEY: ${PG_META_CRYPTO_KEY:-local-dev-pg-meta-crypto-key-32-bytes}
+      PGRST_DB_SCHEMAS: ${PGRST_DB_SCHEMAS:-storage}
+      PGRST_DB_MAX_ROWS: ${PGRST_DB_MAX_ROWS:-1000}
+      PGRST_DB_EXTRA_SEARCH_PATH: ${PGRST_DB_EXTRA_SEARCH_PATH:-public}
+      DEFAULT_ORGANIZATION_NAME: ${STUDIO_DEFAULT_ORGANIZATION:-Gardening Helper Local}
+      DEFAULT_PROJECT_NAME: ${STUDIO_DEFAULT_PROJECT:-Gardening Helper}
+      SUPABASE_URL: http://supabase-gateway:8000
+      SUPABASE_PUBLIC_URL: ${SUPABASE_PUBLIC_URL:-http://localhost:8000}
+      SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY:?Set SUPABASE_ANON_KEY in infra/local/.env}
+      SUPABASE_SERVICE_KEY: ${SUPABASE_SERVICE_ROLE_KEY:?Set SUPABASE_SERVICE_ROLE_KEY in infra/local/.env}
+      AUTH_JWT_SECRET: ${SUPABASE_JWT_SECRET:?Set SUPABASE_JWT_SECRET in infra/local/.env}
+      SNIPPETS_MANAGEMENT_FOLDER: /app/snippets
+      EDGE_FUNCTIONS_MANAGEMENT_FOLDER: /app/edge-functions
+    volumes:
+      - ./volumes/snippets:/app/snippets
+      - ./volumes/functions:/app/edge-functions
 
   supabase-gateway:
     image: nginx:1.27-alpine

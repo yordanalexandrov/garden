@@ -6,6 +6,11 @@ export interface AuthSession {
   readonly userId: string | null;
 }
 
+export interface SignInWithPasswordRequest {
+  readonly email: string;
+  readonly password: string;
+}
+
 export interface AuthStateSubscription {
   unsubscribe(): void;
 }
@@ -13,6 +18,7 @@ export interface AuthStateSubscription {
 export interface AuthPort {
   getSession(): Promise<AuthSession | null>;
   onSessionChange(handler: (session: AuthSession | null) => void): AuthStateSubscription;
+  signInWithPassword(request: SignInWithPasswordRequest): Promise<AuthSession>;
   signOut(): Promise<void>;
 }
 

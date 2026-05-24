@@ -1,0 +1,58 @@
+<form class="plant-form" [formGroup]="form" (ngSubmit)="submit()">
+  <app-api-error-summary [error]="apiError()" />
+
+  <mat-form-field appearance="outline">
+    <mat-label>Common name</mat-label>
+    <input matInput formControlName="commonName" required />
+    @if (form.controls.commonName.hasError('required') && form.controls.commonName.touched) {
+      <mat-error>Common name is required.</mat-error>
+    }
+    @if (form.controls.commonName.hasError('api')) {
+      <mat-error>{{ form.controls.commonName.getError('api') }}</mat-error>
+    }
+  </mat-form-field>
+
+  <div class="plant-form__grid">
+    <mat-form-field appearance="outline">
+      <mat-label>Variety</mat-label>
+      <input matInput formControlName="variety" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Plant category</mat-label>
+      <input matInput formControlName="plantCategory" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Lifecycle</mat-label>
+      <mat-select formControlName="lifecycleType">
+        @for (lifecycleType of lifecycleTypes; track lifecycleType) {
+          <mat-option [value]="lifecycleType">{{ lifecycleType }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Growing style</mat-label>
+      <mat-select formControlName="growingStyle">
+        @for (growingStyle of growingStyles; track growingStyle) {
+          <mat-option [value]="growingStyle">{{ growingStyle }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Notes</mat-label>
+    <textarea matInput formControlName="notes" rows="4"></textarea>
+  </mat-form-field>
+
+  <div class="plant-form__actions">
+    <button mat-button type="button" (click)="cancelled.emit()" [disabled]="saving()">
+      Cancel
+    </button>
+    <button mat-flat-button type="submit" [disabled]="saving()">
+      {{ saving() ? 'Saving...' : 'Save plant' }}
+    </button>
+  </div>
+</form>

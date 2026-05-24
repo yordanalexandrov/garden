@@ -1,0 +1,35 @@
+:host {
+  display: block;
+}
+
+.places-page {
+  display: grid;
+  gap: 1rem;
+}
+
+.places-page__form-card {
+  max-width: 52rem;
+}
+
+.places-page__loading,
+.places-page__muted {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.places-page__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+  gap: 1rem;
+}
+
+.places-page__card {
+  border-radius: 0.5rem;
+}
+
+mat-card-content p {
+  margin-block: 0.5rem;
+}
+
+mat-card-actions {
+  flex-wrap: wrap;
+}

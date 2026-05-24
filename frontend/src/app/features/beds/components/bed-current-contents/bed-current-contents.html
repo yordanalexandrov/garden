@@ -1,0 +1,31 @@
+<div class="bed-contents">
+  <section class="bed-contents__section" aria-label="Persistent plants">
+    <h3>Persistent plants</h3>
+    @if (persistentPlants().length === 0) {
+      <p>No persistent plants.</p>
+    } @else {
+      <ul>
+        @for (plant of persistentPlants(); track plant.id) {
+          <li>{{ plant.plantName }} @if (plant.quantity !== null) { <span>({{ plant.quantity }})</span> }</li>
+        }
+      </ul>
+    }
+  </section>
+
+  <section class="bed-contents__section" aria-label="Yearly plantings">
+    <h3>Yearly plantings</h3>
+    @if (yearlyPlantings().length === 0) {
+      <p>No yearly plantings for this year.</p>
+    } @else {
+      <ul>
+        @for (planting of yearlyPlantings(); track planting.id) {
+          <li>
+            {{ planting.plantName }}
+            @if (planting.quantity !== null) { <span>({{ planting.quantity }})</span> }
+            <span>{{ planting.status }}</span>
+          </li>
+        }
+      </ul>
+    }
+  </section>
+</div>

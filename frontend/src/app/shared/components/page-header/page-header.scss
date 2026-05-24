@@ -1,0 +1,49 @@
+:host {
+  display: block;
+}
+
+.page-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-block-end: 1.25rem;
+}
+
+.page-header__title-row {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.875rem;
+}
+
+.page-header__icon {
+  flex: 0 0 auto;
+  color: var(--mat-sys-primary);
+}
+
+.page-header__copy {
+  min-width: 0;
+}
+
+.page-header__title,
+.page-header__subtitle {
+  margin: 0;
+}
+
+.page-header__title {
+  font: var(--mat-sys-headline-medium);
+  letter-spacing: 0;
+}
+
+.page-header__subtitle {
+  margin-block-start: 0.25rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.page-header__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}

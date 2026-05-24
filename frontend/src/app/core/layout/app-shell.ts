@@ -20,6 +20,7 @@ export interface PrimaryNavigationItem {
 
 export const PRIMARY_NAVIGATION_ITEMS: readonly PrimaryNavigationItem[] = [
   { label: 'Dashboard', route: '/dashboard', icon: 'dashboard', exact: true },
+  { label: 'Sign in', route: '/login', icon: 'login', exact: true },
   { label: 'Places', route: '/places', icon: 'yard', exact: false },
   { label: 'Calendar', route: '/calendar', icon: 'calendar_month', exact: false },
   { label: 'Activities', route: '/activities', icon: 'task_alt', exact: false },

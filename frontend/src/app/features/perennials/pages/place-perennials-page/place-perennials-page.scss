@@ -1,0 +1,61 @@
+:host {
+  display: block;
+}
+
+.perennials-page {
+  display: grid;
+  gap: 1rem;
+}
+
+.perennials-page__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.perennials-page__header h2,
+.perennials-page__header p {
+  margin: 0;
+}
+
+.perennials-page__header h2 {
+  font: var(--mat-sys-title-large);
+  letter-spacing: 0;
+}
+
+.perennials-page__header p,
+.perennials-page__muted {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.perennials-page__filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.perennials-page__form-card {
+  max-width: 52rem;
+  border-radius: 0.5rem;
+}
+
+.perennials-page__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+  gap: 1rem;
+}
+
+.perennials-page__card {
+  border-radius: 0.5rem;
+}
+
+mat-card-actions {
+  flex-wrap: wrap;
+}
+
+mat-form-field {
+  width: 100%;
+}

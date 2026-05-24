@@ -1,0 +1,33 @@
+<section class="place-shell" aria-labelledby="place-shell-title">
+  @if (place(); as currentPlace) {
+    <app-page-header
+      [title]="currentPlace.name"
+      titleId="place-shell-title"
+      [subtitle]="currentPlace.weatherEnabled ? 'Weather enabled' : 'Weather disabled'"
+      icon="yard"
+    />
+  } @else {
+    <app-page-header title="Place" titleId="place-shell-title" icon="yard" />
+  }
+
+  @if (loading()) {
+    <p class="place-shell__loading">Loading place...</p>
+  }
+
+  <app-api-error-summary [error]="error()" />
+
+  <nav class="place-shell__nav" aria-label="Place navigation">
+    @for (item of navigationItems; track item.path) {
+      <a
+        class="place-shell__nav-link"
+        [routerLink]="item.path"
+        routerLinkActive="place-shell__nav-link--active"
+        [routerLinkActiveOptions]="{ exact: true }"
+      >
+        {{ item.label }}
+      </a>
+    }
+  </nav>
+
+  <router-outlet />
+</section>

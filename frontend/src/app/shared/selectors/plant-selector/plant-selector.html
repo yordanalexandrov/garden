@@ -1,0 +1,32 @@
+<div class="plant-selector">
+  <div class="plant-selector__search">
+    <mat-form-field appearance="outline">
+      <mat-label>Search plants</mat-label>
+      <input
+        matInput
+        type="search"
+        [value]="searchText()"
+        (input)="updateSearchText($event)"
+        (keyup.enter)="search()"
+      />
+    </mat-form-field>
+    <button mat-icon-button type="button" aria-label="Search plants" (click)="search()">
+      @if (loading()) {
+        <mat-progress-spinner diameter="20" mode="indeterminate" aria-label="Searching plants" />
+      } @else {
+        <mat-icon aria-hidden="true" fontIcon="search" />
+      }
+    </button>
+  </div>
+
+  <mat-form-field appearance="outline">
+    <mat-label>{{ label() }}</mat-label>
+    <mat-select [value]="selectedPlantId()" (selectionChange)="selectPlant($event)">
+      @for (plant of plants(); track plant.id) {
+        <mat-option [value]="plant.id">{{ displayPlant(plant) }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+
+  <app-api-error-summary [error]="error()" />
+</div>

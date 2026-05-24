@@ -1,0 +1,63 @@
+<form class="place-form" [formGroup]="form" (ngSubmit)="submit()">
+  <app-api-error-summary [error]="apiError()" />
+
+  <mat-form-field appearance="outline">
+    <mat-label>Name</mat-label>
+    <input matInput formControlName="name" required />
+    @if (form.controls.name.hasError('required') && form.controls.name.touched) {
+      <mat-error>Name is required.</mat-error>
+    }
+    @if (form.controls.name.hasError('api')) {
+      <mat-error>{{ form.controls.name.getError('api') }}</mat-error>
+    }
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Description</mat-label>
+    <textarea matInput formControlName="description" rows="2"></textarea>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Notes</mat-label>
+    <textarea matInput formControlName="notes" rows="3"></textarea>
+  </mat-form-field>
+
+  <mat-checkbox formControlName="weatherEnabled">Weather enabled</mat-checkbox>
+
+  <div class="place-form__weather">
+    <mat-form-field appearance="outline">
+      <mat-label>Weather location</mat-label>
+      <input matInput formControlName="weatherLocationLabel" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Latitude</mat-label>
+      <input matInput type="number" formControlName="latitude" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Longitude</mat-label>
+      <input matInput type="number" formControlName="longitude" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Timezone</mat-label>
+      <input matInput formControlName="timezone" />
+    </mat-form-field>
+  </div>
+
+  @if (form.hasError('weatherLocation') && form.touched) {
+    <p class="place-form__error" role="alert">
+      Weather-enabled places need a location label or both coordinates.
+    </p>
+  }
+
+  <div class="place-form__actions">
+    <button mat-button type="button" (click)="cancelled.emit()" [disabled]="saving()">
+      Cancel
+    </button>
+    <button mat-flat-button type="submit" [disabled]="saving()">
+      {{ saving() ? 'Saving...' : 'Save place' }}
+    </button>
+  </div>
+</form>

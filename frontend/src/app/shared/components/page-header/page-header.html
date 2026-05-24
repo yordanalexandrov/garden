@@ -1,0 +1,16 @@
+<header class="page-header">
+  <div class="page-header__title-row">
+    @if (icon(); as headerIcon) {
+      <mat-icon class="page-header__icon" aria-hidden="true" [fontIcon]="headerIcon" />
+    }
+    <div class="page-header__copy">
+      <h1 class="page-header__title" [id]="titleId()">{{ title() }}</h1>
+      @if (subtitle(); as headerSubtitle) {
+        <p class="page-header__subtitle">{{ headerSubtitle }}</p>
+      }
+    </div>
+  </div>
+  <div class="page-header__actions">
+    <ng-content select="[page-actions]" />
+  </div>
+</header>

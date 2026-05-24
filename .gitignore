@@ -23,6 +23,7 @@ frontend/out-tsc/
 # Environment files
 /.env
 infra/local/.env
+infra/local/volumes/
 
 # Angular CLI and build artefacts
 /.angular-cli.json

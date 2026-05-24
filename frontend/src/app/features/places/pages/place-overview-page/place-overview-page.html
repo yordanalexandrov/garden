@@ -1,0 +1,71 @@
+<section class="place-overview" aria-labelledby="place-overview-title">
+  <h2 id="place-overview-title">Overview</h2>
+
+  @if (loading()) {
+    <p class="place-overview__muted">Loading overview...</p>
+  }
+
+  <app-api-error-summary [error]="error()" />
+
+  @if (place(); as currentPlace) {
+    <div class="place-overview__grid">
+      <mat-card class="place-overview__card">
+        <mat-card-header>
+          <mat-card-title>Metadata</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <dl class="place-overview__metadata">
+            <div>
+              <dt>Description</dt>
+              <dd>{{ currentPlace.description || 'Not set' }}</dd>
+            </div>
+            <div>
+              <dt>Weather</dt>
+              <dd>{{ currentPlace.weatherEnabled ? 'Enabled' : 'Disabled' }}</dd>
+            </div>
+            <div>
+              <dt>Location</dt>
+              <dd>{{ currentPlace.weatherLocationLabel || 'Not set' }}</dd>
+            </div>
+            <div>
+              <dt>Timezone</dt>
+              <dd>{{ currentPlace.timezone || 'Not set' }}</dd>
+            </div>
+          </dl>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="place-overview__card">
+        <mat-card-header>
+          <mat-card-title>Counts</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="place-overview__counts">
+            <span><strong>{{ currentPlace.counts.perennials }}</strong> perennials</span>
+            <span><strong>{{ currentPlace.counts.beds }}</strong> beds</span>
+            <span><strong>{{ currentPlace.counts.openProblems }}</strong> open problems</span>
+            <span><strong>{{ currentPlace.counts.upcomingTasks }}</strong> upcoming tasks</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <mat-card class="place-overview__actions-card">
+      <mat-card-header>
+        <mat-card-title>Quick actions</mat-card-title>
+      </mat-card-header>
+      <mat-card-actions>
+        <a mat-stroked-button routerLink="../perennials">
+          <mat-icon aria-hidden="true" fontIcon="park" />
+          Add perennial
+        </a>
+        <a mat-stroked-button routerLink="../beds">
+          <mat-icon aria-hidden="true" fontIcon="grid_view" />
+          Add bed
+        </a>
+        <a mat-button routerLink="../activities">Log activity</a>
+        <a mat-button routerLink="../problems">Record problem</a>
+      </mat-card-actions>
+    </mat-card>
+  }
+</section>

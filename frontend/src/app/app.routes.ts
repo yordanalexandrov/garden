@@ -1,7 +1,11 @@
 import { Route, Routes } from '@angular/router';
 
+import { LoginPage } from './features/auth/pages/login-page/login-page';
+import { BedDetailPage } from './features/beds/pages/bed-detail-page/bed-detail-page';
 import { NotFoundPage } from './features/not-found/not-found-page';
 import { FeaturePlaceholderPage } from './features/placeholders/feature-placeholder-page';
+import { placesRoutes } from './features/places/places.routes';
+import { plantsRoutes } from './features/plants/plants.routes';
 
 const placeholderRoute = (path: string, title: string, pathMatch?: 'full'): Route => ({
   path,
@@ -13,34 +17,11 @@ const placeholderRoute = (path: string, title: string, pathMatch?: 'full'): Rout
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
+  { path: 'login', title: 'Sign in', component: LoginPage },
   placeholderRoute('dashboard', 'Dashboard'),
-  {
-    path: 'places',
-    children: [
-      placeholderRoute('', 'Places', 'full'),
-      {
-        path: ':placeId',
-        children: [
-          placeholderRoute('', 'Place Overview', 'full'),
-          placeholderRoute('overview', 'Place Overview'),
-          placeholderRoute('perennials', 'Place Perennials'),
-          placeholderRoute('beds', 'Place Beds'),
-          placeholderRoute('activities', 'Place Activities'),
-          placeholderRoute('problems', 'Place Problems'),
-          placeholderRoute('calendar', 'Place Calendar'),
-          placeholderRoute('weather', 'Place Weather'),
-        ],
-      },
-    ],
-  },
-  {
-    path: 'plants',
-    children: [
-      placeholderRoute('', 'Plants', 'full'),
-      placeholderRoute('new', 'New Plant'),
-      placeholderRoute(':plantId', 'Plant Detail'),
-    ],
-  },
+  { path: 'places', children: placesRoutes },
+  { path: 'beds/:bedId', title: 'Bed Detail', component: BedDetailPage },
+  { path: 'plants', children: plantsRoutes },
   {
     path: 'products',
     children: [

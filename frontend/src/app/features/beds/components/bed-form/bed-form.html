@@ -1,0 +1,65 @@
+<form class="bed-form" [formGroup]="form" (ngSubmit)="submit()">
+  <app-api-error-summary [error]="apiError()" />
+
+  <mat-form-field appearance="outline">
+    <mat-label>Name</mat-label>
+    <input matInput formControlName="name" required />
+    @if (form.controls.name.hasError('required') && form.controls.name.touched) {
+      <mat-error>Name is required.</mat-error>
+    }
+  </mat-form-field>
+
+  <div class="bed-form__grid">
+    <mat-form-field appearance="outline">
+      <mat-label>Width m</mat-label>
+      <input matInput type="number" formControlName="widthM" />
+      @if (form.controls.widthM.hasError('positiveNumber')) {
+        <mat-error>Use a positive number.</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Length m</mat-label>
+      <input matInput type="number" formControlName="lengthM" />
+      @if (form.controls.lengthM.hasError('positiveNumber')) {
+        <mat-error>Use a positive number.</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Area m2</mat-label>
+      <input matInput type="number" formControlName="areaM2" />
+      @if (form.controls.areaM2.hasError('positiveNumber')) {
+        <mat-error>Use a positive number.</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Status</mat-label>
+      <mat-select formControlName="status">
+        @for (status of statuses; track status) {
+          <mat-option [value]="status">{{ status }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Description</mat-label>
+    <textarea matInput formControlName="description" rows="2"></textarea>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Notes</mat-label>
+    <textarea matInput formControlName="notes" rows="3"></textarea>
+  </mat-form-field>
+
+  <div class="bed-form__actions">
+    <button mat-button type="button" (click)="cancelled.emit()" [disabled]="saving()">
+      Cancel
+    </button>
+    <button mat-flat-button type="submit" [disabled]="saving()">
+      {{ saving() ? 'Saving...' : 'Save bed' }}
+    </button>
+  </div>
+</form>

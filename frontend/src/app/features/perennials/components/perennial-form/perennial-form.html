@@ -1,0 +1,49 @@
+<form class="perennial-form" [formGroup]="form" (ngSubmit)="submit()">
+  <app-api-error-summary [error]="apiError()" />
+
+  <app-plant-selector
+    [selectedPlantId]="form.controls.plantId.value || null"
+    (selectedPlantIdChange)="updatePlant($event)"
+  />
+  @if (form.controls.plantId.hasError('required') && form.controls.plantId.touched) {
+    <p class="perennial-form__error" role="alert">Select a plant.</p>
+  }
+
+  <div class="perennial-form__grid">
+    <mat-form-field appearance="outline">
+      <mat-label>Label</mat-label>
+      <input matInput formControlName="label" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Planted year</mat-label>
+      <input matInput type="number" formControlName="plantedYear" />
+      @if (form.controls.plantedYear.hasError('saneYear')) {
+        <mat-error>Use a calendar year between 1900 and 3000.</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Status</mat-label>
+      <mat-select formControlName="status">
+        @for (status of statuses; track status) {
+          <mat-option [value]="status">{{ status }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Notes</mat-label>
+    <textarea matInput formControlName="notes" rows="3"></textarea>
+  </mat-form-field>
+
+  <div class="perennial-form__actions">
+    <button mat-button type="button" (click)="cancelled.emit()" [disabled]="saving()">
+      Cancel
+    </button>
+    <button mat-flat-button type="submit" [disabled]="saving()">
+      {{ saving() ? 'Saving...' : 'Save perennial' }}
+    </button>
+  </div>
+</form>

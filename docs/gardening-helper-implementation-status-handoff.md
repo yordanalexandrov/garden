@@ -8,15 +8,15 @@ Implementation agents must update this file in the same branch/PR whenever phase
 
 ## Current Position
 
-- Last implemented phase: Phase 6 - Backend Growing Structure API.
-- Last implemented step: Phase 6 Step 11 - Phase 06 Verification and PR Readiness.
-- Last implemented step file: `docs/implementation-phases/phase-06/11-phase-06-verification-and-pr-readiness.md`.
-- Last implementation commit observed: Phase 6 Step 11 verification/readiness update on `feature/backend-growing-structure`.
-- Next implementation phase: Phase 7 - Frontend Garden Structure Pages.
-- Next implementation step: Phase 7 Step 1 - Garden Structure API Services and Feature Scaffold.
-- Next implementation step file: `docs/implementation-phases/phase-07/01-garden-structure-api-services-and-feature-scaffold.md`.
+- Last implemented phase: Phase 7 - Frontend Garden Structure Pages.
+- Last implemented step: Phase 7 Step 10 - Phase 07 Verification and PR Readiness.
+- Last implemented step file: `docs/implementation-phases/phase-07/10-phase-07-verification-and-pr-readiness.md`.
+- Last implementation commit observed: Phase 7 Step 10 verification/readiness update on `feature/frontend-garden-structure`.
+- Next implementation phase: Phase 8 - Backend Products and Usage Rules API.
+- Next implementation step: Phase 8 task breakdown or implementation from the top-level phase spec.
+- Next implementation step file: `docs/implementation-phases/phase-08-backend-products-and-usage-rules-api.md`.
 
-Note: Phase 6 Step 5 exposes beds list/create/detail/update/archive routes through authenticated Fastify handlers. `BedsService` derives `areaM2` from `widthM * lengthM` when dimensions are available and `areaM2` is omitted; explicit `areaM2` remains supported. Phase 6 Step 6 adds account-scoped persistent bed plant repository/service behavior, including bed/plant access checks, non-negative quantity and sane planted-year validation, archive behavior, and target-resolver-ready lookup helpers. Phase 6 Step 7 exposes persistent bed plant list/create/update/archive routes with authenticated Fastify handlers, validation, canonical envelopes, and route tests. Phase 6 Step 8 adds account-scoped yearly bed planting repository/service behavior, including bed/plant access checks, year/status/quantity validation, duplicate same bed/plant/year support, archive behavior, historical reads, current-list helpers, and target-resolver-ready lookup helpers. Phase 6 Step 9 exposes yearly bed planting list/create/update/archive routes with authenticated Fastify handlers, validation, canonical envelopes, current-year default list behavior, duplicate-row allowance coverage, and route tests. Phase 6 Step 10 adds shared growing-structure fixtures plus cross-cutting API/account consistency regression tests, database guard smoke tests, archive/historical occupancy/duplicate yearly planting coverage, and static scope checks for out-of-scope frontend/provider/MCP/target resolver/schema drift. Phase 6 Step 11 completed verification/readiness, confirmed the account-scoped growing-structure API boundaries, preserved selected-year bed contents for archived plant definitions, and ran the required backend checks. Database-backed tests remain safely skipped unless `TEST_DATABASE_URL` or `DATABASE_URL` points at an approved resettable test database. Phase 7 has executable task breakdown documents. Phase 8 through Phase 28 currently have top-level phase specs only.
+Note: Phase 6 completed the backend growing-structure API for perennials, beds, persistent bed plants, and yearly bed plantings with account-scoped Fastify handlers, canonical envelopes, archive behavior, historical bed occupancy reads, and duplicate same bed/plant/year yearly planting support. Phase 7 completed the Angular frontend garden-structure pages for places, plants, perennials, beds, persistent bed plants, and yearly plantings. The Phase 7 frontend uses typed API services through the centralized `/api/v1` client, keeps archive actions on POST `/archive`, does not send trusted account scope fields, keeps persistent and yearly bed contents distinct, and leaves products, inventory, activities, problems/photos, tasks/calendar behavior, weather, AI, push, storage, provider, backend schema, and MCP work deferred. Phase 8 through Phase 28 currently have top-level phase specs only.
 
 ## Status Legend
 
@@ -33,7 +33,7 @@ Note: Phase 6 Step 5 exposes beds list/create/detail/update/archive routes throu
 - [x] Phase 4 - Frontend Project Foundation - implemented.
 - [x] Phase 5 - Backend Places and Plants API - implemented.
 - [x] Phase 6 - Backend Growing Structure API - implemented.
-- [ ] Phase 7 - Frontend Garden Structure Pages - not implemented; task docs ready.
+- [x] Phase 7 - Frontend Garden Structure Pages - implemented.
 - [ ] Phase 8 - Backend Products and Usage Rules API - not implemented; top-level spec only.
 - [ ] Phase 9 - Backend Inventory Ledger API - not implemented; top-level spec only.
 - [ ] Phase 10 - Frontend Products and Inventory Pages - not implemented; top-level spec only.
@@ -122,20 +122,24 @@ Note: Phase 6 Step 5 exposes beds list/create/detail/update/archive routes throu
 - [x] Step 10 - Phase 06 Account Consistency and Regression Tests.
 - [x] Step 11 - Phase 06 Verification and PR Readiness.
 
-## Next Phase Step Checklist
-
 ### Phase 7 - Frontend Garden Structure Pages
 
-- [ ] Step 1 - Garden Structure API Services and Feature Scaffold.
-- [ ] Step 2 - Shared Garden UI Components and Form Patterns.
-- [ ] Step 3 - Places List/Create/Edit/Archive Pages.
-- [ ] Step 4 - Place Detail Shell and Overview.
-- [ ] Step 5 - Plants List/Create/Edit/Archive Pages.
-- [ ] Step 6 - Perennials Place Pages.
-- [ ] Step 7 - Beds List Detail and Year Selector.
-- [ ] Step 8 - Persistent and Yearly Bed Planting Flows.
-- [ ] Step 9 - Phase 07 Frontend Regression and Boundary Tests.
-- [ ] Step 10 - Phase 07 Verification and PR Readiness.
+- [x] Step 1 - Garden Structure API Services and Feature Scaffold.
+- [x] Step 2 - Shared Garden UI Components and Form Patterns.
+- [x] Step 3 - Places List/Create/Edit/Archive Pages.
+- [x] Step 4 - Place Detail Shell and Overview.
+- [x] Step 5 - Plants List/Create/Edit/Archive Pages.
+- [x] Step 6 - Perennials Place Pages.
+- [x] Step 7 - Beds List Detail and Year Selector.
+- [x] Step 8 - Persistent and Yearly Bed Planting Flows.
+- [x] Step 9 - Phase 07 Frontend Regression and Boundary Tests.
+- [x] Step 10 - Phase 07 Verification and PR Readiness.
+
+## Next Phase Step Checklist
+
+### Phase 8 - Backend Products and Usage Rules API
+
+- [ ] Top-level phase spec exists; executable task docs are not yet created.
 
 ## Update Rules
 

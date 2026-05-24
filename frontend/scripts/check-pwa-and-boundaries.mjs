@@ -34,6 +34,21 @@ const rawHttpClientPatterns = [
   /import\s*\(\s*['"]@angular\/common\/http['"]\s*\)/,
   /\bHttpClient\b/,
 ];
+const trustedScopeFieldPattern = /\baccountId\b|\baccount_id\b/;
+const featureApiDeletePattern = /\bthis\.api\.delete\s*(?:<[^>\n]+>)?\s*\(/;
+const deferredPhase7FeatureDirectories = [
+  'activities',
+  'ai',
+  'calendar',
+  'inventory',
+  'mcp',
+  'problems',
+  'products',
+  'push',
+  'storage',
+  'tasks',
+  'weather',
+];
 
 const isAuthInfrastructureFile = (relativePath) => relativePath.startsWith('src/app/core/auth/');
 const isHttpInfrastructureFile = (relativePath) =>
@@ -41,6 +56,9 @@ const isHttpInfrastructureFile = (relativePath) =>
   relativePath.startsWith('src/app/core/interceptors/') ||
   relativePath === 'src/app/app.config.ts';
 const isFrontendSourceFile = (relativePath) => relativePath.startsWith('src/');
+const isFeatureSourceFile = (relativePath) => relativePath.startsWith('src/app/features/');
+const isFeatureApiServiceFile = (relativePath) =>
+  isFeatureSourceFile(relativePath) && relativePath.endsWith('-api.service.ts');
 
 const findFrontendBoundaryViolations = (relativePath, content) => {
   const violations = [];
@@ -84,11 +102,28 @@ const findFrontendBoundaryViolations = (relativePath, content) => {
     );
   }
 
+  if (isFeatureSourceFile(relativePath) && trustedScopeFieldPattern.test(content)) {
+    violations.push(
+      `Frontend feature code must not accept or send trusted account scope fields in ${relativePath}.`,
+    );
+  }
+
+  if (isFeatureApiServiceFile(relativePath) && featureApiDeletePattern.test(content)) {
+    violations.push(
+      `Phase 7 feature API services must archive historical records through POST /archive, not DELETE, in ${relativePath}.`,
+    );
+  }
+
   return violations;
 };
 
-const assertBoundarySelfTestRejects = (label, content, expectedMessagePart) => {
-  const violations = findFrontendBoundaryViolations('src/app/features/example.ts', content);
+const assertBoundarySelfTestRejects = (
+  label,
+  content,
+  expectedMessagePart,
+  relativePath = 'src/app/features/example.ts',
+) => {
+  const violations = findFrontendBoundaryViolations(relativePath, content);
 
   if (!violations.some((violation) => violation.includes(expectedMessagePart))) {
     fail(`Boundary self-test failed to reject ${label}.`);
@@ -140,6 +175,22 @@ assertBoundarySelfTestRejects(
   'const http = inject(HttpClient);',
   'Raw HttpClient usage',
 );
+assertBoundarySelfTestRejects(
+  'trusted account scope fields in feature code',
+  'export interface Request { accountId: string; }',
+  'trusted account scope',
+);
+assertBoundarySelfTestRejects(
+  'trusted snake_case account scope fields in feature code',
+  'const body = { account_id: selectedAccount };',
+  'trusted account scope',
+);
+assertBoundarySelfTestRejects(
+  'hard delete calls in feature API services',
+  "return this.api.delete(`/plants/${id}`);",
+  'not DELETE',
+  'src/app/features/plants/plants-api.service.ts',
+);
 
 const angular = readJson('angular.json');
 const productionBuild = angular.projects?.frontend?.architect?.build?.configurations?.production;
@@ -188,6 +239,16 @@ for (const group of ngsw.assetGroups) {
         `Service worker static resources must not include API mutation/offline write patterns: ${value}`,
       );
     }
+  }
+}
+
+for (const directory of deferredPhase7FeatureDirectories) {
+  const featureDirectory = join(root, 'src/app/features', directory);
+
+  if (existsSync(featureDirectory) && statSync(featureDirectory).isDirectory()) {
+    fail(
+      `Phase 7 must not implement deferred feature domain "${directory}" yet; keep it as a placeholder route.`,
+    );
   }
 }
 

@@ -1,0 +1,17 @@
+:host {
+  display: block;
+}
+
+.plant-detail-page {
+  display: grid;
+  gap: 1rem;
+}
+
+.plant-detail-page__card {
+  max-width: 52rem;
+  border-radius: 0.5rem;
+}
+
+.plant-detail-page__muted {
+  color: var(--mat-sys-on-surface-variant);
+}
