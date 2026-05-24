@@ -1,6 +1,6 @@
 # Gardening Helper - Implementation Status Handoff
 
-Last updated: 2026-05-23
+Last updated: 2026-05-24
 
 This file tracks implementation progress only. It does not replace the source-of-truth specs, domain rules, canonical API contract, or task documents. If this file conflicts with a higher-priority document, follow the source-of-truth priority in `AGENTS.md`.
 
@@ -13,10 +13,10 @@ Implementation agents must update this file in the same branch/PR whenever phase
 - Last implemented step file: `docs/implementation-phases/phase-07/10-phase-07-verification-and-pr-readiness.md`.
 - Last implementation commit observed: Phase 7 Step 10 verification/readiness update on `feature/frontend-garden-structure`.
 - Next implementation phase: Phase 8 - Backend Products and Usage Rules API.
-- Next implementation step: Phase 8 task breakdown or implementation from the top-level phase spec.
-- Next implementation step file: `docs/implementation-phases/phase-08-backend-products-and-usage-rules-api.md`.
+- Next implementation step: Phase 8 Step 1 - Products/Rules Module Contracts, Validation, and Route Wiring.
+- Next implementation step file: `docs/implementation-phases/phase-08/01-products-rules-module-contracts-validation-and-route-wiring.md`.
 
-Note: Phase 6 completed the backend growing-structure API for perennials, beds, persistent bed plants, and yearly bed plantings with account-scoped Fastify handlers, canonical envelopes, archive behavior, historical bed occupancy reads, and duplicate same bed/plant/year yearly planting support. Phase 7 completed the Angular frontend garden-structure pages for places, plants, perennials, beds, persistent bed plants, and yearly plantings. The Phase 7 frontend uses typed API services through the centralized `/api/v1` client, keeps archive actions on POST `/archive`, does not send trusted account scope fields, keeps persistent and yearly bed contents distinct, and leaves products, inventory, activities, problems/photos, tasks/calendar behavior, weather, AI, push, storage, provider, backend schema, and MCP work deferred. Phase 8 through Phase 28 currently have top-level phase specs only.
+Note: Phase 6 completed the backend growing-structure API for perennials, beds, persistent bed plants, and yearly bed plantings with account-scoped Fastify handlers, canonical envelopes, archive behavior, historical bed occupancy reads, and duplicate same bed/plant/year yearly planting support. Phase 7 completed the Angular frontend garden-structure pages for places, plants, perennials, beds, persistent bed plants, and yearly plantings. The Phase 7 frontend uses typed API services through the centralized `/api/v1` client, keeps archive actions on POST `/archive`, does not send trusted account scope fields, keeps persistent and yearly bed contents distinct, and leaves products, inventory, activities, problems/photos, tasks/calendar behavior, weather, AI, push, storage, provider, backend schema, and MCP work deferred. Phase 8 task docs are ready in `docs/implementation-phases/phase-08/`, but Phase 8 is not implemented. Phase 9 through Phase 28 currently have top-level phase specs only.
 
 ## Status Legend
 
@@ -34,7 +34,7 @@ Note: Phase 6 completed the backend growing-structure API for perennials, beds, 
 - [x] Phase 5 - Backend Places and Plants API - implemented.
 - [x] Phase 6 - Backend Growing Structure API - implemented.
 - [x] Phase 7 - Frontend Garden Structure Pages - implemented.
-- [ ] Phase 8 - Backend Products and Usage Rules API - not implemented; top-level spec only.
+- [ ] Phase 8 - Backend Products and Usage Rules API - not implemented; task docs ready.
 - [ ] Phase 9 - Backend Inventory Ledger API - not implemented; top-level spec only.
 - [ ] Phase 10 - Frontend Products and Inventory Pages - not implemented; top-level spec only.
 - [ ] Phase 11 - Backend Target Resolver - not implemented; top-level spec only.
@@ -139,7 +139,7 @@ Note: Phase 6 completed the backend growing-structure API for perennials, beds, 
 
 ### Phase 8 - Backend Products and Usage Rules API
 
-- [ ] Top-level phase spec exists; executable task docs are not yet created.
+- [ ] Step 1 - Products/Rules Module Contracts, Validation, and Route Wiring.
 
 ## Update Rules
 
