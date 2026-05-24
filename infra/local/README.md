@@ -23,6 +23,18 @@ docker compose ps
 curl http://localhost:8000/health
 ```
 
+Supabase Postgres owns its internal role, schema, extension, Auth, and Storage
+bootstrap through the image-provided init scripts. The local init file only sets
+passwords on image-created login roles so sibling containers can connect over
+TCP. If the database volume was created with an older local role override,
+recreate the disposable local volumes so the image can initialize a clean
+database:
+
+```bash
+docker compose --env-file .env down -v
+docker compose --env-file .env up -d
+```
+
 ## Backend Env
 
 From the repository root, start the backend against this stack with:
