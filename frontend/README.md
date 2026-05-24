@@ -21,6 +21,11 @@ For local development:
 npm start
 ```
 
+`npm start` uses `proxy.conf.json` to forward same-origin `/api` requests from
+the Angular dev server on `http://localhost:4200` to the Fastify backend on
+`http://localhost:3000`. Start the backend separately with `npm run dev` from
+the `backend/` package before using application data pages.
+
 ## Boundaries
 
 - Application data access must go through the Fastify API under `/api/v1`.
