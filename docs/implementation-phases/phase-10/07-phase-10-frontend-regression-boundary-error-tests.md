@@ -214,9 +214,9 @@ List responses are consumed as { data: { items, page, pageSize, total } }.
 Mutation responses are consumed as canonical { data: ... } envelopes.
 Backend error envelopes render to users.
 No request body includes trusted accountId.
-Archive UI calls POST /archive endpoints, not DELETE.
-Lot creation calls POST /products/:productId/inventory-lots.
-Manual adjustment calls POST /inventory/adjustments.
+Archive UI calls canonical `/api/v1/.../archive` POST endpoints, not DELETE.
+Lot creation calls POST `/api/v1/products/:productId/inventory-lots`.
+Manual adjustment calls POST `/api/v1/inventory/adjustments`.
 Inventory movement history is visible after lot and adjustment flows.
 ```
 
