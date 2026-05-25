@@ -16,7 +16,7 @@ Implementation agents must update this file in the same branch/PR whenever phase
 - Next implementation step: Phase 8 Step 1 - Products/Rules Module Contracts, Validation, and Route Wiring.
 - Next implementation step file: `docs/implementation-phases/phase-08/01-products-rules-module-contracts-validation-and-route-wiring.md`.
 
-Note: Phase 6 completed the backend growing-structure API for perennials, beds, persistent bed plants, and yearly bed plantings with account-scoped Fastify handlers, canonical envelopes, archive behavior, historical bed occupancy reads, and duplicate same bed/plant/year yearly planting support. Phase 7 completed the Angular frontend garden-structure pages for places, plants, perennials, beds, persistent bed plants, and yearly plantings. The Phase 7 frontend uses typed API services through the centralized `/api/v1` client, keeps archive actions on POST `/archive`, does not send trusted account scope fields, keeps persistent and yearly bed contents distinct, and leaves products, inventory, activities, problems/photos, tasks/calendar behavior, weather, AI, push, storage, provider, backend schema, and MCP work deferred. Phase 8 task docs are ready in `docs/implementation-phases/phase-08/`, but Phase 8 is not implemented. Phase 9 task docs are ready in `docs/implementation-phases/phase-09/`, but Phase 9 is not implemented and still depends on Phase 8 backend work. Phase 10 through Phase 28 currently have top-level phase specs only.
+Note: Phase 6 completed the backend growing-structure API for perennials, beds, persistent bed plants, and yearly bed plantings with account-scoped Fastify handlers, canonical envelopes, archive behavior, historical bed occupancy reads, and duplicate same bed/plant/year yearly planting support. Phase 7 completed the Angular frontend garden-structure pages for places, plants, perennials, beds, persistent bed plants, and yearly plantings. The Phase 7 frontend uses typed API services through the centralized `/api/v1` client, keeps archive actions on POST `/archive`, does not send trusted account scope fields, keeps persistent and yearly bed contents distinct, and leaves products, inventory, activities, problems/photos, tasks/calendar behavior, weather, AI, push, storage, provider, backend schema, and MCP work deferred. Phase 8 task docs are ready in `docs/implementation-phases/phase-08/`, but Phase 8 is not implemented. Phase 9 task docs are ready in `docs/implementation-phases/phase-09/`, but Phase 9 is not implemented and still depends on Phase 8 backend work. Phase 10 task docs are ready in `docs/implementation-phases/phase-10/`, but Phase 10 is not implemented and still depends on Phase 8 and Phase 9 backend work. Phase 11 through Phase 28 currently have top-level phase specs only.
 
 ## Status Legend
 
@@ -36,7 +36,7 @@ Note: Phase 6 completed the backend growing-structure API for perennials, beds, 
 - [x] Phase 7 - Frontend Garden Structure Pages - implemented.
 - [ ] Phase 8 - Backend Products and Usage Rules API - not implemented; task docs ready.
 - [ ] Phase 9 - Backend Inventory Ledger API - not implemented; task docs ready.
-- [ ] Phase 10 - Frontend Products and Inventory Pages - not implemented; top-level spec only.
+- [ ] Phase 10 - Frontend Products and Inventory Pages - not implemented; task docs ready.
 - [ ] Phase 11 - Backend Target Resolver - not implemented; top-level spec only.
 - [ ] Phase 12 - Backend Activity Transaction Flow - not implemented; top-level spec only.
 - [ ] Phase 13 - Backend Activity Correction and Audit Trail - not implemented; top-level spec only.
@@ -145,6 +145,11 @@ Note: Phase 6 completed the backend growing-structure API for perennials, beds, 
 
 - [x] Executable task docs are ready in `docs/implementation-phases/phase-09/`.
 - [ ] Backend inventory ledger implementation is not started.
+
+### Phase 10 - Frontend Products and Inventory Pages
+
+- [x] Executable task docs are ready in `docs/implementation-phases/phase-10/`.
+- [ ] Frontend products and inventory implementation is not started.
 
 ## Update Rules
 
