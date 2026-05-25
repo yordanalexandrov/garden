@@ -253,7 +253,7 @@ The task is complete when:
 
 # Commands to Run
 
-From the backend package root, run relevant commands:
+From the backend package root, run:
 
 ```bash
 npm run typecheck
@@ -261,6 +261,11 @@ npm run lint
 npm test -- problems
 npm test -- files
 npm run test:db -- problems
+```
+
+From the frontend package root, run:
+
+```bash
 npm run check:frontend-boundaries
 ```
 
