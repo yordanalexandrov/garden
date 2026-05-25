@@ -1,6 +1,6 @@
 # Phase 17 Task Set - Frontend Problems and Photos Flow
 
-These files convert `docs/implementation-phases/phase-17-frontend-problems-and-photos-flow.md` into executable Implementation Agent tasks using `docs/TASK_TEMPLATE.md`.
+These files convert `docs/implementation-phases/phase-17-frontend-problems-and-photos-flow.md` into executable Implementation Agent tasks.
 
 Run the tasks in order on one branch:
 
