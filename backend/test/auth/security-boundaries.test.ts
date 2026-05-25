@@ -78,7 +78,7 @@ describe("Phase 3 auth/account security boundaries", () => {
     expect(routes).toContain("health");
     expect(routes).toContain("__test");
     expect(placesResponse.statusCode).toBe(401);
-    expect(productsResponse.statusCode).toBe(404);
+    expect(productsResponse.statusCode).toBe(401);
     expect(activitiesResponse.statusCode).toBe(404);
   });
 });
