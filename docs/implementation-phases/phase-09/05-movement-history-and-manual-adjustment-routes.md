@@ -57,9 +57,10 @@ Implement only:
 - [ ] For `direction = increase`, add quantity to lot remaining quantity.
 - [ ] For `direction = decrease`, subtract quantity only if the resulting lot remaining quantity is not negative.
 - [ ] Reject decreases that would make a lot negative before creating any movement.
+- [ ] Insert an audit log record for each successful manual adjustment/correction in the same transaction as the movement and lot update.
 - [ ] Allow only `manual_adjustment` or `correction` movement types for this endpoint unless a higher-priority contract says otherwise.
 - [ ] Return canonical movement/adjustment response according to existing project response conventions; document any precise response shape chosen if section 16 does not define a body.
-- [ ] Add API/integration tests for movement history, increase, decrease, negative-lot rejection, product/lot mismatch, account scope, envelopes, and rollback.
+- [ ] Add API/integration tests for movement history, increase, decrease, audit logging, negative-lot rejection, product/lot mismatch, account scope, envelopes, and rollback.
 
 Expected paths, unless existing code clearly establishes a better equivalent:
 
@@ -68,6 +69,7 @@ backend/src/modules/inventory/inventory.repository.ts
 backend/src/modules/inventory/inventory.service.ts
 backend/src/modules/inventory/inventory.routes.ts
 backend/src/modules/inventory/inventory.dto.ts
+backend/src/modules/audit/ or backend/src/modules/inventory/ audit helper/repository if no audit module exists yet
 backend/test/inventory/inventory-movements.api.test.ts
 backend/test/inventory/inventory-adjustments.api.test.ts
 backend/test/inventory/inventory-ledger-transaction.test.ts
@@ -133,6 +135,7 @@ Inventory movement ledger is mandatory.
 Every stock change must have an inventory movement.
 Manual changes must create manual_adjustment or correction movements.
 They must not directly update remaining quantity without movement history.
+Manual stock changes must insert audit logs in the same transaction.
 No negative lot quantity in v1.
 Current lot quantity is derived/convenience state.
 Controllers stay thin.
@@ -172,6 +175,7 @@ Implement:
 - [ ] backend service method
 - [ ] repository methods
 - [ ] transaction handling
+- [ ] audit-log insert through service-owned workflow
 - [ ] DTO mapping helpers
 - [ ] tests
 - [ ] docs/update notes only if backend run commands or setup change
@@ -219,6 +223,7 @@ quantity must be greater than 0.
 direction must be increase or decrease.
 inventoryLotId, when provided, must belong to productId and actor account.
 Adjustment must create movement history.
+Adjustment must create an audit log in the same transaction.
 Decrease must not make lot quantity_remaining negative.
 Errors use { error: { code, message, details } }.
 ```
@@ -246,13 +251,15 @@ Specific test cases:
 6. Account A cannot read movement history for account B product.
 7. Increase adjustment creates movement and increases lot `quantity_remaining`.
 8. Decrease adjustment creates movement and decreases lot `quantity_remaining`.
-9. Decrease adjustment that would make lot negative is rejected.
-10. Negative-lot rejection creates no movement and leaves lot unchanged.
-11. Adjustment rejects lot/product mismatch.
-12. Adjustment rejects account B lot for account A product.
-13. Unsupported unit conversion is rejected.
-14. If lot update fails after movement insert, the movement rolls back.
-15. API responses and errors use canonical envelopes.
+9. Successful adjustment inserts an audit log in the same transaction.
+10. Decrease adjustment that would make lot negative is rejected.
+11. Negative-lot rejection creates no movement, no audit log, and leaves lot unchanged.
+12. Adjustment rejects lot/product mismatch.
+13. Adjustment rejects account B lot for account A product.
+14. Unsupported unit conversion is rejected.
+15. If lot update fails after movement insert, the movement rolls back.
+16. If audit-log creation fails after movement and lot update, both movement and lot update roll back.
+17. API responses and errors use canonical envelopes.
 
 ---
 
@@ -263,9 +270,10 @@ The task is complete when:
 - [ ] Movement history endpoint is implemented and account-scoped.
 - [ ] Manual adjustment endpoint is implemented and transactional.
 - [ ] Increase and decrease adjustments create movement history.
+- [ ] Successful manual adjustments write audit logs in the same transaction.
 - [ ] Decrease adjustments cannot make lots negative.
 - [ ] Product/lot/account consistency is enforced before writes.
-- [ ] Rollback tests prove movement and lot update commit or rollback together.
+- [ ] Rollback tests prove movement, lot update, and audit log commit or rollback together.
 - [ ] No activity consumption, frontend, provider, MCP, or unrelated schema work is included.
 - [ ] Relevant checks pass or failures are clearly documented.
 

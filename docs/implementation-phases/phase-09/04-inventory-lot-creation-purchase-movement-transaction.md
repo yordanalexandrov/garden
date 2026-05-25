@@ -53,11 +53,12 @@ Implement only:
 - [ ] Validate the product exists, is active unless existing product policy permits archived access, and belongs to the authenticated actor account.
 - [ ] Create an `inventory_lots` row with `quantity_initial = quantityInitial` and `quantity_remaining = quantityInitial`.
 - [ ] Create a `purchase` inventory movement for the same account, product, lot, quantity, unit, and occurred-at date.
+- [ ] Insert an audit log record for the inventory lot creation/purchase workflow in the same transaction, using the existing audit-log convention or documenting the chosen event name.
 - [ ] Use purchase date for `occurred_at` when present, otherwise use the existing server-time/test-clock convention if the codebase has one.
-- [ ] Wrap lot insert and movement insert in one transaction.
+- [ ] Wrap lot insert, purchase movement insert, and audit-log insert in one transaction.
 - [ ] Return both `lot.id` and `movement.id` in the canonical response.
-- [ ] Ensure the service is the only layer that combines lot creation and movement creation.
-- [ ] Add API/integration tests for successful creation, validation errors, account scope, API envelope, and rollback when movement creation fails.
+- [ ] Ensure the service is the only layer that combines lot creation, movement creation, and audit logging.
+- [ ] Add API/integration tests for successful creation, validation errors, account scope, API envelope, audit logging, and rollback when movement or audit-log creation fails.
 
 Expected paths, unless existing code clearly establishes a better equivalent:
 
@@ -66,6 +67,7 @@ backend/src/modules/inventory/inventory.repository.ts
 backend/src/modules/inventory/inventory.service.ts
 backend/src/modules/inventory/inventory.routes.ts
 backend/src/modules/inventory/inventory.dto.ts
+backend/src/modules/audit/ or backend/src/modules/inventory/ audit helper/repository if no audit module exists yet
 backend/test/inventory/inventory-lot-create.api.test.ts
 backend/test/inventory/inventory-ledger-transaction.test.ts
 ```
@@ -131,6 +133,7 @@ Inventory movement ledger is mandatory.
 Every stock change must have an inventory movement.
 Current lot quantity is derived/convenience state.
 Creating a new inventory lot must also create a purchase movement in the same transaction.
+Inventory lot creation must insert an audit log in the same transaction.
 Inventory lots must not have negative quantity_remaining.
 Controllers stay thin.
 Services orchestrate workflows and transactions.
@@ -169,6 +172,7 @@ Implement:
 - [ ] backend service method
 - [ ] repository methods
 - [ ] transaction handling
+- [ ] audit-log insert through service-owned workflow
 - [ ] DTO mapping helpers
 - [ ] tests
 - [ ] docs/update notes only if backend run commands or setup change
@@ -234,15 +238,17 @@ Specific test cases:
 
 1. `POST /products/:productId/inventory-lots` creates an inventory lot for account A product.
 2. Lot creation creates a `purchase` movement in the same transaction.
-3. Movement quantity and unit match the lot initial quantity and unit.
-4. Lot `quantity_remaining` equals `quantity_initial` after creation.
-5. Response returns both `lot.id` and `movement.id`.
-6. Account A cannot create a lot for account B product.
-7. Invalid unit returns canonical validation error.
-8. Zero or negative quantity returns canonical validation error.
-9. If movement creation fails after lot insert, the lot is rolled back.
-10. Database guard rejects lot/product account mismatch in a DB-backed test.
-11. Inventory overview and lot listing reflect the committed lot after creation.
+3. Lot creation inserts an audit log in the same transaction.
+4. Movement quantity and unit match the lot initial quantity and unit.
+5. Lot `quantity_remaining` equals `quantity_initial` after creation.
+6. Response returns both `lot.id` and `movement.id`.
+7. Account A cannot create a lot for account B product.
+8. Invalid unit returns canonical validation error.
+9. Zero or negative quantity returns canonical validation error.
+10. If movement creation fails after lot insert, the lot is rolled back.
+11. If audit-log creation fails after lot and movement insert, both lot and movement are rolled back.
+12. Database guard rejects lot/product account mismatch in a DB-backed test.
+13. Inventory overview and lot listing reflect the committed lot after creation.
 
 ---
 
@@ -252,7 +258,8 @@ The task is complete when:
 
 - [ ] Lot creation endpoint is implemented and transactional.
 - [ ] Every lot creation creates exactly one purchase movement.
-- [ ] Rollback tests prove no orphan lot remains when movement creation fails.
+- [ ] Every lot creation writes an audit log in the same transaction.
+- [ ] Rollback tests prove no orphan lot or movement remains when movement or audit-log creation fails.
 - [ ] Account scoping is enforced for product lookup and lot creation.
 - [ ] No service updates lot quantity without a movement in the same workflow.
 - [ ] API response shape matches the canonical contract.
