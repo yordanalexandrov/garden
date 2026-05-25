@@ -125,7 +125,7 @@ const findFrontendBoundaryViolations = (relativePath, content) => {
     frontendInventoryAllocationPatterns.some((pattern) => pattern.test(content))
   ) {
     violations.push(
-      `Phase 10 frontend code must not implement inventory allocation or direct stock mutation logic in ${relativePath}.`,
+      `Frontend code must not implement inventory allocation or direct stock mutation logic in ${relativePath}.`,
     );
   }
 
