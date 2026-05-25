@@ -1,0 +1,23 @@
+.product-inventory {
+  display: grid;
+  gap: 20px;
+}
+
+.product-inventory__layout {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}
+
+.product-inventory__row {
+  border-bottom: 1px solid color-mix(in srgb, currentColor 14%, transparent);
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  padding: 10px 0;
+}
+
+.product-inventory__muted {
+  color: color-mix(in srgb, currentColor 64%, transparent);
+}
+

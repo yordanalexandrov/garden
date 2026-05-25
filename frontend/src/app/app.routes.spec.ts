@@ -1,15 +1,52 @@
 import { TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { Router, provideRouter } from '@angular/router';
+import { of } from 'rxjs';
 
 import { AppShell } from './core/layout/app-shell';
+import { ArchiveConfirmationService } from './shared/components/confirm-dialog/confirm-dialog';
+import { InventoryApiService } from './features/inventory/inventory-api.service';
+import { ProductsApiService, ProductRulesApiService } from './features/products/products-api.service';
+import { PlantsApiService } from './features/plants/plants-api.service';
+import { SnackbarService } from './core/notifications/snackbar.service';
 import { routes } from './app.routes';
 
 describe('app routes', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [AppShell],
-      providers: [provideNoopAnimations(), provideRouter(routes)],
+      providers: [
+        provideNoopAnimations(),
+        provideRouter(routes),
+        {
+          provide: ProductsApiService,
+          useValue: {
+            list: () => of({ items: [], page: 1, pageSize: 20, total: 0 }),
+            get: () => of(productDetail()),
+          },
+        },
+        {
+          provide: ProductRulesApiService,
+          useValue: {
+            listByProduct: () => of({ items: [] }),
+            get: () => of(productRuleDetail()),
+          },
+        },
+        {
+          provide: InventoryApiService,
+          useValue: {
+            list: () => of({ items: [], page: 1, pageSize: 20, total: 0 }),
+            listLots: () => of({ items: [], page: 1, pageSize: 20, total: 0 }),
+            listMovements: () => of({ items: [], page: 1, pageSize: 20, total: 0 }),
+          },
+        },
+        {
+          provide: PlantsApiService,
+          useValue: { list: () => of({ items: [], page: 1, pageSize: 20, total: 0 }) },
+        },
+        { provide: ArchiveConfirmationService, useValue: { confirmArchive: () => of(false) } },
+        { provide: SnackbarService, useValue: { showMessage: vi.fn(), showError: vi.fn() } },
+      ],
     }).compileComponents();
   });
 
@@ -47,7 +84,7 @@ describe('app routes', () => {
     fixture.destroy();
   });
 
-  it('renders primary placeholder routes without API providers', async () => {
+  it('renders primary routes', async () => {
     const primaryRoutes = [
       ['/dashboard', 'Dashboard'],
       ['/calendar', 'Calendar'],
@@ -67,7 +104,7 @@ describe('app routes', () => {
     }
   });
 
-  it('renders nested placeholder routes without data fetching', async () => {
+  it('renders nested routes', async () => {
     const nestedRoutes = [
       ['/products/product-1/rules/new', 'New Product Usage Rule'],
       ['/product-rules/rule-1/edit', 'Edit Product Usage Rule'],
@@ -95,4 +132,39 @@ describe('app routes', () => {
 
     fixture.destroy();
   });
+});
+
+const productDetail = () => ({
+  id: 'product-1',
+  name: 'Copper Fungicide',
+  category: 'fungicide',
+  activeSubstance: null,
+  manufacturer: null,
+  formulation: null,
+  defaultUnit: 'g',
+  stockSummary: { quantityRemaining: 0, unit: 'g' },
+  rulesCount: 0,
+  archivedAt: null,
+  notes: null,
+  usageRules: [],
+  inventorySummary: { quantityRemaining: 0, unit: 'g', lotsCount: 0, expiredLotsCount: 0 },
+  recentMovements: [],
+  createdAt: '2026-05-25T00:00:00.000Z',
+  updatedAt: '2026-05-25T00:00:00.000Z',
+});
+
+const productRuleDetail = () => ({
+  id: 'rule-1',
+  productId: 'product-1',
+  plantId: 'plant-1',
+  doseValue: 1,
+  doseUnit: 'g',
+  dilutionText: null,
+  applicationMethod: null,
+  reapplicationIntervalDays: null,
+  quarantinePeriodDays: null,
+  notes: null,
+  archivedAt: null,
+  createdAt: '2026-05-25T00:00:00.000Z',
+  updatedAt: '2026-05-25T00:00:00.000Z',
 });

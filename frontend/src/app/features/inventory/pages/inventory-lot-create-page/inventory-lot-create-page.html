@@ -1,0 +1,54 @@
+<section class="inventory-lot-form" aria-labelledby="inventory-lot-title">
+  <app-page-header title="New Inventory Lot" titleId="inventory-lot-title" subtitle="Creates a backend purchase movement" icon="add_box" />
+  <app-api-error-summary [error]="error()" />
+
+  <form class="inventory-lot-form__form" [formGroup]="form" (ngSubmit)="submit()">
+    <div class="inventory-lot-form__grid">
+      <mat-form-field appearance="outline">
+        <mat-label>Initial quantity</mat-label>
+        <input matInput type="number" min="0.000001" step="0.001" formControlName="quantityInitial" />
+        @if (form.controls.quantityInitial.hasError('required')) {
+          <mat-error>Quantity is required.</mat-error>
+        } @else if (form.controls.quantityInitial.hasError('min')) {
+          <mat-error>Quantity must be greater than zero.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Unit</mat-label>
+        <mat-select formControlName="unit">
+          @for (unit of units; track unit) {
+            <mat-option [value]="unit">{{ unit }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="inventory-lot-form__grid">
+      <mat-form-field appearance="outline">
+        <mat-label>Purchase date</mat-label>
+        <input matInput type="date" formControlName="purchaseDate" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Expiry date</mat-label>
+        <input matInput type="date" formControlName="expiryDate" />
+      </mat-form-field>
+    </div>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Batch number</mat-label>
+      <input matInput formControlName="batchNumber" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Notes</mat-label>
+      <textarea matInput formControlName="notes" rows="4"></textarea>
+    </mat-form-field>
+
+    <div class="inventory-lot-form__actions">
+      <button mat-stroked-button type="button" (click)="cancel()">Cancel</button>
+      <button mat-flat-button type="submit" [disabled]="saving()">Save</button>
+    </div>
+  </form>
+</section>

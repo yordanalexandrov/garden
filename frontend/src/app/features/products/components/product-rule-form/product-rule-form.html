@@ -1,0 +1,70 @@
+<form class="product-rule-form" [formGroup]="form" (ngSubmit)="submit()">
+  <app-api-error-summary [error]="apiError()" />
+
+  <app-plant-selector
+    [selectedPlantId]="form.controls.plantId.value || null"
+    (selectedPlantIdChange)="updatePlant($event)"
+  />
+  @if (form.controls.plantId.touched && form.controls.plantId.hasError('required')) {
+    <p class="product-rule-form__error">Plant is required.</p>
+  }
+
+  <div class="product-rule-form__grid">
+    <mat-form-field appearance="outline">
+      <mat-label>Dose</mat-label>
+      <input matInput type="number" min="0.000001" step="0.001" formControlName="doseValue" />
+      @if (form.controls.doseValue.hasError('required')) {
+        <mat-error>Dose is required.</mat-error>
+      } @else if (form.controls.doseValue.hasError('min')) {
+        <mat-error>Dose must be greater than zero.</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Dose unit</mat-label>
+      <mat-select formControlName="doseUnit">
+        @for (unit of units; track unit) {
+          <mat-option [value]="unit">{{ unit }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  <div class="product-rule-form__grid">
+    <mat-form-field appearance="outline">
+      <mat-label>Reapply after days</mat-label>
+      <input matInput type="number" min="0" formControlName="reapplicationIntervalDays" />
+      @if (form.controls.reapplicationIntervalDays.invalid) {
+        <mat-error>Use zero or a positive number.</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Quarantine days</mat-label>
+      <input matInput type="number" min="0" formControlName="quarantinePeriodDays" />
+      @if (form.controls.quarantinePeriodDays.invalid) {
+        <mat-error>Use zero or a positive number.</mat-error>
+      }
+    </mat-form-field>
+  </div>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Dilution</mat-label>
+    <input matInput formControlName="dilutionText" />
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Application method</mat-label>
+    <input matInput formControlName="applicationMethod" />
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Notes</mat-label>
+    <textarea matInput formControlName="notes" rows="4"></textarea>
+  </mat-form-field>
+
+  <div class="product-rule-form__actions">
+    <button mat-stroked-button type="button" (click)="cancelled.emit()">Cancel</button>
+    <button mat-flat-button type="submit" [disabled]="saving()">Save</button>
+  </div>
+</form>

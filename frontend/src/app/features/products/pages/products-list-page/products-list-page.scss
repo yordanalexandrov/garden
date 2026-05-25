@@ -1,0 +1,28 @@
+.products-page {
+  display: grid;
+  gap: 20px;
+}
+
+.products-page__filters {
+  align-items: center;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(180px, 1fr) minmax(180px, 240px) auto auto;
+}
+
+.products-page__grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.products-page__muted {
+  color: color-mix(in srgb, currentColor 64%, transparent);
+}
+
+@media (max-width: 760px) {
+  .products-page__filters {
+    grid-template-columns: 1fr;
+  }
+}
+

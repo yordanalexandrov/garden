@@ -1,0 +1,4 @@
+<section aria-labelledby="product-create-title">
+  <app-page-header title="New Product" titleId="product-create-title" subtitle="Structured product metadata" icon="science" />
+  <app-product-form [apiError]="error()" [saving]="saving()" (submitted)="createProduct($event)" (cancelled)="cancel()" />
+</section>

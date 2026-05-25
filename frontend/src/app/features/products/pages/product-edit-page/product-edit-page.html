@@ -1,0 +1,10 @@
+<section aria-labelledby="product-edit-title">
+  <app-page-header title="Edit Product" titleId="product-edit-title" subtitle="Update product metadata" icon="edit" />
+  <app-product-form
+    [product]="product()"
+    [apiError]="error()"
+    [saving]="saving()"
+    (submitted)="updateProduct($event)"
+    (cancelled)="cancel()"
+  />
+</section>

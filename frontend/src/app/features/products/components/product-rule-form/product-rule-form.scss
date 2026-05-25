@@ -1,0 +1,23 @@
+.product-rule-form {
+  display: grid;
+  gap: 16px;
+  max-width: 760px;
+}
+
+.product-rule-form__grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.product-rule-form__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.product-rule-form__error {
+  color: var(--mat-sys-error);
+  margin: -8px 0 0;
+}
+

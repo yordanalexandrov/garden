@@ -1,0 +1,19 @@
+.inventory-lot-form,
+.inventory-lot-form__form {
+  display: grid;
+  gap: 16px;
+  max-width: 760px;
+}
+
+.inventory-lot-form__grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.inventory-lot-form__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
