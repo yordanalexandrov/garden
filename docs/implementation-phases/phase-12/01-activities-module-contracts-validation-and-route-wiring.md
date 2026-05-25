@@ -4,8 +4,8 @@ You are the **Implementation Agent**.
 
 Use:
 - `AGENTS.md`
-- `gardening-helper-implementation-agent-instructions.md`
-- `gardening-helper-ai-implementation-handoff-readme-v1.md`
+- `docs/gardening-helper-implementation-agent-instructions.md`
+- `docs/gardening-helper-ai-implementation-handoff-readme-v1.md`
 - all relevant specs for this task
 
 Final infrastructure/provider decisions:
