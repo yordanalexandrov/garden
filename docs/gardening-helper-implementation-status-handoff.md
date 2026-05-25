@@ -41,7 +41,7 @@ Note: Phase 6 completed the backend growing-structure API for perennials, beds, 
 - [ ] Phase 12 - Backend Activity Transaction Flow - not implemented; top-level spec only.
 - [ ] Phase 13 - Backend Activity Correction and Audit Trail - not implemented; task docs ready.
 - [ ] Phase 14 - Frontend Activities and Create Activity Flow - not implemented; Task docs ready.
-- [ ] Phase 15 - Backend Problems and Observations API - not implemented; top-level spec only.
+- [ ] Phase 15 - Backend Problems and Observations API - not implemented; task docs ready.
 - [ ] Phase 16 - Backend Problem Photo Storage - not implemented; top-level spec only.
 - [ ] Phase 17 - Frontend Problems and Photos Flow - not implemented; top-level spec only.
 - [ ] Phase 18 - Backend Task Lifecycle and Reminders - not implemented; top-level spec only.
@@ -189,6 +189,17 @@ Task docs ready only; implementation is not started.
 - [ ] Step 6 - Create Activity Submit, Errors, and Side-Effect Summary.
 - [ ] Step 7 - Frontend Regression, Boundary, and Error-Display Tests.
 - [ ] Step 8 - Phase 14 Verification and PR Readiness.
+
+### Phase 15 - Backend Problems and Observations API
+
+Task docs ready only; implementation is not started.
+
+- [ ] Step 1 - Problems Module Contracts, Validation, and Route Wiring.
+- [ ] Step 2 - Problems Repository and Read Models.
+- [ ] Step 3 - Problems Service Create/Update and Linked Activity Validation.
+- [ ] Step 4 - Problems Routes and API Contract.
+- [ ] Step 5 - Problems Account, Place, Target, and Response Regression Tests.
+- [ ] Step 6 - Phase 15 Verification and PR Readiness.
 
 ## Next Phase Step Checklist
 
