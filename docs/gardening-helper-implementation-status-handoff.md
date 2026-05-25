@@ -8,15 +8,15 @@ Implementation agents must update this file in the same branch/PR whenever phase
 
 ## Current Position
 
-- Last implemented phase: Phase 8 - Backend Products and Usage Rules API.
-- Last implemented step: Phase 8 Step 7 - Phase 08 Verification and PR Readiness.
-- Last implemented step file: `docs/implementation-phases/phase-08/07-phase-08-verification-and-pr-readiness.md`.
-- Last implementation commit observed: Phase 8 Step 7 verification/readiness update on `feature/backend-products-rules`.
-- Next implementation phase: Phase 9 - Backend Inventory Ledger API.
-- Next implementation step: Phase 9 Step 1 - Inventory Module Contracts, Validation, and Route Wiring.
-- Next implementation step file: `docs/implementation-phases/phase-09/01-inventory-module-contracts-validation-and-route-wiring.md`.
+- Last implemented phase: Phase 9 - Backend Inventory Ledger API.
+- Last implemented step: Phase 9 Step 7 - Phase 09 Verification and PR Readiness.
+- Last implemented step file: `docs/implementation-phases/phase-09/07-phase-09-verification-and-pr-readiness.md`.
+- Last implementation commit observed: Phase 9 backend inventory ledger implementation on `feature/backend-inventory-ledger`.
+- Next implementation phase: Phase 10 - Frontend Products and Inventory Pages.
+- Next implementation step: Phase 10 Step 1 - Product Inventory API Services and Feature Scaffold.
+- Next implementation step file: `docs/implementation-phases/phase-10/01-product-inventory-api-services-and-feature-scaffold.md`.
 
-Note: Phase 6 completed the backend growing-structure API for perennials, beds, persistent bed plants, and yearly bed plantings with account-scoped Fastify handlers, canonical envelopes, archive behavior, historical bed occupancy reads, and duplicate same bed/plant/year yearly planting support. Phase 7 completed the Angular frontend garden-structure pages for places, plants, perennials, beds, persistent bed plants, and yearly plantings. Phase 8 completed the backend products and product usage rules APIs with account-scoped Fastify handlers, canonical envelopes, product category/unit validation, product/rule archive behavior, duplicate active product+plant rule enforcement, product/plant/account consistency checks, placeholder-compatible inventory summary fields, and focused validation/service/repository/route/guard tests. Inventory lots, inventory movements, activities, problems/photos, tasks/calendar behavior, weather, AI, push, storage, provider, frontend products/inventory pages, and MCP business tools remain deferred. Phase 9 task docs are ready in `docs/implementation-phases/phase-09/`, but Phase 9 is not implemented. Phase 10 task docs are ready in `docs/implementation-phases/phase-10/`, but Phase 10 is not implemented and still depends on Phase 9 backend work. Phase 11 through Phase 28 currently have top-level phase specs only.
+Note: Phase 6 completed the backend growing-structure API for perennials, beds, persistent bed plants, and yearly bed plantings with account-scoped Fastify handlers, canonical envelopes, archive behavior, historical bed occupancy reads, and duplicate same bed/plant/year yearly planting support. Phase 7 completed the Angular frontend garden-structure pages for places, plants, perennials, beds, persistent bed plants, and yearly plantings. Phase 8 completed the backend products and product usage rules APIs with account-scoped Fastify handlers, canonical envelopes, product category/unit validation, product/rule archive behavior, duplicate active product+plant rule enforcement, product/plant/account consistency checks, placeholder-compatible inventory summary fields, and focused validation/service/repository/route/guard tests. Phase 9 completed the backend inventory ledger API with account-scoped inventory overview, product lot listing, transactional lot purchase movement creation, movement history, transactional manual adjustments, audit log writes for inventory mutations, FEFO allocation and shortage/unit policy helpers, validation/DTO mapping, route wiring, and focused unit/API/guard/scope tests. Activity product consumption, problems/photos, tasks/calendar behavior, weather, AI, push, storage, provider, frontend products/inventory pages, and MCP business tools remain deferred. Phase 10 task docs are ready in `docs/implementation-phases/phase-10/`, but Phase 10 is not implemented. Phase 11 through Phase 28 currently have top-level phase specs only.
 
 ## Status Legend
 
@@ -35,7 +35,7 @@ Note: Phase 6 completed the backend growing-structure API for perennials, beds, 
 - [x] Phase 6 - Backend Growing Structure API - implemented.
 - [x] Phase 7 - Frontend Garden Structure Pages - implemented.
 - [x] Phase 8 - Backend Products and Usage Rules API - implemented.
-- [ ] Phase 9 - Backend Inventory Ledger API - not implemented; task docs ready.
+- [x] Phase 9 - Backend Inventory Ledger API - implemented.
 - [ ] Phase 10 - Frontend Products and Inventory Pages - not implemented; task docs ready.
 - [ ] Phase 11 - Backend Target Resolver - not implemented; top-level spec only.
 - [ ] Phase 12 - Backend Activity Transaction Flow - not implemented; top-level spec only.
@@ -145,17 +145,22 @@ Note: Phase 6 completed the backend growing-structure API for perennials, beds, 
 - [x] Step 6 - Product/Rule Account Consistency and Regression Tests.
 - [x] Step 7 - Phase 08 Verification and PR Readiness.
 
-## Next Phase Step Checklist
-
 ### Phase 9 - Backend Inventory Ledger API
 
-- [x] Executable task docs are ready in `docs/implementation-phases/phase-09/`.
-- [ ] Step 1 - Inventory Module Contracts, Validation, and Route Wiring.
+- [x] Step 1 - Inventory Module Contracts, Validation, and Route Wiring.
+- [x] Step 2 - FEFO Allocator and Shortage Policy Helper.
+- [x] Step 3 - Inventory Repository and Overview Reads.
+- [x] Step 4 - Inventory Lot Creation Purchase Movement Transaction.
+- [x] Step 5 - Movement History and Manual Adjustment Routes.
+- [x] Step 6 - Inventory Ledger Account Scope, Rollback, and Guards.
+- [x] Step 7 - Phase 09 Verification and PR Readiness.
+
+## Next Phase Step Checklist
 
 ### Phase 10 - Frontend Products and Inventory Pages
 
 - [x] Executable task docs are ready in `docs/implementation-phases/phase-10/`.
-- [ ] Frontend products and inventory implementation is not started.
+- [ ] Step 1 - Product Inventory API Services and Feature Scaffold.
 
 ## Update Rules
 

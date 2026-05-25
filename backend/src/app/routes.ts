@@ -3,6 +3,7 @@ import type { FastifyPluginAsync } from "fastify";
 import type { DbClient } from "../db/transaction.js";
 import { registerBedsRoutes, registerPlaceBedsRoutes } from "../modules/beds/beds.routes.js";
 import { registerHealthRoutes } from "../modules/health/health.routes.js";
+import { registerInventoryRoutes, registerProductInventoryRoutes } from "../modules/inventory/inventory.routes.js";
 import { registerBedPersistentPlantsRoutes, registerPersistentBedPlantsRoutes } from "../modules/plantings/persistent-bed-plants.routes.js";
 import { registerBedPlantingsRoutes, registerYearlyBedPlantingsRoutes } from "../modules/plantings/yearly-bed-plantings.routes.js";
 import { registerPerennialsRoutes, registerPlacePerennialsRoutes } from "../modules/perennials/perennials.routes.js";
@@ -39,7 +40,9 @@ export const registerApiRoutes: FastifyPluginAsync<ApiRouteOptions> = async (app
   await app.register(registerBedPlantingsRoutes, { prefix: "/beds/:bedId/plantings", ...businessRouteOptions });
   await app.register(registerYearlyBedPlantingsRoutes, { prefix: "/plantings", ...businessRouteOptions });
   await app.register(registerProductsRoutes, { prefix: "/products", ...businessRouteOptions });
+  await app.register(registerProductInventoryRoutes, { prefix: "/products", ...businessRouteOptions });
   await app.register(registerProductUsageRuleRoutes, { prefix: "/product-rules", ...businessRouteOptions });
+  await app.register(registerInventoryRoutes, { prefix: "/inventory", ...businessRouteOptions });
 
   if (options.enableTestRoutes === true) {
     await app.register(registerTestRoutes, { prefix: "/__test" });
