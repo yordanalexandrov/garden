@@ -1,5 +1,7 @@
 # Phase 12 — Backend Activity Transaction Flow
 
+Executable step tasks for this phase are in `docs/implementation-phases/phase-12/`.
+
 ## 1. Purpose
 
 This phase implements the critical `POST /activities` workflow with target persistence, product usage, inventory deduction, quarantine generation, and suggested task generation. It also adds activity list/detail reads. This is the central transactional workflow of v1.

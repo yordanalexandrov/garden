@@ -38,7 +38,7 @@ Note: Phase 6 completed the backend growing-structure API for perennials, beds, 
 - [x] Phase 9 - Backend Inventory Ledger API - implemented.
 - [x] Phase 10 - Frontend Products and Inventory Pages - implemented.
 - [ ] Phase 11 - Backend Target Resolver - not implemented; task docs ready.
-- [ ] Phase 12 - Backend Activity Transaction Flow - not implemented; top-level spec only.
+- [ ] Phase 12 - Backend Activity Transaction Flow - not implemented; task docs ready.
 - [ ] Phase 13 - Backend Activity Correction and Audit Trail - not implemented; task docs ready.
 - [ ] Phase 14 - Frontend Activities and Create Activity Flow - not implemented; Task docs ready.
 - [ ] Phase 15 - Backend Problems and Observations API - not implemented; Task docs ready.
@@ -165,6 +165,18 @@ Note: Phase 6 completed the backend growing-structure API for perennials, beds, 
 - [x] Step 6 - Add Lot and Manual Adjustment Forms with Movement-History Refresh.
 - [x] Step 7 - Frontend Regression, Boundary, and Error-Display Tests.
 - [x] Step 8 - Phase 10 Verification and PR Readiness.
+
+### Phase 12 - Backend Activity Transaction Flow
+
+Task docs ready only; implementation is not started.
+
+- [ ] Step 1 - Activities Module Contracts, Validation, and Route Wiring.
+- [ ] Step 2 - Activities Repository, List, and Detail Reads.
+- [ ] Step 3 - Create Activity Transaction Header, Targets, and Product Usages.
+- [ ] Step 4 - Inventory Allocation, Movements, and Shortage Policy.
+- [ ] Step 5 - Quarantine and Suggested Task Side Effects.
+- [ ] Step 6 - Activity Transaction Account Scope, Rollback, and Response Tests.
+- [ ] Step 7 - Phase 12 Verification and PR Readiness.
 
 ### Phase 13 - Backend Activity Correction and Audit Trail
 
