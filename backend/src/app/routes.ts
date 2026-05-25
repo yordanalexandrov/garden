@@ -8,6 +8,7 @@ import { registerBedPlantingsRoutes, registerYearlyBedPlantingsRoutes } from "..
 import { registerPerennialsRoutes, registerPlacePerennialsRoutes } from "../modules/perennials/perennials.routes.js";
 import { registerPlacesRoutes } from "../modules/places/places.routes.js";
 import { registerPlantsRoutes } from "../modules/plants/plants.routes.js";
+import { registerProductUsageRuleRoutes, registerProductsRoutes } from "../modules/products/products.routes.js";
 import { installAuth, type AuthPluginOptions } from "../shared/plugins/auth.js";
 import { registerTestRoutes } from "./test-routes.js";
 
@@ -37,6 +38,8 @@ export const registerApiRoutes: FastifyPluginAsync<ApiRouteOptions> = async (app
   await app.register(registerPersistentBedPlantsRoutes, { prefix: "/persistent-bed-plants", ...businessRouteOptions });
   await app.register(registerBedPlantingsRoutes, { prefix: "/beds/:bedId/plantings", ...businessRouteOptions });
   await app.register(registerYearlyBedPlantingsRoutes, { prefix: "/plantings", ...businessRouteOptions });
+  await app.register(registerProductsRoutes, { prefix: "/products", ...businessRouteOptions });
+  await app.register(registerProductUsageRuleRoutes, { prefix: "/product-rules", ...businessRouteOptions });
 
   if (options.enableTestRoutes === true) {
     await app.register(registerTestRoutes, { prefix: "/__test" });
