@@ -32,7 +32,7 @@ The application data API remains the Fastify API under `/api/v1`.
 Implement:
 
 ```text
-Verify Phase 15 backend problems and observations metadata API end to end, update implementation status, and prepare a focused PR for review without marking Phase 16 or later complete.
+Verify Phase 15 backend problems and observations metadata API end-to-end, update implementation status, and prepare a focused PR for review without marking Phase 16 or later complete.
 ```
 
 ## Branch
@@ -249,3 +249,34 @@ The task is complete when:
 - [ ] `docs/gardening-helper-implementation-status-handoff.md` is updated only for true Phase 15 implementation progress.
 - [ ] PR description clearly states deferred Phase 16 photo/storage work.
 - [ ] No unrelated phase is marked complete.
+
+---
+
+# Commands to Run
+
+From the backend package root, run:
+
+```bash
+npm run typecheck
+npm run lint
+npm test
+npm run test:db
+npm run build
+```
+
+If a command is unavailable or fails due to pre-existing setup, report the exact command, exit state, and reason. Never claim checks passed unless they were run.
+
+---
+
+# PR Requirements
+
+PR description must include:
+
+- Summary
+- Scope
+- Domain rules affected
+- API changes
+- Database changes
+- Tests run
+- Integration/provider status
+- Review focus
