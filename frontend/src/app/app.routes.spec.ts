@@ -4,6 +4,7 @@ import { Router, provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 
 import { AppShell } from './core/layout/app-shell';
+import { ArchiveConfirmationService } from './shared/components/confirm-dialog/confirm-dialog';
 import { InventoryApiService } from './features/inventory/inventory-api.service';
 import { ProductsApiService, ProductRulesApiService } from './features/products/products-api.service';
 import { PlantsApiService } from './features/plants/plants-api.service';
@@ -43,6 +44,7 @@ describe('app routes', () => {
           provide: PlantsApiService,
           useValue: { list: () => of({ items: [], page: 1, pageSize: 20, total: 0 }) },
         },
+        { provide: ArchiveConfirmationService, useValue: { confirmArchive: () => of(false) } },
         { provide: SnackbarService, useValue: { showMessage: vi.fn(), showError: vi.fn() } },
       ],
     }).compileComponents();

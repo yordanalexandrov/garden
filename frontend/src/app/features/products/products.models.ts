@@ -58,11 +58,24 @@ export interface ProductUsageRuleDetail extends ProductUsageRule {
   readonly updatedAt: string;
 }
 
+export interface ProductRecentMovement {
+  readonly id: string;
+  readonly productId: string;
+  readonly inventoryLotId: string | null;
+  readonly movementType: 'purchase' | 'manual_adjustment' | 'consumption' | 'correction';
+  readonly quantity: number;
+  readonly unit: ProductUnit;
+  readonly activityId: string | null;
+  readonly occurredAt: string;
+  readonly notes: string | null;
+  readonly createdAt: string;
+}
+
 export interface ProductDetail extends ProductListItem {
   readonly notes: string | null;
   readonly usageRules: readonly ProductUsageRule[];
   readonly inventorySummary: ProductInventorySummary;
-  readonly recentMovements: readonly unknown[];
+  readonly recentMovements: readonly ProductRecentMovement[];
   readonly createdAt: string;
   readonly updatedAt: string;
 }
@@ -97,4 +110,3 @@ export interface CreateProductUsageRuleRequest {
 }
 
 export type UpdateProductUsageRuleRequest = Partial<CreateProductUsageRuleRequest>;
-

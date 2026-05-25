@@ -12,8 +12,10 @@
   <div class="product-rule-form__grid">
     <mat-form-field appearance="outline">
       <mat-label>Dose</mat-label>
-      <input matInput type="number" min="0" step="0.001" formControlName="doseValue" />
-      @if (form.controls.doseValue.invalid) {
+      <input matInput type="number" min="0.000001" step="0.001" formControlName="doseValue" />
+      @if (form.controls.doseValue.hasError('required')) {
+        <mat-error>Dose is required.</mat-error>
+      } @else if (form.controls.doseValue.hasError('min')) {
         <mat-error>Dose must be greater than zero.</mat-error>
       }
     </mat-form-field>
@@ -66,4 +68,3 @@
     <button mat-flat-button type="submit" [disabled]="saving()">Save</button>
   </div>
 </form>
-
