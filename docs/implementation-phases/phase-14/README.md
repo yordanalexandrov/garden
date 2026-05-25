@@ -33,7 +33,7 @@ Implement only the frontend activities and create activity flow:
 
 Do not implement:
 
-- Backend endpoints, schema changes, transaction logic, target resolver behavior, inventory allocation, quarantine generation, or suggested task generation, except tiny compatibility fixes in already implemented Phase 12 APIs if a blocking mismatch is documented.
+- Backend endpoints, schema changes, transaction logic, target resolver behavior, inventory allocation, quarantine generation, or suggested task generation, except tiny compatibility fixes in Phase 12 APIs once implemented, if a blocking mismatch is documented.
 - Activity correction UI, weather rain prompts, task confirmation UI, AI suggestions, problems/photos, push, storage, provider, deployment, or MCP tools.
 - Frontend-owned target resolution, inventory allocation, quarantine/task creation, or trusted business side-effect summaries.
 - Direct Supabase application-table or storage access.
@@ -68,9 +68,10 @@ npm run typecheck
 npm run lint
 npm test
 npm run build
+npm run check:frontend-boundaries
 ```
 
-Also run any frontend boundary/static checks configured by the project. They must verify at minimum:
+The boundary check must verify at minimum:
 
 - no direct Supabase application-table access in frontend code
 - no direct Supabase Storage business calls in frontend code

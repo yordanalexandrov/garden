@@ -40,7 +40,7 @@ Note: Phase 6 completed the backend growing-structure API for perennials, beds, 
 - [ ] Phase 11 - Backend Target Resolver - not implemented; task docs ready.
 - [ ] Phase 12 - Backend Activity Transaction Flow - not implemented; top-level spec only.
 - [ ] Phase 13 - Backend Activity Correction and Audit Trail - not implemented; task docs ready.
-- [ ] Phase 14 - Frontend Activities and Create Activity Flow - not implemented; task docs ready.
+- [ ] Phase 14 - Frontend Activities and Create Activity Flow - not implemented; Task docs ready.
 - [ ] Phase 15 - Backend Problems and Observations API - not implemented; top-level spec only.
 - [ ] Phase 16 - Backend Problem Photo Storage - not implemented; top-level spec only.
 - [ ] Phase 17 - Frontend Problems and Photos Flow - not implemented; top-level spec only.
@@ -56,7 +56,7 @@ Note: Phase 6 completed the backend growing-structure API for perennials, beds, 
 - [ ] Phase 27 - Deployment and Operations Readiness - not implemented; top-level spec only.
 - [ ] Phase 28 - Final Hardening and Acceptance - not implemented; top-level spec only.
 
-## Implemented Phase Step Status
+## Phase Step Status
 
 ### Phase 1 - Backend Project Foundation
 

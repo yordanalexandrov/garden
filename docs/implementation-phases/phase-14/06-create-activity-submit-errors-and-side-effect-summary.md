@@ -57,7 +57,7 @@ Implement only:
 
 Do not implement:
 
-- [ ] Backend transaction or endpoint changes, except tiny compatibility fixes in already implemented Phase 12 APIs if a blocking mismatch is documented.
+- [ ] Backend transaction or endpoint changes, except tiny compatibility fixes in Phase 12 APIs once implemented, if a blocking mismatch is documented.
 - [ ] Frontend inventory allocation, target resolution truth, quarantine generation, suggested task generation, or task reminder creation.
 - [ ] Activity correction/edit UI.
 - [ ] Task confirmation UI.
