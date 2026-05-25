@@ -1,5 +1,7 @@
 # Phase 13 — Backend Activity Correction and Audit Trail
 
+Executable step tasks for this phase are in `docs/implementation-phases/phase-13/`.
+
 ## 1. Purpose
 
 This phase implements audit logging foundation for critical operations and the explicit activity correction workflow. It protects historical business records after side effects have been generated and ensures corrections are visible and auditable.

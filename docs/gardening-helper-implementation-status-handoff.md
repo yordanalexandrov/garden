@@ -39,7 +39,7 @@ Note: Phase 6 completed the backend growing-structure API for perennials, beds, 
 - [x] Phase 10 - Frontend Products and Inventory Pages - implemented.
 - [ ] Phase 11 - Backend Target Resolver - not implemented; task docs ready.
 - [ ] Phase 12 - Backend Activity Transaction Flow - not implemented; top-level spec only.
-- [ ] Phase 13 - Backend Activity Correction and Audit Trail - not implemented; top-level spec only.
+- [ ] Phase 13 - Backend Activity Correction and Audit Trail - not implemented; task docs ready.
 - [ ] Phase 14 - Frontend Activities and Create Activity Flow - not implemented; top-level spec only.
 - [ ] Phase 15 - Backend Problems and Observations API - not implemented; top-level spec only.
 - [ ] Phase 16 - Backend Problem Photo Storage - not implemented; top-level spec only.
@@ -165,6 +165,17 @@ Note: Phase 6 completed the backend growing-structure API for perennials, beds, 
 - [x] Step 6 - Add Lot and Manual Adjustment Forms with Movement-History Refresh.
 - [x] Step 7 - Frontend Regression, Boundary, and Error-Display Tests.
 - [x] Step 8 - Phase 10 Verification and PR Readiness.
+
+### Phase 13 - Backend Activity Correction and Audit Trail
+
+Task docs ready only; implementation is not started.
+
+- [ ] Step 1 - Audit Module Contracts, Repository, and Helper.
+- [ ] Step 2 - Critical Operation Audit Integration.
+- [ ] Step 3 - Activity Correction Contract, Validation, and Route.
+- [ ] Step 4 - Activity Correction Transaction and Compensating Effects.
+- [ ] Step 5 - Correction/Audit Account Scope, Rollback, and Guards.
+- [ ] Step 6 - Phase 13 Verification and PR Readiness.
 
 ## Next Phase Step Checklist
 
