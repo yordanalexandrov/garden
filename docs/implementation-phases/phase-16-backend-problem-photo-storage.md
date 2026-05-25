@@ -1,5 +1,7 @@
 # Phase 16 — Backend Problem Photo Storage
 
+Executable step tasks for this phase are in `docs/implementation-phases/phase-16/`.
+
 ## 1. Purpose
 
 This phase implements backend-mediated problem photo upload and metadata persistence through `StoragePort`. It adds storage provider boundaries and file validation while preserving the v1 rule that photos are supported only for problems, not observations.
