@@ -160,7 +160,10 @@ export class ProductsService {
 
     const nextPlantId = patch.plantId ?? existing.plantId;
 
-    await this.assertProductAndPlantInActorAccount(actor, existing.productId, nextPlantId, db);
+    if (patch.plantId !== undefined) {
+      await this.assertPlantInActorAccount(actor, patch.plantId, db);
+    }
+
     await this.assertNoActiveRuleForProductPlant(actor.accountId, existing.productId, nextPlantId, existing.id, db);
 
     try {
@@ -196,6 +199,14 @@ export class ProductsService {
       throw productNotFoundError();
     }
 
+    const plant = await this.plantsRepository.findById(actor.accountId, plantId, db);
+
+    if (plant === null) {
+      throw plantNotFoundError();
+    }
+  }
+
+  private async assertPlantInActorAccount(actor: AuthenticatedActor, plantId: UUID, db?: DbHandle): Promise<void> {
     const plant = await this.plantsRepository.findById(actor.accountId, plantId, db);
 
     if (plant === null) {

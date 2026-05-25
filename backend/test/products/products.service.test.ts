@@ -257,6 +257,42 @@ describe("ProductsService", () => {
       quarantinePeriodDays: null
     });
   });
+
+  it("updates existing rule fields without revalidating archived product or unchanged plant", async () => {
+    const productsRepository = new StubProductsRepository();
+    const plantsRepository = new StubPlantsRepository();
+    const service = new ProductsService(productsRepository, plantsRepository);
+    productsRepository.rule = createRule();
+    productsRepository.product = null;
+    plantsRepository.plant = null;
+
+    await expect(
+      service.updateProductUsageRule(actorA, productsRepository.rule.id, {
+        doseValue: 25
+      })
+    ).resolves.toMatchObject({
+      id: productsRepository.rule.id,
+      doseValue: 25
+    });
+  });
+
+  it("validates the new plant only when moving a rule to another plant", async () => {
+    const productsRepository = new StubProductsRepository();
+    const plantsRepository = new StubPlantsRepository();
+    const service = new ProductsService(productsRepository, plantsRepository);
+    productsRepository.rule = createRule();
+    productsRepository.product = null;
+    plantsRepository.plant = null;
+
+    await expect(
+      service.updateProductUsageRule(actorA, productsRepository.rule.id, {
+        plantId: "77777777-7777-4777-8777-777777777777"
+      })
+    ).rejects.toMatchObject({
+      code: "NOT_FOUND",
+      message: "Plant not found"
+    });
+  });
 });
 
 class StubProductsRepository implements ProductsRepository {
