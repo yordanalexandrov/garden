@@ -1,5 +1,7 @@
 # Phase 15 — Backend Problems and Observations API
 
+Executable step tasks for this phase are in `docs/implementation-phases/phase-15/`.
+
 ## 1. Purpose
 
 This phase implements problem and observation metadata APIs without photo upload. It validates place/target context and linked activity references before storage/file complexity is introduced.
