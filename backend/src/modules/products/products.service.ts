@@ -367,11 +367,27 @@ function isPostgresConstraintError(error: unknown, constraint: string): boolean 
 }
 
 function isProductUsageRuleAccountGuardError(error: unknown): boolean {
-  return (
-    error instanceof Error &&
-    (error.message.includes("product_usage_rule.account_id must match product.account_id") ||
-      error.message.includes("product_usage_rule.account_id must match plant.account_id"))
-  );
+  return isPostgresErrorCode(error, "23514") && isProductUsageRuleRelatedError(error);
+}
+
+function isPostgresErrorCode(error: unknown, code: string): boolean {
+  return typeof error === "object" && error !== null && "code" in error && error.code === code;
+}
+
+function isProductUsageRuleRelatedError(error: unknown): boolean {
+  if (typeof error !== "object" || error === null) {
+    return false;
+  }
+
+  if ("table" in error && error.table !== undefined && error.table !== "product_usage_rules") {
+    return false;
+  }
+
+  if ("constraint" in error && error.constraint !== undefined) {
+    return typeof error.constraint === "string" && error.constraint.startsWith("product_usage_rules_");
+  }
+
+  return true;
 }
 
 function rethrowUnknownWriteError(error: unknown): never {

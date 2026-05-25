@@ -148,6 +148,24 @@ describe("ProductsService", () => {
     });
   });
 
+  it("maps product usage rule database account guard errors by Postgres code", async () => {
+    const productsRepository = new StubProductsRepository();
+    const plantsRepository = new StubPlantsRepository();
+    const service = new ProductsService(productsRepository, plantsRepository);
+    productsRepository.createRuleError = productUsageRuleAccountGuardError();
+
+    await expect(
+      service.createProductUsageRule(actorA, productsRepository.product!.id, {
+        plantId: plantsRepository.plant!.id,
+        doseValue: 20,
+        doseUnit: "g"
+      })
+    ).rejects.toMatchObject({
+      code: "BUSINESS_RULE_VIOLATION",
+      message: "Product usage rule account references are inconsistent"
+    });
+  });
+
   it("rejects invalid usage rule values before repository writes", async () => {
     const productsRepository = new StubProductsRepository();
     const plantsRepository = new StubPlantsRepository();
@@ -251,6 +269,7 @@ class StubProductsRepository implements ProductsRepository {
   createdRules: CreateProductUsageRuleInput[] = [];
   updatedRules: UpdateProductUsageRuleInput[] = [];
   createProductError: Error | undefined;
+  createRuleError: Error | undefined;
 
   list(_accountId: string, filters: ListProductsFilters): Promise<PaginatedProducts> {
     return Promise.resolve({
@@ -306,6 +325,10 @@ class StubProductsRepository implements ProductsRepository {
 
   createUsageRule(input: CreateProductUsageRuleInput): Promise<ProductUsageRule> {
     this.createdRules.push(input);
+
+    if (this.createRuleError !== undefined) {
+      return Promise.reject(this.createRuleError);
+    }
 
     return Promise.resolve(createRule(input));
   }
@@ -429,5 +452,11 @@ function duplicateProductNameError(): Error {
   return Object.assign(new Error("duplicate active product name"), {
     code: "23505",
     constraint: "uq_products_account_name_active"
+  });
+}
+
+function productUsageRuleAccountGuardError(): Error {
+  return Object.assign(new Error("product_usage_rule account guard failed"), {
+    code: "23514"
   });
 }

@@ -1,6 +1,5 @@
 import type {
   Product,
-  ProductCategory,
   ProductDetail,
   ProductDetailDto,
   ProductListItem,
@@ -15,7 +14,6 @@ import type {
   SimpleUnit
 } from "./products.types.js";
 
-type ProductDtoSource = Product | ProductRow;
 type ProductUsageRuleDtoSource = ProductUsageRule | ProductUsageRuleRow;
 
 export function toProductListItemDto(product: ProductListItem): ProductListItemDto {
@@ -92,54 +90,6 @@ export function toProductUsageRuleMutationDto(
   return {
     id: rule.id
   };
-}
-
-export function toProduct(row: ProductDtoSource): Product {
-  if (!isProductRow(row)) {
-    return row;
-  }
-
-  return {
-    id: row.id,
-    accountId: row.account_id,
-    name: row.name,
-    category: row.category as ProductCategory,
-    activeSubstance: row.active_substance,
-    manufacturer: row.manufacturer,
-    formulation: row.formulation,
-    defaultUnit: row.default_unit as SimpleUnit,
-    notes: row.notes,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
-    archivedAt: row.archived_at
-  };
-}
-
-export function toProductUsageRule(row: ProductUsageRuleDtoSource): ProductUsageRule {
-  if (!isProductUsageRuleRow(row)) {
-    return row;
-  }
-
-  return {
-    id: row.id,
-    accountId: row.account_id,
-    productId: row.product_id,
-    plantId: row.plant_id,
-    doseValue: Number(row.dose_value),
-    doseUnit: row.dose_unit as SimpleUnit,
-    dilutionText: row.dilution_text,
-    applicationMethod: row.application_method,
-    reapplicationIntervalDays: row.reapplication_interval_days,
-    quarantinePeriodDays: row.quarantine_period_days,
-    notes: row.notes,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
-    archivedAt: row.archived_at
-  };
-}
-
-function isProductRow(value: ProductDtoSource): value is ProductRow {
-  return "account_id" in value;
 }
 
 function isProductUsageRuleRow(value: ProductUsageRuleDtoSource): value is ProductUsageRuleRow {
