@@ -50,10 +50,10 @@ Implement only:
 - [ ] Inspect existing backend app, route registration, auth actor context, database client, transaction abstraction, envelope helpers, validation helpers, activity, inventory, product/rule, place, and test helper patterns.
 - [ ] Confirm Phase 12 activity transaction flow exists before wiring activity audit behavior; if Phase 12 is absent, stop and document the prerequisite gap.
 - [ ] Create `backend/src/modules/audit/` structure following existing backend module conventions.
-- [ ] Define audit input/domain/DTO types for actor/account/entity/action/before/after/metadata fields supported by the migrated `audit_logs` table.
+- [ ] Define audit input/domain/DTO types for actor/account/entity/action plus the migrated `before_json` and `after_json` payloads supported by the `audit_logs` table.
 - [ ] Implement `AuditLogsRepository.log(input, db?)` as append-only insert behavior.
 - [ ] Implement an audit logging service/helper that normalizes action names, accepts actor/account context from backend auth, and can be called inside an existing transaction.
-- [ ] Add secret-scrubbing or explicit field allowlisting so audit metadata does not store tokens, service role keys, raw authorization headers, passwords, or provider secrets.
+- [ ] Add secret-scrubbing or explicit field allowlisting so audit `before_json`/`after_json` payloads do not store tokens, service role keys, raw authorization headers, passwords, or provider secrets.
 - [ ] Add focused repository/helper tests where existing backend test style supports them.
 
 Expected paths, unless existing code clearly establishes a better equivalent:
@@ -162,7 +162,7 @@ Implement:
 - [ ] backend audit module/domain types
 - [ ] repository methods
 - [ ] transaction-aware audit helper/service
-- [ ] secret-safe metadata normalization
+- [ ] secret-safe `before_json`/`after_json` normalization
 - [ ] tests
 - [ ] docs/update notes only if audit event conventions need local implementation notes
 
@@ -211,9 +211,9 @@ Add or update tests for:
 
 Specific test cases:
 
-1. `AuditLogsRepository.log` inserts an audit row with actor, account, entity, action, and metadata.
+1. `AuditLogsRepository.log` inserts an audit row with actor, account, entity, action, `before_json`, and `after_json`.
 2. Audit helper can write using a supplied transaction.
-3. Audit helper excludes configured secret fields from before/after/metadata payloads.
+3. Audit helper excludes configured secret fields from `before_json` and `after_json` payloads.
 4. Audit helper rejects or normalizes missing account/actor context according to existing backend conventions.
 5. No update/delete repository method exists for normal audit log mutation.
 
@@ -226,7 +226,7 @@ The task is complete when:
 - [ ] Audit module files exist and follow backend module conventions.
 - [ ] `AuditLogsRepository.log(input, db?)` is implemented as append-only insert behavior.
 - [ ] Audit service/helper can be called inside existing service transactions.
-- [ ] Audit metadata excludes secrets.
+- [ ] Audit `before_json` and `after_json` payloads exclude secrets.
 - [ ] Focused audit repository/helper tests are added or a precise reason is documented if existing test infrastructure makes them impractical.
 - [ ] No correction endpoint, frontend, provider, schema redesign, or MCP behavior is included.
 
