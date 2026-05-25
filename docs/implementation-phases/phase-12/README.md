@@ -1,6 +1,6 @@
 # Phase 12 Task Set - Backend Activity Transaction Flow
 
-These files convert `docs/implementation-phases/phase-12-backend-activity-transaction-flow.md` into executable Implementation Agent tasks using `docs/TASK_TEMPLATE.md`.
+These files convert `docs/implementation-phases/phase-12-backend-activity-transaction-flow.md` into executable Implementation Agent tasks.
 
 Run the tasks in order on one branch:
 

@@ -242,7 +242,7 @@ When implementation work changes progress, update:
 - `Last updated`.
 - `Current Position`.
 - `Phase Checklist`.
-- `Implemented Phase Step Status` when a phase/step is completed.
+- `Phase Step Status` when a phase/step is completed.
 - `Next Phase Step Checklist` when the next phase changes.
 
 When only task documents are created for a future phase, do not mark that phase implemented. Record it as `task docs ready`.
