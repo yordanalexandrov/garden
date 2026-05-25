@@ -1,5 +1,7 @@
 # Phase 14 — Frontend Activities and Create Activity Flow
 
+Executable step tasks for this phase are in `docs/implementation-phases/phase-14/`.
+
 ## 1. Purpose
 
 This phase implements the activity list/detail UI and the critical create activity page. It lets users submit activity intent and display backend-generated side effects without duplicating backend decisions.
