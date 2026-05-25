@@ -222,7 +222,7 @@ Specific test cases:
 2. Validation accepts `all_perennials_in_place` and `all_beds_in_place` with a place context and no selected ID arrays.
 3. Validation accepts `selected_perennials` only when `perennialIds` is non-empty.
 4. Validation accepts `selected_beds` only when `bedIds` is non-empty.
-5. Validation accepts `single_bed` only when exactly one `bedId` is supplied.
+5. Validation accepts `single_bed` only when `bedIds` contains exactly one ID.
 6. Validation accepts `selected_yearly_plantings` only when `yearlyPlantingIds` is non-empty.
 7. Validation accepts `selected_persistent_bed_plants` only when `persistentBedPlantIds` is non-empty.
 8. Validation rejects irrelevant or empty selection arrays according to local validation policy.
