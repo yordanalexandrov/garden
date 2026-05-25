@@ -1,0 +1,68 @@
+@if (product(); as product) {
+  <section class="product-inventory" aria-labelledby="product-inventory-title">
+    <app-page-header [title]="product.name" titleId="product-inventory-title" subtitle="Inventory detail" icon="inventory_2">
+      <a mat-stroked-button page-actions [routerLink]="['/inventory/products', product.id, 'lots', 'new']">
+        <mat-icon aria-hidden="true" fontIcon="add" />
+        Add lot
+      </a>
+      <a mat-stroked-button page-actions [routerLink]="['/inventory/adjustments/new']" [queryParams]="{ productId: product.id }">
+        <mat-icon aria-hidden="true" fontIcon="tune" />
+        Adjust
+      </a>
+    </app-page-header>
+
+    <app-api-error-summary [error]="error()" />
+
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Backend Balance</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <p>{{ product.inventorySummary.quantityRemaining }} {{ product.inventorySummary.unit }}</p>
+        <p>Lots: {{ product.inventorySummary.lotsCount }}</p>
+      </mat-card-content>
+    </mat-card>
+
+    <div class="product-inventory__layout">
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Lots</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          @for (lot of lots(); track lot.id) {
+            <div class="product-inventory__row">
+              <span>{{ lot.quantityRemaining }} / {{ lot.quantityInitial }} {{ lot.unit }}</span>
+              <span>{{ lot.batchNumber || 'No batch' }}</span>
+              <span>{{ lot.expiryDate || 'No expiry' }}</span>
+            </div>
+          } @empty {
+            <p class="product-inventory__muted">No lots.</p>
+          }
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Movement History</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          @for (movement of movements(); track movement.id) {
+            <div class="product-inventory__row">
+              <span>{{ movement.movementType }}</span>
+              <span>{{ movement.quantity }} {{ movement.unit }}</span>
+              <span>{{ movement.occurredAt }}</span>
+            </div>
+          } @empty {
+            <p class="product-inventory__muted">No movements.</p>
+          }
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </section>
+} @else {
+  <app-api-error-summary [error]="error()" />
+  @if (loading()) {
+    <p>Loading inventory...</p>
+  }
+}
+

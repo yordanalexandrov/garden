@@ -1,0 +1,66 @@
+<section class="products-page" aria-labelledby="products-title">
+  <app-page-header title="Products" titleId="products-title" subtitle="Garden preparations and stock context" icon="science">
+    <a mat-flat-button page-actions routerLink="/products/new">
+      <mat-icon aria-hidden="true" fontIcon="add" />
+      Add product
+    </a>
+  </app-page-header>
+
+  <form class="products-page__filters" [formGroup]="filters" (ngSubmit)="search()">
+    <mat-form-field appearance="outline">
+      <mat-label>Search</mat-label>
+      <input matInput type="search" formControlName="q" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Category</mat-label>
+      <mat-select formControlName="category">
+        <mat-option value="">Any</mat-option>
+        @for (category of categories; track category) {
+          <mat-option [value]="category">{{ category }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-checkbox formControlName="includeArchived">Include archived</mat-checkbox>
+
+    <button mat-stroked-button type="submit">
+      <mat-icon aria-hidden="true" fontIcon="search" />
+      Search
+    </button>
+  </form>
+
+  <app-api-error-summary [error]="error()" />
+
+  @if (loading()) {
+    <p class="products-page__muted">Loading products...</p>
+  } @else if (products().length === 0) {
+    <app-empty-state title="No products found" message="Add products before inventory or treatment workflows." icon="science" />
+  } @else {
+    <div class="products-page__grid">
+      @for (product of products(); track product.id) {
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>{{ product.name }}</mat-card-title>
+            <mat-card-subtitle>{{ product.category }} · {{ product.defaultUnit }}</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            @if (product.activeSubstance) {
+              <p>{{ product.activeSubstance }}</p>
+            }
+            <p>Stock: {{ product.stockSummary.quantityRemaining }} {{ product.stockSummary.unit }}</p>
+            <p>Rules: {{ product.rulesCount }}</p>
+            @if (product.archivedAt) {
+              <p class="products-page__muted">Archived</p>
+            }
+          </mat-card-content>
+          <mat-card-actions align="end">
+            <a mat-button [routerLink]="['/inventory/products', product.id]">Inventory</a>
+            <a mat-button [routerLink]="['/products', product.id]">Open</a>
+          </mat-card-actions>
+        </mat-card>
+      }
+    </div>
+  }
+</section>
+

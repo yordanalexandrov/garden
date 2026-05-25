@@ -1,0 +1,28 @@
+.inventory-page {
+  display: grid;
+  gap: 20px;
+}
+
+.inventory-page__filters {
+  align-items: center;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(180px, 1fr) minmax(160px, 220px) minmax(160px, 220px) auto auto;
+}
+
+.inventory-page__grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.inventory-page__muted {
+  color: color-mix(in srgb, currentColor 64%, transparent);
+}
+
+@media (max-width: 900px) {
+  .inventory-page__filters {
+    grid-template-columns: 1fr;
+  }
+}
+

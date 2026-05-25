@@ -1,0 +1,135 @@
+@if (product(); as product) {
+  <section class="product-detail" aria-labelledby="product-title">
+    <app-page-header [title]="product.name" titleId="product-title" [subtitle]="product.category" icon="science">
+      <a mat-stroked-button page-actions [routerLink]="['/products', product.id, 'edit']">
+        <mat-icon aria-hidden="true" fontIcon="edit" />
+        Edit
+      </a>
+      <button mat-stroked-button page-actions type="button" (click)="archiveProduct()">
+        <mat-icon aria-hidden="true" fontIcon="archive" />
+        Archive
+      </button>
+    </app-page-header>
+
+    <app-api-error-summary [error]="error()" />
+
+    <div class="product-detail__layout">
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Metadata</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <p>Default unit: {{ product.defaultUnit }}</p>
+          @if (product.activeSubstance) {
+            <p>Active substance: {{ product.activeSubstance }}</p>
+          }
+          @if (product.manufacturer) {
+            <p>Manufacturer: {{ product.manufacturer }}</p>
+          }
+          @if (product.formulation) {
+            <p>Formulation: {{ product.formulation }}</p>
+          }
+          @if (product.notes) {
+            <p>{{ product.notes }}</p>
+          }
+          @if (product.archivedAt) {
+            <p class="product-detail__muted">Archived</p>
+          }
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Inventory Summary</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <p>{{ product.inventorySummary.quantityRemaining }} {{ product.inventorySummary.unit }}</p>
+          <p>Lots: {{ product.inventorySummary.lotsCount }}</p>
+          <p>Expired lots: {{ product.inventorySummary.expiredLotsCount }}</p>
+        </mat-card-content>
+        <mat-card-actions align="end">
+          <a mat-button [routerLink]="['/inventory/products', product.id]">Inventory detail</a>
+          <a mat-button [routerLink]="['/inventory/products', product.id, 'lots', 'new']">Add lot</a>
+          <a mat-button [routerLink]="['/inventory/adjustments/new']" [queryParams]="{ productId: product.id }">Adjust</a>
+        </mat-card-actions>
+      </mat-card>
+    </div>
+
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Usage Rules</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        @if (rules().length === 0) {
+          <p class="product-detail__muted">No usage rules.</p>
+        } @else {
+          <div class="product-detail__rows">
+            @for (rule of rules(); track rule.id) {
+              <div class="product-detail__row">
+                <span>Plant {{ rule.plantId }}</span>
+                <span>{{ rule.doseValue }} {{ rule.doseUnit }}</span>
+                <span>{{ rule.applicationMethod || 'Method not set' }}</span>
+                @if (rule.archivedAt) {
+                  <span>Archived</span>
+                }
+                <a mat-button [routerLink]="['/product-rules', rule.id, 'edit']">Edit</a>
+              </div>
+            }
+          </div>
+        }
+      </mat-card-content>
+      <mat-card-actions align="end">
+        <a mat-button [routerLink]="['/products', product.id, 'rules', 'new']">Add rule</a>
+      </mat-card-actions>
+    </mat-card>
+
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Lots</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        @if (lots().length === 0) {
+          <p class="product-detail__muted">No inventory lots.</p>
+        } @else {
+          <div class="product-detail__rows">
+            @for (lot of lots(); track lot.id) {
+              <div class="product-detail__row">
+                <span>{{ lot.quantityRemaining }} / {{ lot.quantityInitial }} {{ lot.unit }}</span>
+                <span>Batch {{ lot.batchNumber || 'not set' }}</span>
+                <span>Expiry {{ lot.expiryDate || 'not set' }}</span>
+              </div>
+            }
+          </div>
+        }
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Movement History</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        @if (movements().length === 0) {
+          <p class="product-detail__muted">No movements.</p>
+        } @else {
+          <div class="product-detail__rows">
+            @for (movement of movements(); track movement.id) {
+              <div class="product-detail__row">
+                <span>{{ movement.movementType }}</span>
+                <span>{{ movement.quantity }} {{ movement.unit }}</span>
+                <span>{{ movement.occurredAt }}</span>
+                <span>{{ movement.notes || '' }}</span>
+              </div>
+            }
+          </div>
+        }
+      </mat-card-content>
+    </mat-card>
+  </section>
+} @else {
+  <app-api-error-summary [error]="error()" />
+  @if (loading()) {
+    <p>Loading product...</p>
+  }
+}
+

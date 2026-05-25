@@ -1,0 +1,19 @@
+.inventory-adjustment,
+.inventory-adjustment__form {
+  display: grid;
+  gap: 16px;
+  max-width: 760px;
+}
+
+.inventory-adjustment__grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.inventory-adjustment__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+

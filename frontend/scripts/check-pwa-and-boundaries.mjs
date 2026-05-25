@@ -36,14 +36,19 @@ const rawHttpClientPatterns = [
 ];
 const trustedScopeFieldPattern = /\baccountId\b|\baccount_id\b/;
 const featureApiDeletePattern = /\bthis\.api\.delete\s*(?:<[^>\n]+>)?\s*\(/;
+const frontendInventoryAllocationPatterns = [
+  /\bFEFO\b/i,
+  /\binventory\s*allocation\b/i,
+  /\ballocate[A-Za-z]*Lots\b/,
+  /\bquantityRemaining\s*[+\-*/]?=/,
+  /\bquantityRemaining\s*:\s*[^,\n]+[+\-*/]\s*[^,\n]+/,
+];
 const deferredPhase7FeatureDirectories = [
   'activities',
   'ai',
   'calendar',
-  'inventory',
   'mcp',
   'problems',
-  'products',
   'push',
   'storage',
   'tasks',
@@ -110,7 +115,17 @@ const findFrontendBoundaryViolations = (relativePath, content) => {
 
   if (isFeatureApiServiceFile(relativePath) && featureApiDeletePattern.test(content)) {
     violations.push(
-      `Phase 7 feature API services must archive historical records through POST /archive, not DELETE, in ${relativePath}.`,
+      `Feature API services must archive historical records through POST /archive, not DELETE, in ${relativePath}.`,
+    );
+  }
+
+  if (
+    (relativePath.startsWith('src/app/features/products/') ||
+      relativePath.startsWith('src/app/features/inventory/')) &&
+    frontendInventoryAllocationPatterns.some((pattern) => pattern.test(content))
+  ) {
+    violations.push(
+      `Phase 10 frontend code must not implement inventory allocation or direct stock mutation logic in ${relativePath}.`,
     );
   }
 
@@ -191,6 +206,12 @@ assertBoundarySelfTestRejects(
   'not DELETE',
   'src/app/features/plants/plants-api.service.ts',
 );
+assertBoundarySelfTestRejects(
+  'frontend inventory allocation logic',
+  'const lots = allocateLots(productLots, requestedQuantity);',
+  'inventory allocation',
+  'src/app/features/inventory/example.ts',
+);
 
 const angular = readJson('angular.json');
 const productionBuild = angular.projects?.frontend?.architect?.build?.configurations?.production;
@@ -247,7 +268,7 @@ for (const directory of deferredPhase7FeatureDirectories) {
 
   if (existsSync(featureDirectory) && statSync(featureDirectory).isDirectory()) {
     fail(
-      `Phase 7 must not implement deferred feature domain "${directory}" yet; keep it as a placeholder route.`,
+      `Frontend must not implement deferred feature domain "${directory}" yet; keep it as a placeholder route.`,
     );
   }
 }

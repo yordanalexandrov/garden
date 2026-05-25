@@ -1,0 +1,59 @@
+<form class="product-form" [formGroup]="form" (ngSubmit)="submit()">
+  <app-api-error-summary [error]="apiError()" />
+
+  <mat-form-field appearance="outline">
+    <mat-label>Name</mat-label>
+    <input matInput formControlName="name" />
+    @if (form.controls.name.hasError('required')) {
+      <mat-error>Name is required.</mat-error>
+    }
+  </mat-form-field>
+
+  <div class="product-form__grid">
+    <mat-form-field appearance="outline">
+      <mat-label>Category</mat-label>
+      <mat-select formControlName="category">
+        @for (category of categories; track category) {
+          <mat-option [value]="category">{{ category }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Default unit</mat-label>
+      <mat-select formControlName="defaultUnit">
+        @for (unit of units; track unit) {
+          <mat-option [value]="unit">{{ unit }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  <div class="product-form__grid">
+    <mat-form-field appearance="outline">
+      <mat-label>Active substance</mat-label>
+      <input matInput formControlName="activeSubstance" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Manufacturer</mat-label>
+      <input matInput formControlName="manufacturer" />
+    </mat-form-field>
+  </div>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Formulation</mat-label>
+    <input matInput formControlName="formulation" />
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Notes</mat-label>
+    <textarea matInput formControlName="notes" rows="4"></textarea>
+  </mat-form-field>
+
+  <div class="product-form__actions">
+    <button mat-stroked-button type="button" (click)="cancelled.emit()">Cancel</button>
+    <button mat-flat-button type="submit" [disabled]="saving()">Save</button>
+  </div>
+</form>
+

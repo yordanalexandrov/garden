@@ -1,0 +1,66 @@
+<section class="inventory-page" aria-labelledby="inventory-title">
+  <app-page-header title="Inventory" titleId="inventory-title" subtitle="Backend-returned stock balances and lots" icon="inventory_2">
+    <a mat-flat-button page-actions routerLink="/inventory/adjustments/new">
+      <mat-icon aria-hidden="true" fontIcon="tune" />
+      Adjust stock
+    </a>
+  </app-page-header>
+
+  <form class="inventory-page__filters" [formGroup]="filters" (ngSubmit)="search()">
+    <mat-form-field appearance="outline">
+      <mat-label>Search</mat-label>
+      <input matInput type="search" formControlName="q" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Category</mat-label>
+      <mat-select formControlName="category">
+        <mat-option value="">Any</mat-option>
+        @for (category of categories; track category) {
+          <mat-option [value]="category">{{ category }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Expiring before</mat-label>
+      <input matInput type="date" formControlName="expiringBefore" />
+    </mat-form-field>
+
+    <mat-checkbox formControlName="lowStockOnly">Low stock</mat-checkbox>
+
+    <button mat-stroked-button type="submit">
+      <mat-icon aria-hidden="true" fontIcon="search" />
+      Search
+    </button>
+  </form>
+
+  <app-api-error-summary [error]="error()" />
+
+  @if (loading()) {
+    <p class="inventory-page__muted">Loading inventory...</p>
+  } @else if (items().length === 0) {
+    <app-empty-state title="No inventory rows" message="Add product lots to build stock history." icon="inventory_2" />
+  } @else {
+    <div class="inventory-page__grid">
+      @for (item of items(); track item.productId) {
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>{{ item.productName }}</mat-card-title>
+            <mat-card-subtitle>{{ item.category }}</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <p>{{ item.quantityRemaining }} {{ item.unit }}</p>
+            <p>Lots: {{ item.lotsCount }}</p>
+            <p>Nearest expiry: {{ item.nearestExpiryDate || 'not set' }}</p>
+          </mat-card-content>
+          <mat-card-actions align="end">
+            <a mat-button [routerLink]="['/inventory/products', item.productId]">Open</a>
+            <a mat-button [routerLink]="['/inventory/products', item.productId, 'lots', 'new']">Add lot</a>
+          </mat-card-actions>
+        </mat-card>
+      }
+    </div>
+  }
+</section>
+

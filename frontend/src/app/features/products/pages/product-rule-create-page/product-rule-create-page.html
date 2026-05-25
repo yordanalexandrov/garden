@@ -1,0 +1,9 @@
+<section aria-labelledby="product-rule-create-title">
+  <app-page-header title="New Product Usage Rule" titleId="product-rule-create-title" subtitle="Plant-specific product guidance" icon="rule" />
+  <app-product-rule-form
+    [apiError]="error()"
+    [saving]="saving()"
+    (submitted)="createRule($event)"
+    (cancelled)="cancel()"
+  />
+</section>

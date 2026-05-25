@@ -1,0 +1,18 @@
+.product-form {
+  display: grid;
+  gap: 16px;
+  max-width: 760px;
+}
+
+.product-form__grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.product-form__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+

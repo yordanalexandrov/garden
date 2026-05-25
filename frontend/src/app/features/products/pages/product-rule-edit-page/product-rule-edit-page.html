@@ -1,0 +1,15 @@
+<section aria-labelledby="product-rule-edit-title">
+  <app-page-header title="Edit Product Usage Rule" titleId="product-rule-edit-title" subtitle="Update product guidance" icon="rule">
+    <button mat-stroked-button page-actions type="button" (click)="archiveRule()">
+      <mat-icon aria-hidden="true" fontIcon="archive" />
+      Archive
+    </button>
+  </app-page-header>
+  <app-product-rule-form
+    [rule]="rule()"
+    [apiError]="error()"
+    [saving]="saving()"
+    (submitted)="updateRule($event)"
+    (cancelled)="cancel()"
+  />
+</section>

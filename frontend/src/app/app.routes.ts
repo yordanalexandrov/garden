@@ -6,6 +6,8 @@ import { NotFoundPage } from './features/not-found/not-found-page';
 import { FeaturePlaceholderPage } from './features/placeholders/feature-placeholder-page';
 import { placesRoutes } from './features/places/places.routes';
 import { plantsRoutes } from './features/plants/plants.routes';
+import { inventoryRoutes } from './features/inventory/inventory.routes';
+import { productRulesRoutes, productsRoutes } from './features/products/products.routes';
 
 const placeholderRoute = (path: string, title: string, pathMatch?: 'full'): Route => ({
   path,
@@ -22,58 +24,9 @@ export const routes: Routes = [
   { path: 'places', children: placesRoutes },
   { path: 'beds/:bedId', title: 'Bed Detail', component: BedDetailPage },
   { path: 'plants', children: plantsRoutes },
-  {
-    path: 'products',
-    children: [
-      placeholderRoute('', 'Products', 'full'),
-      placeholderRoute('new', 'New Product'),
-      {
-        path: ':productId',
-        children: [
-          placeholderRoute('', 'Product Detail', 'full'),
-          placeholderRoute('edit', 'Edit Product'),
-          {
-            path: 'rules',
-            children: [placeholderRoute('new', 'New Product Usage Rule')],
-          },
-        ],
-      },
-    ],
-  },
-  {
-    path: 'product-rules',
-    children: [
-      {
-        path: ':ruleId',
-        children: [placeholderRoute('edit', 'Edit Product Usage Rule')],
-      },
-    ],
-  },
-  {
-    path: 'inventory',
-    children: [
-      placeholderRoute('', 'Inventory', 'full'),
-      {
-        path: 'products',
-        children: [
-          {
-            path: ':productId',
-            children: [
-              placeholderRoute('', 'Product Inventory', 'full'),
-              {
-                path: 'lots',
-                children: [placeholderRoute('new', 'New Inventory Lot')],
-              },
-            ],
-          },
-        ],
-      },
-      {
-        path: 'adjustments',
-        children: [placeholderRoute('new', 'New Inventory Adjustment')],
-      },
-    ],
-  },
+  { path: 'products', children: productsRoutes },
+  { path: 'product-rules', children: productRulesRoutes },
+  { path: 'inventory', children: inventoryRoutes },
   {
     path: 'activities',
     children: [
