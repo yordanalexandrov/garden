@@ -1,5 +1,7 @@
 # Phase 17 — Frontend Problems and Photos Flow
 
+Executable step tasks for this phase are in `docs/implementation-phases/phase-17/`.
+
 ## 1. Purpose
 
 This phase implements frontend problems list/detail/create flow with problem-only photo upload behavior. It supports field recording of problems and observations while preserving backend storage boundaries.
