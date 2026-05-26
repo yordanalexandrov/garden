@@ -10,6 +10,7 @@ import type {
 } from "../../db/database.types.js";
 import type { DbHandle } from "../../db/transaction.js";
 import type { UUID } from "../auth/auth.types.js";
+import type { InventoryMovementType } from "../inventory/inventory.types.js";
 import type { SimpleUnit } from "../products/products.types.js";
 import type { TargetRef, TargetScopeType, TargetSelection, TargetSummary, TargetType } from "../targets/target-resolver.types.js";
 
@@ -188,6 +189,48 @@ export type CreateActivityResult = {
   inventoryEffects: InventoryMovementSummary[];
   quarantinePeriods: QuarantinePeriod[];
   suggestedTasks: SuggestedTask[];
+  warnings: string[];
+};
+
+export type ActivityCorrectionDirection = "increase_lot" | "decrease_lot";
+
+export type ActivityInventoryCorrectionInput = {
+  inventoryMovementId: UUID;
+  direction: ActivityCorrectionDirection;
+  quantity: number;
+  unit: SimpleUnit;
+  notes?: string | null;
+};
+
+export type CorrectActivityRequest = {
+  reason: string;
+  inventoryCorrections: ActivityInventoryCorrectionInput[];
+};
+
+export type ActivityCorrectionLotEffect = {
+  inventoryLotId: UUID;
+  beforeQuantityRemaining: number;
+  afterQuantityRemaining: number;
+};
+
+export type ActivityCorrectionMovementSummary = {
+  id: UUID;
+  productId: UUID;
+  inventoryLotId: UUID | null;
+  movementType: Extract<InventoryMovementType, "correction">;
+  quantity: number;
+  unit: SimpleUnit;
+  activityId: UUID | null;
+  occurredAt: Date;
+  notes: string | null;
+  createdAt: Date;
+};
+
+export type CorrectActivityResult = {
+  activityId: UUID;
+  correctionMovements: ActivityCorrectionMovementSummary[];
+  lotEffects: ActivityCorrectionLotEffect[];
+  auditLogId: UUID;
   warnings: string[];
 };
 

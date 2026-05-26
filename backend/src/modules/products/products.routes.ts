@@ -3,6 +3,8 @@ import type { FastifyPluginCallback } from "fastify";
 import type { DbClient } from "../../db/transaction.js";
 import { successEnvelope } from "../../shared/api/envelope.js";
 import { validateRequest } from "../../shared/validation/request-validation.js";
+import { KyselyAuditLogsRepository } from "../audit/audit.repository.js";
+import { AuditService } from "../audit/audit.service.js";
 import { hasAuthDecorator, requireActor } from "../auth/request-actor.js";
 import { KyselyPlantsRepository } from "../plants/plants.repository.js";
 import {
@@ -166,7 +168,11 @@ function createProductsService(db: DbClient | undefined): ProductsService | unde
     return undefined;
   }
 
-  return new ProductsService(new KyselyProductsRepository(db), new KyselyPlantsRepository(db));
+  return new ProductsService(
+    new KyselyProductsRepository(db),
+    new KyselyPlantsRepository(db),
+    new AuditService(new KyselyAuditLogsRepository(db))
+  );
 }
 
 function requireProductsService(service: ProductsService | undefined): ProductsService {

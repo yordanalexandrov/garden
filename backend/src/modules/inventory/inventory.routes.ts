@@ -3,6 +3,8 @@ import type { FastifyPluginCallback } from "fastify";
 import type { DbClient } from "../../db/transaction.js";
 import { successEnvelope } from "../../shared/api/envelope.js";
 import { validateRequest } from "../../shared/validation/request-validation.js";
+import { KyselyAuditLogsRepository } from "../audit/audit.repository.js";
+import { AuditService } from "../audit/audit.service.js";
 import { hasAuthDecorator, requireActor } from "../auth/request-actor.js";
 import { KyselyProductsRepository } from "../products/products.repository.js";
 import {
@@ -133,7 +135,12 @@ function createInventoryService(db: DbClient | undefined): InventoryService | un
     return undefined;
   }
 
-  return new InventoryService(new KyselyInventoryRepository(db), new KyselyProductsRepository(db), db);
+  return new InventoryService(
+    new KyselyInventoryRepository(db),
+    new KyselyProductsRepository(db),
+    db,
+    new AuditService(new KyselyAuditLogsRepository(db))
+  );
 }
 
 function requireInventoryService(service: InventoryService | undefined): InventoryService {

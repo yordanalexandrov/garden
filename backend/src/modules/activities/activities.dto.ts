@@ -2,6 +2,7 @@ import type {
   ActivityDetail,
   ActivityListItem,
   ActivityProductUsage,
+  CorrectActivityResult,
   CreateActivityResult,
   InventoryMovementSummary,
   QuarantinePeriod,
@@ -18,6 +19,24 @@ export function toActivityListItemDto(item: ActivityListItem): ActivityListItemD
     targetSummary: item.targetSummary,
     productSummary: item.productSummary,
     sideEffects: item.sideEffects
+  };
+}
+
+export function toCorrectActivityResultDto(result: CorrectActivityResult): CorrectActivityResultDto {
+  return {
+    activityId: result.activityId,
+    correctionMovements: result.correctionMovements.map((movement) => ({
+      movementId: movement.id,
+      productId: movement.productId,
+      inventoryLotId: movement.inventoryLotId,
+      quantity: movement.quantity,
+      unit: movement.unit
+    })),
+    lotEffects: result.lotEffects,
+    auditLog: {
+      id: result.auditLogId
+    },
+    warnings: result.warnings
   };
 }
 
@@ -146,5 +165,13 @@ type CreateActivityResultDto = {
   inventoryEffects: InventoryEffectDto[];
   quarantinePeriods: QuarantinePeriodDto[];
   suggestedTasks: SuggestedTaskDto[];
+  warnings: string[];
+};
+
+type CorrectActivityResultDto = {
+  activityId: string;
+  correctionMovements: InventoryEffectDto[];
+  lotEffects: CorrectActivityResult["lotEffects"];
+  auditLog: { id: string };
   warnings: string[];
 };

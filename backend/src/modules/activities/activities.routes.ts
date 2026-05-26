@@ -3,20 +3,24 @@ import type { FastifyPluginCallback } from "fastify";
 import type { DbClient } from "../../db/transaction.js";
 import { successEnvelope } from "../../shared/api/envelope.js";
 import { validateRequest } from "../../shared/validation/request-validation.js";
+import { KyselyAuditLogsRepository } from "../audit/audit.repository.js";
+import { AuditService } from "../audit/audit.service.js";
 import { hasAuthDecorator, requireActor } from "../auth/request-actor.js";
 import { KyselyInventoryRepository } from "../inventory/inventory.repository.js";
 import { KyselyProductsRepository } from "../products/products.repository.js";
 import { KyselyTargetResolverRepository } from "../targets/target-resolver.repository.js";
 import { BackendTargetResolver } from "../targets/target-resolver.service.js";
-import { toActivityDetailDto, toActivityListItemDto, toCreateActivityResultDto } from "./activities.dto.js";
+import { toActivityDetailDto, toActivityListItemDto, toCorrectActivityResultDto, toCreateActivityResultDto } from "./activities.dto.js";
 import { KyselyActivitiesRepository } from "./activities.repository.js";
 import { ActivitiesService } from "./activities.service.js";
-import type { CreateActivityRequest, ListActivitiesFilters } from "./activities.types.js";
+import type { CorrectActivityRequest, CreateActivityRequest, ListActivitiesFilters } from "./activities.types.js";
 import {
   activityListQuerySchema,
   activityParamsSchema,
+  correctActivityBodySchema,
   createActivityBodySchema,
   type ActivityListQuery,
+  type CorrectActivityBody,
   type CreateActivityBody
 } from "./activities.validation.js";
 
@@ -49,6 +53,21 @@ export const registerActivitiesRoutes: FastifyPluginCallback<ActivitiesRouteOpti
     return successEnvelope(toCreateActivityResultDto(result));
   });
 
+  app.post("/:activityId/correct", protectedRoute, async (request) => {
+    const actor = requireActor(request);
+    const { params, body } = validateRequest(request, {
+      params: activityParamsSchema,
+      body: correctActivityBodySchema
+    });
+    const result = await requireActivitiesService(activitiesService).correctActivity(
+      actor,
+      params.activityId,
+      toCorrectActivityRequest(body)
+    );
+
+    return successEnvelope(toCorrectActivityResultDto(result));
+  });
+
   app.get("/:activityId", protectedRoute, async (request) => {
     const actor = requireActor(request);
     const { params } = validateRequest(request, { params: activityParamsSchema });
@@ -70,7 +89,8 @@ function createActivitiesService(db: DbClient | undefined): ActivitiesService | 
     new KyselyProductsRepository(db),
     new KyselyInventoryRepository(db),
     new BackendTargetResolver(new KyselyTargetResolverRepository(db)),
-    db
+    db,
+    new AuditService(new KyselyAuditLogsRepository(db))
   );
 }
 
@@ -152,4 +172,17 @@ function toCreateActivityRequest(body: CreateActivityBody): CreateActivityReques
   }
 
   return request;
+}
+
+function toCorrectActivityRequest(body: CorrectActivityBody): CorrectActivityRequest {
+  return {
+    reason: body.reason,
+    inventoryCorrections: body.inventoryCorrections.map((correction) => ({
+      inventoryMovementId: correction.inventoryMovementId,
+      direction: correction.direction,
+      quantity: correction.quantity,
+      unit: correction.unit,
+      ...(correction.notes === undefined ? {} : { notes: correction.notes })
+    }))
+  };
 }

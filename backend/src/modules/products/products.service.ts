@@ -1,5 +1,6 @@
 import type { DbHandle } from "../../db/transaction.js";
 import { AppError } from "../../shared/errors/app-error.js";
+import type { AuditService } from "../audit/audit.service.js";
 import type { AuthenticatedActor, UUID } from "../auth/auth.types.js";
 import type { PlantsRepository } from "../plants/plants.types.js";
 import {
@@ -25,7 +26,8 @@ export type CreateProductUsageRuleServiceInput = Omit<CreateProductUsageRuleInpu
 export class ProductsService {
   constructor(
     private readonly productsRepository: ProductsRepository,
-    private readonly plantsRepository: PlantsRepository
+    private readonly plantsRepository: PlantsRepository,
+    private readonly auditService?: AuditService
   ) {}
 
   async listProducts(actor: AuthenticatedActor, filters: ListProductsFilters, db?: DbHandle): Promise<PaginatedProducts> {
@@ -86,6 +88,26 @@ export class ProductsService {
         throw productNotFoundError();
       }
 
+      await this.auditService?.logActorEvent(
+        {
+          actor,
+          entityType: "product",
+          entityId: updated.id,
+          action: "product.updated",
+          beforeJson: {
+            name: existing.name,
+            category: existing.category,
+            defaultUnit: existing.defaultUnit
+          },
+          afterJson: {
+            name: updated.name,
+            category: updated.category,
+            defaultUnit: updated.defaultUnit
+          }
+        },
+        db
+      );
+
       return updated;
     } catch (error) {
       mapProductWriteError(error);
@@ -93,11 +115,33 @@ export class ProductsService {
   }
 
   async archiveProduct(actor: AuthenticatedActor, productId: UUID, db?: DbHandle): Promise<void> {
+    const existing = await this.productsRepository.findById(actor.accountId, productId, db);
+
+    if (existing === null) {
+      throw productNotFoundError();
+    }
+
     const archived = await this.productsRepository.archive(actor.accountId, productId, db);
 
     if (!archived) {
       throw productNotFoundError();
     }
+
+    await this.auditService?.logActorEvent(
+      {
+        actor,
+        entityType: "product",
+        entityId: productId,
+        action: "product.archived",
+        beforeJson: {
+          archivedAt: existing.archivedAt?.toISOString() ?? null
+        },
+        afterJson: {
+          archived: true
+        }
+      },
+      db
+    );
   }
 
   async listProductUsageRules(actor: AuthenticatedActor, productId: UUID, db?: DbHandle): Promise<ProductUsageRule[]> {
@@ -173,6 +217,28 @@ export class ProductsService {
         throw productUsageRuleNotFoundError();
       }
 
+      await this.auditService?.logActorEvent(
+        {
+          actor,
+          entityType: "product_usage_rule",
+          entityId: updated.id,
+          action: "product_usage_rule.updated",
+          beforeJson: {
+            productId: existing.productId,
+            plantId: existing.plantId,
+            doseValue: existing.doseValue,
+            doseUnit: existing.doseUnit
+          },
+          afterJson: {
+            productId: updated.productId,
+            plantId: updated.plantId,
+            doseValue: updated.doseValue,
+            doseUnit: updated.doseUnit
+          }
+        },
+        db
+      );
+
       return updated;
     } catch (error) {
       mapProductUsageRuleWriteError(error);
@@ -180,11 +246,33 @@ export class ProductsService {
   }
 
   async archiveProductUsageRule(actor: AuthenticatedActor, ruleId: UUID, db?: DbHandle): Promise<void> {
+    const existing = await this.productsRepository.findUsageRuleById(actor.accountId, ruleId, db);
+
+    if (existing === null) {
+      throw productUsageRuleNotFoundError();
+    }
+
     const archived = await this.productsRepository.archiveUsageRule(actor.accountId, ruleId, db);
 
     if (!archived) {
       throw productUsageRuleNotFoundError();
     }
+
+    await this.auditService?.logActorEvent(
+      {
+        actor,
+        entityType: "product_usage_rule",
+        entityId: ruleId,
+        action: "product_usage_rule.archived",
+        beforeJson: {
+          archivedAt: existing.archivedAt?.toISOString() ?? null
+        },
+        afterJson: {
+          archived: true
+        }
+      },
+      db
+    );
   }
 
   private async assertProductAndPlantInActorAccount(

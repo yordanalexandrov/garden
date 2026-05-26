@@ -8,15 +8,15 @@ Implementation agents must update this file in the same branch/PR whenever phase
 
 ## Current Position
 
-- Last implemented phase: Phase 12 - Backend Activity Transaction Flow.
-- Last implemented step: Phase 12 Step 7 - Phase 12 Verification and PR Readiness.
-- Last implemented step file: `docs/implementation-phases/phase-12/07-phase-12-verification-and-pr-readiness.md`.
-- Last implementation commit observed: Phase 12 backend activity transaction implementation on `feature/backend-activity-transaction`.
-- Next implementation phase: Phase 13 - Backend Activity Correction and Audit Trail.
-- Next implementation step: Phase 13 Step 1 - Audit Module Contracts, Repository, and Helper.
-- Next implementation step file: `docs/implementation-phases/phase-13/01-audit-module-contracts-repository-and-helper.md`.
+- Last implemented phase: Phase 13 - Backend Activity Correction and Audit Trail.
+- Last implemented step: Phase 13 Step 6 - Phase 13 Verification and PR Readiness.
+- Last implemented step file: `docs/implementation-phases/phase-13/06-phase-13-verification-and-pr-readiness.md`.
+- Last implementation commit observed: Phase 13 backend activity correction and audit implementation on `feature/activity-correction-audit`.
+- Next implementation phase: Phase 14 - Frontend Activities and Create Activity Flow.
+- Next implementation step: Phase 14 Step 1 - Activities API Services and Feature Scaffold.
+- Next implementation step file: `docs/implementation-phases/phase-14/01-activities-api-services-and-feature-scaffold.md`.
 
-Note: Phase 6 completed the backend growing-structure API for perennials, beds, persistent bed plants, and yearly bed plantings with account-scoped Fastify handlers, canonical envelopes, archive behavior, historical bed occupancy reads, and duplicate same bed/plant/year yearly planting support. Phase 7 completed the Angular frontend garden-structure pages for places, plants, perennials, beds, persistent bed plants, and yearly plantings. Phase 8 completed the backend products and product usage rules APIs with account-scoped Fastify handlers, canonical envelopes, product category/unit validation, product/rule archive behavior, duplicate active product+plant rule enforcement, product/plant/account consistency checks, placeholder-compatible inventory summary fields, and focused validation/service/repository/route/guard tests. Phase 9 completed the backend inventory ledger API with account-scoped inventory overview, product lot listing, transactional lot purchase movement creation, movement history, transactional manual adjustments, audit log writes for inventory mutations, FEFO allocation and shortage/unit policy helpers, validation/DTO mapping, route wiring, and focused unit/API/guard/scope tests. Phase 10 completed the Angular frontend products and inventory pages with typed products/rules/inventory API services, product CRUD/archive UI, product detail with rules/lots/movements, usage rule forms with plant selector, inventory overview/detail, add-lot and manual-adjustment forms, movement-history navigation, visible API errors, and frontend boundary/static tests. Phase 11 completed the backend target resolver with canonical target contracts, validation/DTO helpers, account/place-scoped repository lookups, whole-place/all-group/selected-scope resolution, empty-result and partial-success rejection, transaction-compatible invocation, and focused validation/resolver tests. Phase 12 completed the backend activities list/detail/create APIs with service-owned transaction orchestration, resolved activity targets, product usage validation, FEFO consumption movements, shortage handling, rule-derived quarantine periods, suggested follow-up tasks without reminders, canonical side-effect arrays, and focused route/transaction regression tests. Activity correction, problems/photos, manual task lifecycle/reminders, calendar behavior, weather, AI, push, storage, provider, and MCP business tools remain deferred. Phase 13 through Phase 28 remain not implemented.
+Note: Phase 6 completed the backend growing-structure API for perennials, beds, persistent bed plants, and yearly bed plantings with account-scoped Fastify handlers, canonical envelopes, archive behavior, historical bed occupancy reads, and duplicate same bed/plant/year yearly planting support. Phase 7 completed the Angular frontend garden-structure pages for places, plants, perennials, beds, persistent bed plants, and yearly plantings. Phase 8 completed the backend products and product usage rules APIs with account-scoped Fastify handlers, canonical envelopes, product category/unit validation, product/rule archive behavior, duplicate active product+plant rule enforcement, product/plant/account consistency checks, placeholder-compatible inventory summary fields, and focused validation/service/repository/route/guard tests. Phase 9 completed the backend inventory ledger API with account-scoped inventory overview, product lot listing, transactional lot purchase movement creation, movement history, transactional manual adjustments, audit log writes for inventory mutations, FEFO allocation and shortage/unit policy helpers, validation/DTO mapping, route wiring, and focused unit/API/guard/scope tests. Phase 10 completed the Angular frontend products and inventory pages with typed products/rules/inventory API services, product CRUD/archive UI, product detail with rules/lots/movements, usage rule forms with plant selector, inventory overview/detail, add-lot and manual-adjustment forms, movement-history navigation, visible API errors, and frontend boundary/static tests. Phase 11 completed the backend target resolver with canonical target contracts, validation/DTO helpers, account/place-scoped repository lookups, whole-place/all-group/selected-scope resolution, empty-result and partial-success rejection, transaction-compatible invocation, and focused validation/resolver tests. Phase 12 completed the backend activities list/detail/create APIs with service-owned transaction orchestration, resolved activity targets, product usage validation, FEFO consumption movements, shortage handling, rule-derived quarantine periods, suggested follow-up tasks without reminders, canonical side-effect arrays, and focused route/transaction regression tests. Phase 13 completed the backend audit module foundation, representative critical-operation audit integration, and account-scoped activity inventory correction endpoint with append-only correction movements, lot updates, audit rows, supported-case documentation, and focused validation/route tests. Problems/photos, manual task lifecycle/reminders, calendar behavior, weather, AI, push, storage, provider, and MCP business tools remain deferred. Phase 14 through Phase 28 remain not implemented.
 
 ## Status Legend
 
@@ -39,7 +39,7 @@ Note: Phase 6 completed the backend growing-structure API for perennials, beds, 
 - [x] Phase 10 - Frontend Products and Inventory Pages - implemented.
 - [x] Phase 11 - Backend Target Resolver - implemented.
 - [x] Phase 12 - Backend Activity Transaction Flow - implemented.
-- [ ] Phase 13 - Backend Activity Correction and Audit Trail - not implemented; task docs ready.
+- [x] Phase 13 - Backend Activity Correction and Audit Trail - implemented.
 - [ ] Phase 14 - Frontend Activities and Create Activity Flow - not implemented; Task docs ready.
 - [ ] Phase 15 - Backend Problems and Observations API - not implemented; Task docs ready.
 - [ ] Phase 16 - Backend Problem Photo Storage - not implemented; task docs ready.
@@ -189,14 +189,14 @@ Implemented.
 
 ### Phase 13 - Backend Activity Correction and Audit Trail
 
-Task docs ready only; implementation is not started.
+Implemented.
 
-- [ ] Step 1 - Audit Module Contracts, Repository, and Helper.
-- [ ] Step 2 - Critical Operation Audit Integration.
-- [ ] Step 3 - Activity Correction Contract, Validation, and Route.
-- [ ] Step 4 - Activity Correction Transaction and Compensating Effects.
-- [ ] Step 5 - Correction/Audit Account Scope, Rollback, and Guards.
-- [ ] Step 6 - Phase 13 Verification and PR Readiness.
+- [x] Step 1 - Audit Module Contracts, Repository, and Helper.
+- [x] Step 2 - Critical Operation Audit Integration.
+- [x] Step 3 - Activity Correction Contract, Validation, and Route.
+- [x] Step 4 - Activity Correction Transaction and Compensating Effects.
+- [x] Step 5 - Correction/Audit Account Scope, Rollback, and Guards.
+- [x] Step 6 - Phase 13 Verification and PR Readiness.
 
 ### Phase 14 - Frontend Activities and Create Activity Flow
 
@@ -247,14 +247,16 @@ Task docs ready only; implementation is not started.
 
 ## Next Phase Step Checklist
 
-### Phase 13 - Backend Activity Correction and Audit Trail
+### Phase 14 - Frontend Activities and Create Activity Flow
 
-- [ ] Step 1 - Audit Module Contracts, Repository, and Helper.
-- [ ] Step 2 - Critical Operation Audit Integration.
-- [ ] Step 3 - Activity Correction Contract, Validation, and Route.
-- [ ] Step 4 - Activity Correction Transaction and Compensating Effects.
-- [ ] Step 5 - Correction/Audit Account Scope, Rollback, and Guards.
-- [ ] Step 6 - Phase 13 Verification and PR Readiness.
+- [ ] Step 1 - Activities API Services and Feature Scaffold.
+- [ ] Step 2 - Activities List and Detail Pages.
+- [ ] Step 3 - Bulk Target Selector.
+- [ ] Step 4 - Product Usage Form Array.
+- [ ] Step 5 - Create Activity Form and Review Flow.
+- [ ] Step 6 - Create Activity Submit, Errors, and Side-Effect Summary.
+- [ ] Step 7 - Frontend Regression, Boundary, and Error-Display Tests.
+- [ ] Step 8 - Phase 14 Verification and PR Readiness.
 
 ## Update Rules
 

@@ -4,8 +4,6 @@ import type { InventoryLotsTable, InventoryMovementsTable, InventoryProductBalan
 import type { DbHandle } from "../../db/transaction.js";
 import type { UUID } from "../auth/auth.types.js";
 import type {
-  AuditLogRow,
-  CreateAuditLogInput,
   CreateInventoryLotInput,
   CreateInventoryMovementInput,
   InventoryLot,
@@ -47,19 +45,6 @@ const INVENTORY_MOVEMENT_COLUMNS = [
   "activity_id",
   "occurred_at",
   "notes",
-  "created_at"
-] as const;
-
-const AUDIT_LOG_COLUMNS = [
-  "id",
-  "account_id",
-  "actor_type",
-  "actor_id",
-  "entity_type",
-  "entity_id",
-  "action",
-  "before_json",
-  "after_json",
   "created_at"
 ] as const;
 
@@ -236,6 +221,17 @@ export class KyselyInventoryRepository implements InventoryRepository {
     return rows.map(toInventoryLot);
   }
 
+  async findMovementById(accountId: UUID, movementId: UUID, db: DbHandle = this.dbHandle): Promise<InventoryMovement | null> {
+    const row = await db.db
+      .selectFrom("inventory_movements")
+      .select(INVENTORY_MOVEMENT_COLUMNS)
+      .where("account_id", "=", accountId)
+      .where("id", "=", movementId)
+      .executeTakeFirst();
+
+    return row === undefined ? null : toInventoryMovement(row);
+  }
+
   async createLot(input: CreateInventoryLotInput, db: DbHandle = this.dbHandle): Promise<InventoryLot> {
     const row = await db.db
       .insertInto("inventory_lots")
@@ -317,24 +313,6 @@ export class KyselyInventoryRepository implements InventoryRepository {
     return row === undefined ? null : toInventoryLot(row);
   }
 
-  async createAuditLog(input: CreateAuditLogInput, db: DbHandle = this.dbHandle): Promise<AuditLogRow> {
-    const row = await db.db
-      .insertInto("audit_logs")
-      .values({
-        account_id: input.accountId,
-        actor_type: input.actorType,
-        actor_id: input.actorId ?? null,
-        entity_type: input.entityType,
-        entity_id: input.entityId,
-        action: input.action,
-        before_json: input.beforeJson ?? null,
-        after_json: input.afterJson ?? null
-      })
-      .returning(AUDIT_LOG_COLUMNS)
-      .executeTakeFirstOrThrow();
-
-    return row;
-  }
 }
 
 function toInventoryOverviewItem(row: InventoryProductBalance): InventoryOverviewItem {
