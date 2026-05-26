@@ -1,7 +1,9 @@
 import type { DbClient, DbHandle } from "../../db/transaction.js";
 import { AppError } from "../../shared/errors/app-error.js";
+import type { AuditService } from "../audit/audit.service.js";
 import type { AuthenticatedActor, UUID } from "../auth/auth.types.js";
 import { allocateInventoryFefo } from "../inventory/inventory-allocator.js";
+import { assertSameInventoryUnit } from "../inventory/inventory-policy.js";
 import type { InventoryRepository } from "../inventory/inventory.types.js";
 import type { Product, ProductsRepository, ProductUsageRule } from "../products/products.types.js";
 import type { ResolvedTarget, TargetRef, TargetResolver } from "../targets/target-resolver.types.js";
@@ -9,8 +11,12 @@ import type {
   ActivitiesRepository,
   ActivityType,
   ActivityDetail,
+  ActivityCorrectionDirection,
+  ActivityCorrectionMovementSummary,
   ActivityProductUsage,
   ActivityProductUsageInput,
+  CorrectActivityRequest,
+  CorrectActivityResult,
   CreateActivityRequest,
   CreateActivityResult,
   InventoryMovementSummary,
@@ -33,7 +39,8 @@ export class ActivitiesService {
     private readonly productsRepository: ProductsRepository,
     private readonly inventoryRepository: InventoryRepository,
     private readonly targetResolver: TargetResolver,
-    private readonly dbClient: DbClient
+    private readonly dbClient: DbClient,
+    private readonly auditService?: AuditService
   ) {}
 
   async listActivities(actor: AuthenticatedActor, filters: ListActivitiesFilters): Promise<PaginatedActivities> {
@@ -153,11 +160,9 @@ export class ActivitiesService {
         }
       }
 
-      await this.inventoryRepository.createAuditLog(
+      await this.auditService?.logActorEvent(
         {
-          accountId: actor.accountId,
-          actorType: "user",
-          actorId: actor.userId,
+          actor,
           entityType: "activity",
           entityId: activity.id,
           action: "activity.created",
@@ -183,6 +188,143 @@ export class ActivitiesService {
         quarantinePeriods,
         suggestedTasks,
         warnings
+      };
+    });
+  }
+
+  async correctActivity(actor: AuthenticatedActor, activityId: UUID, input: CorrectActivityRequest): Promise<CorrectActivityResult> {
+    if (this.auditService === undefined) {
+      throw new AppError("INTERNAL_ERROR", "Activity correction requires audit service");
+    }
+
+    const auditService = this.auditService;
+
+    return this.dbClient.transaction(async (trx) => {
+      const activity = await this.activitiesRepository.getDetail(actor.accountId, activityId, trx);
+
+      if (activity === null) {
+        throw new AppError("NOT_FOUND", "Activity not found");
+      }
+
+      if (activity.quarantinePeriods.length > 0 || activity.suggestedTasks.length > 0) {
+        throw new AppError(
+          "BUSINESS_RULE_VIOLATION",
+          "Activities with quarantine periods or suggested tasks cannot be corrected by v1 inventory correction"
+        );
+      }
+
+      const correctionMovements: ActivityCorrectionMovementSummary[] = [];
+      const lotEffects: CorrectActivityResult["lotEffects"] = [];
+
+      for (const correction of input.inventoryCorrections) {
+        const originalMovement = await this.inventoryRepository.findMovementById(
+          actor.accountId,
+          correction.inventoryMovementId,
+          trx
+        );
+
+        if (originalMovement === null || originalMovement.activityId !== activity.id) {
+          throw new AppError("NOT_FOUND", "Inventory movement not found for activity");
+        }
+
+        if (originalMovement.movementType !== "consumption") {
+          throw new AppError("BUSINESS_RULE_VIOLATION", "Only original consumption movements can be corrected");
+        }
+
+        if (originalMovement.inventoryLotId === null) {
+          throw new AppError("BUSINESS_RULE_VIOLATION", "Only lot-bound inventory movements can be corrected");
+        }
+
+        assertSameInventoryUnit(correction.unit, originalMovement.unit);
+
+        const lot = await this.inventoryRepository.findLotById(actor.accountId, originalMovement.inventoryLotId, trx);
+
+        if (lot === null) {
+          throw new AppError("NOT_FOUND", "Inventory lot not found");
+        }
+
+        if (lot.productId !== originalMovement.productId) {
+          throw new AppError("BUSINESS_RULE_VIOLATION", "Inventory lot must belong to movement product");
+        }
+
+        const movement = await this.inventoryRepository.createMovement(
+          {
+            accountId: actor.accountId,
+            productId: originalMovement.productId,
+            inventoryLotId: lot.id,
+            movementType: "correction",
+            quantity: correction.quantity,
+            unit: correction.unit,
+            activityId: activity.id,
+            occurredAt: new Date(),
+            notes: formatCorrectionMovementNotes(correction.direction, correction.notes ?? input.reason)
+          },
+          trx
+        );
+
+        const updatedLot =
+          correction.direction === "increase_lot"
+            ? await this.inventoryRepository.incrementLotRemainingQuantity(actor.accountId, lot.id, correction.quantity, trx)
+            : await this.inventoryRepository.decrementLotRemainingQuantity(actor.accountId, lot.id, correction.quantity, trx);
+
+        if (updatedLot === null) {
+          if (correction.direction === "decrease_lot") {
+            throw new AppError("INVENTORY_SHORTAGE", "Inventory correction cannot make lot quantity negative", {
+              quantity: ["Correction would make lot quantity negative"]
+            });
+          }
+
+          throw new AppError("NOT_FOUND", "Inventory lot not found");
+        }
+
+        correctionMovements.push({
+          id: movement.id,
+          productId: movement.productId,
+          inventoryLotId: movement.inventoryLotId,
+          movementType: "correction",
+          direction: correction.direction,
+          quantity: movement.quantity,
+          unit: movement.unit,
+          activityId: movement.activityId,
+          occurredAt: movement.occurredAt,
+          notes: movement.notes,
+          createdAt: movement.createdAt
+        });
+        lotEffects.push({
+          inventoryLotId: lot.id,
+          beforeQuantityRemaining:
+            correction.direction === "increase_lot"
+              ? updatedLot.quantityRemaining - correction.quantity
+              : updatedLot.quantityRemaining + correction.quantity,
+          afterQuantityRemaining: updatedLot.quantityRemaining
+        });
+      }
+
+      const auditLog = await auditService.logActorEvent(
+        {
+          actor,
+          entityType: "activity",
+          entityId: activity.id,
+          action: "activity.corrected",
+          beforeJson: {
+            activityId: activity.id,
+            inventoryMovementsCount: activity.inventoryMovements.length
+          },
+          afterJson: {
+            reason: input.reason,
+            correctionMovementIds: correctionMovements.map((movement) => movement.id),
+            lotEffects
+          }
+        },
+        trx
+      );
+
+      return {
+        activityId: activity.id,
+        correctionMovements,
+        lotEffects,
+        auditLogId: auditLog.id,
+        warnings: []
       };
     });
   }
@@ -414,4 +556,8 @@ function addDays(date: string, days: number): string {
   const value = new Date(`${date}T00:00:00.000Z`);
   value.setUTCDate(value.getUTCDate() + days);
   return dateOnly(value);
+}
+
+function formatCorrectionMovementNotes(direction: ActivityCorrectionDirection, notes: string): string {
+  return `correction_direction=${direction}; ${notes}`;
 }

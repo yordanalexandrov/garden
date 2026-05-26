@@ -1,6 +1,7 @@
 import type { DbHandle } from "../../db/transaction.js";
-import type { AuthenticatedActor, UUID } from "../auth/auth.types.js";
 import { AppError } from "../../shared/errors/app-error.js";
+import type { AuditService } from "../audit/audit.service.js";
+import type { AuthenticatedActor, UUID } from "../auth/auth.types.js";
 import type {
   CreatePlaceInput,
   ListPlacesFilters,
@@ -14,7 +15,10 @@ import type {
 export type CreatePlaceServiceInput = Omit<CreatePlaceInput, "accountId">;
 
 export class PlacesService {
-  constructor(private readonly placesRepository: PlacesRepository) {}
+  constructor(
+    private readonly placesRepository: PlacesRepository,
+    private readonly auditService?: AuditService
+  ) {}
 
   async listPlaces(actor: AuthenticatedActor, filters: ListPlacesFilters, db?: DbHandle): Promise<PaginatedPlaces> {
     return this.placesRepository.list(actor.accountId, filters, db);
@@ -78,6 +82,24 @@ export class PlacesService {
         throw notFoundError();
       }
 
+      await this.auditService?.logActorEvent(
+        {
+          actor,
+          entityType: "place",
+          entityId: updated.id,
+          action: "place.updated",
+          beforeJson: {
+            name: existing.name,
+            weatherEnabled: existing.weatherEnabled
+          },
+          afterJson: {
+            name: updated.name,
+            weatherEnabled: updated.weatherEnabled
+          }
+        },
+        db
+      );
+
       return updated;
     } catch (error) {
       mapPlaceWriteError(error);
@@ -85,11 +107,33 @@ export class PlacesService {
   }
 
   async archivePlace(actor: AuthenticatedActor, placeId: UUID, db?: DbHandle): Promise<void> {
+    const existing = await this.placesRepository.findById(actor.accountId, placeId, db);
+
+    if (existing === null) {
+      throw notFoundError();
+    }
+
     const archived = await this.placesRepository.archive(actor.accountId, placeId, db);
 
     if (!archived) {
       throw notFoundError();
     }
+
+    await this.auditService?.logActorEvent(
+      {
+        actor,
+        entityType: "place",
+        entityId: placeId,
+        action: "place.archived",
+        beforeJson: {
+          archivedAt: existing.archivedAt?.toISOString() ?? null
+        },
+        afterJson: {
+          archived: true
+        }
+      },
+      db
+    );
   }
 }
 

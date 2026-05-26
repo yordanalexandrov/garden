@@ -47,6 +47,23 @@ type CreateActivityResponse = {
   };
 };
 
+type CorrectActivityResponse = {
+  data: {
+    activityId: string;
+    correctionMovements: Array<{
+      movementId: string;
+      productId: string;
+      inventoryLotId: string;
+      direction: string;
+      quantity: number;
+      unit: string;
+    }>;
+    lotEffects: Array<{ inventoryLotId: string; beforeQuantityRemaining: number; afterQuantityRemaining: number }>;
+    auditLog: { id: string };
+    warnings: string[];
+  };
+};
+
 describe("Activities routes", () => {
   let app: FastifyInstance | undefined;
 
@@ -114,11 +131,37 @@ describe("Activities routes", () => {
       url: "/api/v1/activities?targetType=bed",
       headers: accountAAuthHeaders()
     });
+    const unsupportedCorrectionShape = await app.inject({
+      method: "POST",
+      url: `/api/v1/activities/${Ids.placeA}/correct`,
+      headers: accountAAuthHeaders(),
+      payload: {
+        reason: "Wrong date",
+        performedAt: "2026-05-14T08:00:00.000Z",
+        inventoryCorrections: []
+      }
+    });
+    const tooManyCorrections = await app.inject({
+      method: "POST",
+      url: `/api/v1/activities/${Ids.placeA}/correct`,
+      headers: accountAAuthHeaders(),
+      payload: {
+        reason: "Too many rows",
+        inventoryCorrections: Array.from({ length: 26 }, () => ({
+          inventoryMovementId: Ids.lotA1,
+          direction: "increase_lot",
+          quantity: 1,
+          unit: "g"
+        }))
+      }
+    });
 
     expect(invalidType.statusCode).toBe(400);
     expect(targetMismatch.statusCode).toBe(400);
     expect(badQuantity.statusCode).toBe(400);
     expect(partialTargetFilter.statusCode).toBe(400);
+    expect(unsupportedCorrectionShape.statusCode).toBe(400);
+    expect(tooManyCorrections.statusCode).toBe(400);
   });
 });
 
@@ -247,6 +290,191 @@ describeDatabase("Activities routes with database", () => {
       tasks: "1",
       reminders: "0"
     });
+
+    const audit = await pool.query<{ action: string }>(
+      "select action from audit_logs where entity_type = 'activity' and entity_id = $1",
+      [body.data.activity.id]
+    );
+    expect(audit.rows).toEqual([expect.objectContaining({ action: "activity.created" })]);
+  });
+
+  it("corrects supported activity inventory usage with correction movement, lot update, and audit row", async () => {
+    const created = await app!.inject({
+      method: "POST",
+      url: "/api/v1/activities",
+      headers: accountAAuthHeaders(),
+      payload: {
+        placeId: Ids.placeA,
+        type: "treatment",
+        performedAt: "2026-05-13T08:00:00.000Z",
+        targetScopeType: "selected_beds",
+        targetSelection: { bedIds: [Ids.bedA1] },
+        productUsages: [{ productId: Ids.productA, quantityUsed: 10, unit: "g" }],
+        allowInventoryShortage: false
+      }
+    });
+    const activityId = parseJsonResponse<CreateActivityResponse>(created).data.activity.id;
+    const originalMovementId = parseJsonResponse<CreateActivityResponse>(created).data.inventoryEffects[0]!.movementId;
+
+    const corrected = await app!.inject({
+      method: "POST",
+      url: `/api/v1/activities/${activityId}/correct`,
+      headers: accountAAuthHeaders(),
+      payload: {
+        reason: "Recorded 5 g too much",
+        inventoryCorrections: [
+          {
+            inventoryMovementId: originalMovementId,
+            direction: "increase_lot",
+            quantity: 5,
+            unit: "g"
+          }
+        ]
+      }
+    });
+
+    expect(corrected.statusCode).toBe(200);
+    const correctionBody = parseJsonResponse<CorrectActivityResponse>(corrected);
+    expect(correctionBody.data.activityId).toBe(activityId);
+    expect(correctionBody.data.correctionMovements).toEqual([
+      expect.objectContaining({
+        productId: Ids.productA,
+        inventoryLotId: Ids.lotA1,
+        direction: "increase_lot",
+        quantity: 5,
+        unit: "g"
+      })
+    ]);
+    expect(correctionBody.data.lotEffects).toEqual([
+      { inventoryLotId: Ids.lotA1, beforeQuantityRemaining: 10, afterQuantityRemaining: 15 }
+    ]);
+    expect(correctionBody.data.auditLog.id).toEqual(expect.any(String));
+    expect(correctionBody.data.warnings).toEqual([]);
+
+    const state = await pool.query<{
+      lot_remaining: string;
+      original_movements: string;
+      correction_movements: string;
+      activity_rows: string;
+      audit_rows: string;
+      correction_notes: string;
+    }>(
+      `select
+         (select quantity_remaining from inventory_lots where id = $1) as lot_remaining,
+         (select count(*) from inventory_movements where id = $2 and movement_type = 'consumption') as original_movements,
+         (select count(*) from inventory_movements where activity_id = $3 and movement_type = 'correction') as correction_movements,
+         (select count(*) from activities where id = $3) as activity_rows,
+         (select count(*) from audit_logs where entity_id = $3 and action = 'activity.corrected') as audit_rows,
+         (select notes from inventory_movements where activity_id = $3 and movement_type = 'correction') as correction_notes`,
+      [Ids.lotA1, originalMovementId, activityId]
+    );
+    expect(state.rows[0]).toMatchObject({
+      lot_remaining: "15",
+      original_movements: "1",
+      correction_movements: "1",
+      activity_rows: "1",
+      audit_rows: "1",
+      correction_notes: "correction_direction=increase_lot; Recorded 5 g too much"
+    });
+  });
+
+  it("rejects correction for account B activity access and unsupported generated side effects", async () => {
+    const created = await app!.inject({
+      method: "POST",
+      url: "/api/v1/activities",
+      headers: accountAAuthHeaders(),
+      payload: {
+        placeId: Ids.placeA,
+        type: "treatment",
+        performedAt: "2026-05-13T08:00:00.000Z",
+        targetScopeType: "selected_beds",
+        targetSelection: { bedIds: [Ids.bedA1] },
+        productUsages: [{ productId: Ids.productA, productUsageRuleId: Ids.ruleA, quantityUsed: 5, unit: "g" }],
+        allowInventoryShortage: false
+      }
+    });
+    const body = parseJsonResponse<CreateActivityResponse>(created);
+    const activityId = body.data.activity.id;
+    const originalMovementId = body.data.inventoryEffects[0]!.movementId;
+
+    const crossAccount = await app!.inject({
+      method: "POST",
+      url: `/api/v1/activities/${activityId}/correct`,
+      headers: accountBAuthHeaders(),
+      payload: {
+        reason: "Not mine",
+        inventoryCorrections: [
+          { inventoryMovementId: originalMovementId, direction: "increase_lot", quantity: 1, unit: "g" }
+        ]
+      }
+    });
+    const unsupported = await app!.inject({
+      method: "POST",
+      url: `/api/v1/activities/${activityId}/correct`,
+      headers: accountAAuthHeaders(),
+      payload: {
+        reason: "Would also need quarantine/task compensation",
+        inventoryCorrections: [
+          { inventoryMovementId: originalMovementId, direction: "increase_lot", quantity: 1, unit: "g" }
+        ]
+      }
+    });
+
+    expect(crossAccount.statusCode).toBe(404);
+    expect(unsupported.statusCode).toBe(422);
+    expect(unsupported.json()).toMatchObject({ error: { code: "BUSINESS_RULE_VIOLATION" } });
+
+    const state = await pool.query<{ corrections: string; audit_rows: string }>(
+      `select
+         (select count(*) from inventory_movements where activity_id = $1 and movement_type = 'correction') as corrections,
+         (select count(*) from audit_logs where entity_id = $1 and action = 'activity.corrected') as audit_rows`,
+      [activityId]
+    );
+    expect(state.rows[0]).toEqual({ corrections: "0", audit_rows: "0" });
+  });
+
+  it("rejects correction that would make a lot negative without partial writes", async () => {
+    const created = await app!.inject({
+      method: "POST",
+      url: "/api/v1/activities",
+      headers: accountAAuthHeaders(),
+      payload: {
+        placeId: Ids.placeA,
+        type: "treatment",
+        performedAt: "2026-05-13T08:00:00.000Z",
+        targetScopeType: "selected_beds",
+        targetSelection: { bedIds: [Ids.bedA1] },
+        productUsages: [{ productId: Ids.productA, quantityUsed: 10, unit: "g" }],
+        allowInventoryShortage: false
+      }
+    });
+    const body = parseJsonResponse<CreateActivityResponse>(created);
+    const activityId = body.data.activity.id;
+    const originalMovementId = body.data.inventoryEffects[0]!.movementId;
+
+    const response = await app!.inject({
+      method: "POST",
+      url: `/api/v1/activities/${activityId}/correct`,
+      headers: accountAAuthHeaders(),
+      payload: {
+        reason: "Impossible extra usage",
+        inventoryCorrections: [
+          { inventoryMovementId: originalMovementId, direction: "decrease_lot", quantity: 11, unit: "g" }
+        ]
+      }
+    });
+
+    expect(response.statusCode).toBe(422);
+    expect(response.json()).toMatchObject({ error: { code: "INVENTORY_SHORTAGE" } });
+
+    const state = await pool.query<{ lot_remaining: string; corrections: string; audit_rows: string }>(
+      `select
+         (select quantity_remaining from inventory_lots where id = $1) as lot_remaining,
+         (select count(*) from inventory_movements where activity_id = $2 and movement_type = 'correction') as corrections,
+         (select count(*) from audit_logs where entity_id = $2 and action = 'activity.corrected') as audit_rows`,
+      [Ids.lotA1, activityId]
+    );
+    expect(state.rows[0]).toEqual({ lot_remaining: "10", corrections: "0", audit_rows: "0" });
   });
 
   it("rejects inventory shortage by default and rolls back activity writes", async () => {

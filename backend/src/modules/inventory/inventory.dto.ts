@@ -41,11 +41,14 @@ export function toInventoryLotDto(lot: InventoryLot): InventoryLotDto {
 }
 
 export function toInventoryMovementDto(movement: InventoryMovement): InventoryMovementDto {
+  const correctionDirection = movement.movementType === "correction" ? parseCorrectionDirection(movement.notes) : null;
+
   return {
     id: movement.id,
     productId: movement.productId,
     inventoryLotId: movement.inventoryLotId,
     movementType: movement.movementType,
+    ...(correctionDirection === null ? {} : { correctionDirection }),
     quantity: movement.quantity,
     unit: movement.unit,
     activityId: movement.activityId,
@@ -53,6 +56,18 @@ export function toInventoryMovementDto(movement: InventoryMovement): InventoryMo
     notes: movement.notes,
     createdAt: movement.createdAt.toISOString()
   };
+}
+
+function parseCorrectionDirection(notes: string | null): "increase_lot" | "decrease_lot" | null {
+  if (notes?.startsWith("correction_direction=increase_lot;") === true) {
+    return "increase_lot";
+  }
+
+  if (notes?.startsWith("correction_direction=decrease_lot;") === true) {
+    return "decrease_lot";
+  }
+
+  return null;
 }
 
 export function toCreateInventoryLotDto(result: CreateInventoryLotResult): CreateInventoryLotDto {

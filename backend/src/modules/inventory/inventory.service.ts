@@ -1,5 +1,6 @@
 import type { DbClient, DbHandle } from "../../db/transaction.js";
 import { AppError } from "../../shared/errors/app-error.js";
+import type { AuditService } from "../audit/audit.service.js";
 import type { AuthenticatedActor, UUID } from "../auth/auth.types.js";
 import type { ProductsRepository } from "../products/products.types.js";
 import { assertSameInventoryUnit } from "./inventory-policy.js";
@@ -24,7 +25,8 @@ export class InventoryService {
   constructor(
     private readonly inventoryRepository: InventoryRepository,
     private readonly productsRepository: ProductsRepository,
-    private readonly dbClient: DbClient
+    private readonly dbClient: DbClient,
+    private readonly auditService?: AuditService
   ) {}
 
   async listInventory(
@@ -86,11 +88,9 @@ export class InventoryService {
       };
       const movement = await this.inventoryRepository.createMovement(movementInput, trx);
 
-      await this.inventoryRepository.createAuditLog(
+      await this.auditService?.logActorEvent(
         {
-          accountId: actor.accountId,
-          actorType: "user",
-          actorId: actor.userId,
+          actor,
           entityType: "inventory_lot",
           entityId: lot.id,
           action: "inventory_lot.created",
@@ -162,11 +162,9 @@ export class InventoryService {
         throw new AppError("NOT_FOUND", "Inventory lot not found");
       }
 
-      await this.inventoryRepository.createAuditLog(
+      await this.auditService?.logActorEvent(
         {
-          accountId: actor.accountId,
-          actorType: "user",
-          actorId: actor.userId,
+          actor,
           entityType: "inventory_lot",
           entityId: lot.id,
           action: `inventory_lot.${input.movementType}`,

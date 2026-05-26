@@ -3,6 +3,8 @@ import type { FastifyPluginCallback } from "fastify";
 import type { DbClient } from "../../db/transaction.js";
 import { successEnvelope } from "../../shared/api/envelope.js";
 import { validateRequest } from "../../shared/validation/request-validation.js";
+import { KyselyAuditLogsRepository } from "../audit/audit.repository.js";
+import { AuditService } from "../audit/audit.service.js";
 import { hasAuthDecorator, requireActor } from "../auth/request-actor.js";
 import { toPlaceDetailDto, toPlaceListItemDto, toPlaceMutationDto } from "./places.dto.js";
 import { KyselyPlacesRepository } from "./places.repository.js";
@@ -24,7 +26,12 @@ export type PlacesRouteOptions = {
 
 export const registerPlacesRoutes: FastifyPluginCallback<PlacesRouteOptions> = (app, options, done) => {
   const placesService =
-    options.db === undefined ? undefined : new PlacesService(new KyselyPlacesRepository(options.db));
+    options.db === undefined
+      ? undefined
+      : new PlacesService(
+          new KyselyPlacesRepository(options.db),
+          new AuditService(new KyselyAuditLogsRepository(options.db))
+        );
   const protectedRoute = hasAuthDecorator(app) ? { preHandler: app.authenticate } : {};
 
   app.get("/", protectedRoute, async (request) => {

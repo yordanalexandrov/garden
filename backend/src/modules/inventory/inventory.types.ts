@@ -1,12 +1,6 @@
 import type { Selectable } from "kysely";
 
-import type {
-  AuditLogsTable,
-  InventoryLotsTable,
-  InventoryMovementsTable,
-  InventoryProductBalancesView,
-  JsonValue
-} from "../../db/database.types.js";
+import type { InventoryLotsTable, InventoryMovementsTable, InventoryProductBalancesView } from "../../db/database.types.js";
 import type { DbHandle } from "../../db/transaction.js";
 import type { UUID } from "../auth/auth.types.js";
 import { PRODUCT_CATEGORIES, SIMPLE_UNITS, type ProductCategory, type SimpleUnit } from "../products/products.types.js";
@@ -24,8 +18,6 @@ export type InventoryAdjustmentDirection = (typeof INVENTORY_ADJUSTMENT_DIRECTIO
 export type InventoryLotRow = Selectable<InventoryLotsTable>;
 export type InventoryMovementRow = Selectable<InventoryMovementsTable>;
 export type InventoryProductBalanceRow = Selectable<InventoryProductBalancesView>;
-export type AuditLogRow = Selectable<AuditLogsTable>;
-
 export type InventoryOverviewItem = {
   productId: UUID;
   productName: string;
@@ -118,17 +110,6 @@ export type CreateInventoryMovementInput = {
   notes?: string | null;
 };
 
-export type CreateAuditLogInput = {
-  accountId: UUID;
-  actorType: "user" | "system";
-  actorId?: UUID | null;
-  entityType: string;
-  entityId: UUID;
-  action: string;
-  beforeJson?: JsonValue | null;
-  afterJson?: JsonValue | null;
-};
-
 export type ManualInventoryAdjustmentInput = {
   productId: UUID;
   inventoryLotId: UUID;
@@ -202,6 +183,7 @@ export type InventoryMovementDto = {
   productId: UUID;
   inventoryLotId: UUID | null;
   movementType: InventoryMovementType;
+  correctionDirection?: "increase_lot" | "decrease_lot";
   quantity: number;
   unit: SimpleUnit;
   activityId: UUID | null;
@@ -236,6 +218,7 @@ export interface InventoryRepository {
     db?: DbHandle
   ): Promise<PaginatedResult<InventoryMovement>>;
   listConsumableLotsForProduct(accountId: UUID, productId: UUID, db?: DbHandle): Promise<InventoryLot[]>;
+  findMovementById(accountId: UUID, movementId: UUID, db?: DbHandle): Promise<InventoryMovement | null>;
   createLot(input: CreateInventoryLotInput, db?: DbHandle): Promise<InventoryLot>;
   createMovement(input: CreateInventoryMovementInput, db?: DbHandle): Promise<InventoryMovement>;
   updateLotRemainingQuantity(
@@ -244,11 +227,16 @@ export interface InventoryRepository {
     quantityRemaining: number,
     db?: DbHandle
   ): Promise<InventoryLot | null>;
+  incrementLotRemainingQuantity(
+    accountId: UUID,
+    lotId: UUID,
+    quantity: number,
+    db?: DbHandle
+  ): Promise<InventoryLot | null>;
   decrementLotRemainingQuantity(
     accountId: UUID,
     lotId: UUID,
     quantity: number,
     db?: DbHandle
   ): Promise<InventoryLot | null>;
-  createAuditLog(input: CreateAuditLogInput, db?: DbHandle): Promise<AuditLogRow>;
 }

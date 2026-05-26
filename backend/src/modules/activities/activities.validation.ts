@@ -104,9 +104,30 @@ export const createActivityBodySchema = z
     }
   });
 
+export const correctActivityBodySchema = z
+  .object({
+    reason: z.string().trim().min(1),
+    inventoryCorrections: z
+      .array(
+        z
+          .object({
+            inventoryMovementId: uuidSchema,
+            direction: z.enum(["increase_lot", "decrease_lot"]),
+            quantity: positiveNumberSchema,
+            unit: z.enum(SIMPLE_UNITS),
+            notes: optionalTextBodyFieldSchema
+          })
+          .strict()
+      )
+      .min(1)
+      .max(25)
+  })
+  .strict();
+
 export type ActivityParams = z.infer<typeof activityParamsSchema>;
 export type ActivityListQuery = z.infer<typeof activityListQuerySchema>;
 export type CreateActivityBody = z.infer<typeof createActivityBodySchema>;
+export type CorrectActivityBody = z.infer<typeof correctActivityBodySchema>;
 
 function allowedSelectionField(scope: (typeof TARGET_SCOPE_TYPES)[number]):
   | "perennialIds"
