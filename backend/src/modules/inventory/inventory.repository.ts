@@ -300,6 +300,10 @@ export class KyselyInventoryRepository implements InventoryRepository {
     quantity: number,
     db: DbHandle = this.dbHandle
   ): Promise<InventoryLot | null> {
+    if (quantity <= 0) {
+      return null;
+    }
+
     const row = await db.db
       .updateTable("inventory_lots")
       .set({ quantity_remaining: sql`quantity_remaining - ${quantity}` })

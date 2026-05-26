@@ -7,6 +7,7 @@ import type { Product, ProductsRepository, ProductUsageRule } from "../products/
 import type { ResolvedTarget, TargetRef, TargetResolver } from "../targets/target-resolver.types.js";
 import type {
   ActivitiesRepository,
+  ActivityType,
   ActivityDetail,
   ActivityProductUsage,
   ActivityProductUsageInput,
@@ -352,7 +353,7 @@ export class ActivitiesService {
     accountId: UUID,
     placeId: UUID,
     activityId: UUID,
-    activityType: string,
+    activityType: ActivityType,
     targetScopeType: ActivityDetail["targetScopeType"],
     targets: ResolvedTarget[],
     rule: ProductUsageRule,
@@ -382,7 +383,7 @@ export class ActivitiesService {
   }
 }
 
-function suggestedTaskTypeForActivity(activityType: string): TaskType {
+function suggestedTaskTypeForActivity(activityType: ActivityType): TaskType {
   if (activityType === "fertilizing") {
     return "fertilizing";
   }
