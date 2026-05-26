@@ -41,7 +41,7 @@ export function toInventoryLotDto(lot: InventoryLot): InventoryLotDto {
 }
 
 export function toInventoryMovementDto(movement: InventoryMovement): InventoryMovementDto {
-  const correctionDirection = parseCorrectionDirection(movement.notes);
+  const correctionDirection = movement.movementType === "correction" ? parseCorrectionDirection(movement.notes) : null;
 
   return {
     id: movement.id,

@@ -247,17 +247,6 @@ export class ActivitiesService {
           throw new AppError("BUSINESS_RULE_VIOLATION", "Inventory lot must belong to movement product");
         }
 
-        const nextQuantity =
-          correction.direction === "increase_lot"
-            ? lot.quantityRemaining + correction.quantity
-            : lot.quantityRemaining - correction.quantity;
-
-        if (nextQuantity < 0) {
-          throw new AppError("INVENTORY_SHORTAGE", "Inventory correction cannot make lot quantity negative", {
-            quantity: ["Correction would make lot quantity negative"]
-          });
-        }
-
         const movement = await this.inventoryRepository.createMovement(
           {
             accountId: actor.accountId,
@@ -273,9 +262,18 @@ export class ActivitiesService {
           trx
         );
 
-        const updatedLot = await this.inventoryRepository.updateLotRemainingQuantity(actor.accountId, lot.id, nextQuantity, trx);
+        const updatedLot =
+          correction.direction === "increase_lot"
+            ? await this.inventoryRepository.incrementLotRemainingQuantity(actor.accountId, lot.id, correction.quantity, trx)
+            : await this.inventoryRepository.decrementLotRemainingQuantity(actor.accountId, lot.id, correction.quantity, trx);
 
         if (updatedLot === null) {
+          if (correction.direction === "decrease_lot") {
+            throw new AppError("INVENTORY_SHORTAGE", "Inventory correction cannot make lot quantity negative", {
+              quantity: ["Correction would make lot quantity negative"]
+            });
+          }
+
           throw new AppError("NOT_FOUND", "Inventory lot not found");
         }
 
@@ -294,7 +292,10 @@ export class ActivitiesService {
         });
         lotEffects.push({
           inventoryLotId: lot.id,
-          beforeQuantityRemaining: lot.quantityRemaining,
+          beforeQuantityRemaining:
+            correction.direction === "increase_lot"
+              ? updatedLot.quantityRemaining - correction.quantity
+              : updatedLot.quantityRemaining + correction.quantity,
           afterQuantityRemaining: updatedLot.quantityRemaining
         });
       }

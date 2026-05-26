@@ -227,6 +227,12 @@ export interface InventoryRepository {
     quantityRemaining: number,
     db?: DbHandle
   ): Promise<InventoryLot | null>;
+  incrementLotRemainingQuantity(
+    accountId: UUID,
+    lotId: UUID,
+    quantity: number,
+    db?: DbHandle
+  ): Promise<InventoryLot | null>;
   decrementLotRemainingQuantity(
     accountId: UUID,
     lotId: UUID,

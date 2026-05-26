@@ -313,6 +313,28 @@ export class KyselyInventoryRepository implements InventoryRepository {
     return row === undefined ? null : toInventoryLot(row);
   }
 
+  async incrementLotRemainingQuantity(
+    accountId: UUID,
+    lotId: UUID,
+    quantity: number,
+    db: DbHandle = this.dbHandle
+  ): Promise<InventoryLot | null> {
+    if (quantity <= 0) {
+      return null;
+    }
+
+    const row = await db.db
+      .updateTable("inventory_lots")
+      .set({ quantity_remaining: sql`quantity_remaining + ${quantity}` })
+      .where("account_id", "=", accountId)
+      .where("id", "=", lotId)
+      .where("archived_at", "is", null)
+      .returning(INVENTORY_LOT_COLUMNS)
+      .executeTakeFirst();
+
+    return row === undefined ? null : toInventoryLot(row);
+  }
+
 }
 
 function toInventoryOverviewItem(row: InventoryProductBalance): InventoryOverviewItem {
