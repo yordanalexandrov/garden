@@ -19,14 +19,24 @@ export const activityParamsSchema = z.object({
   activityId: uuidSchema
 });
 
-export const activityListQuerySchema = paginationQuerySchema.extend({
-  placeId: z.preprocess((value) => (value === undefined || value === "" ? undefined : value), uuidSchema.optional()),
-  type: z.enum(ACTIVITY_TYPES).optional(),
-  from: z.preprocess((value) => (value === undefined || value === "" ? undefined : value), z.string().datetime().optional()),
-  to: z.preprocess((value) => (value === undefined || value === "" ? undefined : value), z.string().datetime().optional()),
-  targetType: z.enum(TARGET_TYPES).optional(),
-  targetId: z.preprocess((value) => (value === undefined || value === "" ? undefined : value), uuidSchema.optional())
-});
+export const activityListQuerySchema = paginationQuerySchema
+  .extend({
+    placeId: z.preprocess((value) => (value === undefined || value === "" ? undefined : value), uuidSchema.optional()),
+    type: z.enum(ACTIVITY_TYPES).optional(),
+    from: z.preprocess((value) => (value === undefined || value === "" ? undefined : value), z.string().datetime().optional()),
+    to: z.preprocess((value) => (value === undefined || value === "" ? undefined : value), z.string().datetime().optional()),
+    targetType: z.enum(TARGET_TYPES).optional(),
+    targetId: z.preprocess((value) => (value === undefined || value === "" ? undefined : value), uuidSchema.optional())
+  })
+  .superRefine((query, ctx) => {
+    if ((query.targetType === undefined) !== (query.targetId === undefined)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: query.targetType === undefined ? ["targetType"] : ["targetId"],
+        message: "targetType and targetId must be provided together"
+      });
+    }
+  });
 
 export const createActivityBodySchema = z
   .object({

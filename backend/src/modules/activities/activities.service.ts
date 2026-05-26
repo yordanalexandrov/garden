@@ -106,7 +106,17 @@ export class ActivitiesService {
         if (usage === undefined) {
           throw new AppError("INTERNAL_ERROR", "Activity product usage validation result is missing");
         }
-        await this.consumeInventoryForUsage(actor.accountId, activity.id, productUsage, usage.input, input.allowInventoryShortage, warnings, inventoryEffects, trx);
+        await this.consumeInventoryForUsage(
+          actor.accountId,
+          activity.id,
+          productUsage,
+          usage.input,
+          input.performedAt,
+          input.allowInventoryShortage,
+          warnings,
+          inventoryEffects,
+          trx
+        );
 
         if (usage.rule !== null) {
           const quarantine = await this.createQuarantineIfNeeded(
@@ -220,6 +230,7 @@ export class ActivitiesService {
     activityId: UUID,
     productUsage: ActivityProductUsage,
     input: ActivityProductUsageInput,
+    performedAt: Date,
     allowInventoryShortage: boolean,
     warnings: string[],
     inventoryEffects: InventoryMovementSummary[],
@@ -264,21 +275,23 @@ export class ActivitiesService {
           quantity: allocated.quantity,
           unit: allocated.unit,
           activityId,
-          occurredAt: new Date(),
+          occurredAt: performedAt,
           ...(input.notes === undefined ? {} : { notes: input.notes })
         },
         db
       );
 
-      const updatedLot = await this.inventoryRepository.updateLotRemainingQuantity(
+      const updatedLot = await this.inventoryRepository.decrementLotRemainingQuantity(
         accountId,
         lot.id,
-        lot.quantityRemaining - allocated.quantity,
+        allocated.quantity,
         db
       );
 
       if (updatedLot === null) {
-        throw new AppError("NOT_FOUND", "Inventory lot not found");
+        throw new AppError("INVENTORY_SHORTAGE", "Inventory lot no longer has enough stock", {
+          inventoryLotId: ["Lot stock changed before consumption could be recorded"]
+        });
       }
 
       createdMovement = true;

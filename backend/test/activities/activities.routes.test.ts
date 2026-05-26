@@ -109,10 +109,16 @@ describe("Activities routes", () => {
         productUsages: [{ productId: Ids.productA, quantityUsed: 0, unit: "g" }]
       }
     });
+    const partialTargetFilter = await app.inject({
+      method: "GET",
+      url: "/api/v1/activities?targetType=bed",
+      headers: accountAAuthHeaders()
+    });
 
     expect(invalidType.statusCode).toBe(400);
     expect(targetMismatch.statusCode).toBe(400);
     expect(badQuantity.statusCode).toBe(400);
+    expect(partialTargetFilter.statusCode).toBe(400);
   });
 });
 
@@ -213,11 +219,20 @@ describeDatabase("Activities routes with database", () => {
       expect.objectContaining({ type: "spraying", dueDate: "2026-05-23", status: "suggested" })
     ]);
 
-    const state = await pool.query(
+    const state = await pool.query<{
+      lot1: string;
+      lot2: string;
+      movements: string;
+      first_movement_at: Date;
+      quarantines: string;
+      tasks: string;
+      reminders: string;
+    }>(
       `select
          (select quantity_remaining from inventory_lots where id = $1) as lot1,
          (select quantity_remaining from inventory_lots where id = $2) as lot2,
          (select count(*) from inventory_movements where activity_id = $3 and movement_type = 'consumption') as movements,
+         (select min(occurred_at) from inventory_movements where activity_id = $3 and movement_type = 'consumption') as first_movement_at,
          (select count(*) from quarantine_periods where activity_id = $3) as quarantines,
          (select count(*) from tasks where source_reference_id = $3 and status = 'suggested') as tasks,
          (select count(*) from task_reminders tr join tasks t on t.id = tr.task_id where t.source_reference_id = $3) as reminders`,
@@ -227,6 +242,7 @@ describeDatabase("Activities routes with database", () => {
       lot1: "0",
       lot2: "40",
       movements: "2",
+      first_movement_at: new Date("2026-05-13T08:00:00.000Z"),
       quarantines: "1",
       tasks: "1",
       reminders: "0"

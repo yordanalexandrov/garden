@@ -9,6 +9,7 @@ import type {
   TasksTable
 } from "../../db/database.types.js";
 import type { DbHandle } from "../../db/transaction.js";
+import { AppError } from "../../shared/errors/app-error.js";
 import type { UUID } from "../auth/auth.types.js";
 import type { SimpleUnit } from "../products/products.types.js";
 import type { TargetScopeType, TargetSummary, TargetType } from "../targets/target-resolver.types.js";
@@ -435,66 +436,126 @@ export class KyselyActivitiesRepository implements ActivitiesRepository {
       .orderBy("created_at", "asc")
       .execute();
 
-    return Promise.all(rows.map((row) => this.targetSummaryFromRow(row, db)));
+    const summariesByKey = await this.loadTargetSummariesByKey(rows, db);
+
+    return rows.map((row) => {
+      const summary = summariesByKey.get(targetSummaryKey(row.target_type as TargetType, row.target_id));
+
+      if (summary === undefined) {
+        throw new AppError("INTERNAL_ERROR", "Persisted activity target could not be loaded");
+      }
+
+      return summary;
+    });
   }
 
-  private async targetSummaryFromRow(row: SelectedActivityTarget, db: DbHandle): Promise<TargetSummary> {
-    switch (row.target_type as TargetType) {
-      case "place": {
-        const place = await db.db.selectFrom("places").select(["id", "name"]).where("id", "=", row.target_id).executeTakeFirst();
-        return { targetType: "place", targetId: row.target_id, label: place?.name ?? null, placeId: row.target_id };
-      }
-      case "bed": {
-        const bed = await db.db.selectFrom("beds").select(["id", "name", "place_id"]).where("id", "=", row.target_id).executeTakeFirst();
-        return { targetType: "bed", targetId: row.target_id, label: bed?.name ?? null, placeId: bed?.place_id ?? row.target_id };
-      }
-      case "perennial": {
-        const perennial = await db.db
-          .selectFrom("perennials")
-          .leftJoin("plants", "plants.id", "perennials.plant_id")
-          .select(["perennials.label", "perennials.place_id", "plants.common_name", "plants.variety"])
-          .where("perennials.id", "=", row.target_id)
-          .executeTakeFirst();
-        return {
-          targetType: "perennial",
-          targetId: row.target_id,
-          label: perennial?.label ?? formatPlantName(perennial?.common_name, perennial?.variety),
-          placeId: perennial?.place_id ?? row.target_id
-        };
-      }
-      case "yearly_bed_planting": {
-        const planting = await db.db
-          .selectFrom("yearly_bed_plantings")
-          .innerJoin("beds", "beds.id", "yearly_bed_plantings.bed_id")
-          .leftJoin("plants", "plants.id", "yearly_bed_plantings.plant_id")
-          .select(["beds.place_id", "yearly_bed_plantings.year", "plants.common_name", "plants.variety"])
-          .where("yearly_bed_plantings.id", "=", row.target_id)
-          .executeTakeFirst();
-        const plantName = formatPlantName(planting?.common_name, planting?.variety);
-        return {
-          targetType: "yearly_bed_planting",
-          targetId: row.target_id,
-          label: planting === undefined ? null : `${plantName ?? "Yearly planting"} ${planting.year}`,
-          placeId: planting?.place_id ?? row.target_id
-        };
-      }
-      case "persistent_bed_plant": {
-        const persistent = await db.db
-          .selectFrom("persistent_bed_plants")
-          .innerJoin("beds", "beds.id", "persistent_bed_plants.bed_id")
-          .leftJoin("plants", "plants.id", "persistent_bed_plants.plant_id")
-          .select(["beds.place_id", "plants.common_name", "plants.variety"])
-          .where("persistent_bed_plants.id", "=", row.target_id)
-          .executeTakeFirst();
-        return {
-          targetType: "persistent_bed_plant",
-          targetId: row.target_id,
-          label: formatPlantName(persistent?.common_name, persistent?.variety),
-          placeId: persistent?.place_id ?? row.target_id
-        };
+  private async loadTargetSummariesByKey(
+    rows: SelectedActivityTarget[],
+    db: DbHandle
+  ): Promise<Map<string, TargetSummary>> {
+    const summaries = new Map<string, TargetSummary>();
+    const placeIds = targetIdsForType(rows, "place");
+    const bedIds = targetIdsForType(rows, "bed");
+    const perennialIds = targetIdsForType(rows, "perennial");
+    const yearlyPlantingIds = targetIdsForType(rows, "yearly_bed_planting");
+    const persistentBedPlantIds = targetIdsForType(rows, "persistent_bed_plant");
+
+    if (placeIds.length > 0) {
+      const places = await db.db
+        .selectFrom("places")
+        .select(["id", "name"])
+        .where("id", "in", placeIds)
+        .execute();
+      for (const place of places) {
+        summaries.set(targetSummaryKey("place", place.id), {
+          targetType: "place",
+          targetId: place.id,
+          label: place.name,
+          placeId: place.id
+        });
       }
     }
+
+    if (bedIds.length > 0) {
+      const beds = await db.db
+        .selectFrom("beds")
+        .select(["id", "name", "place_id"])
+        .where("id", "in", bedIds)
+        .execute();
+      for (const bed of beds) {
+        summaries.set(targetSummaryKey("bed", bed.id), {
+          targetType: "bed",
+          targetId: bed.id,
+          label: bed.name,
+          placeId: bed.place_id
+        });
+      }
+    }
+
+    if (perennialIds.length > 0) {
+      const perennials = await db.db
+        .selectFrom("perennials")
+        .leftJoin("plants", "plants.id", "perennials.plant_id")
+        .select(["perennials.id", "perennials.label", "perennials.place_id", "plants.common_name", "plants.variety"])
+        .where("perennials.id", "in", perennialIds)
+        .execute();
+      for (const perennial of perennials) {
+        summaries.set(targetSummaryKey("perennial", perennial.id), {
+          targetType: "perennial",
+          targetId: perennial.id,
+          label: perennial.label ?? formatPlantName(perennial.common_name, perennial.variety),
+          placeId: perennial.place_id
+        });
+      }
+    }
+
+    if (yearlyPlantingIds.length > 0) {
+      const plantings = await db.db
+        .selectFrom("yearly_bed_plantings")
+        .innerJoin("beds", "beds.id", "yearly_bed_plantings.bed_id")
+        .leftJoin("plants", "plants.id", "yearly_bed_plantings.plant_id")
+        .select(["yearly_bed_plantings.id", "beds.place_id", "yearly_bed_plantings.year", "plants.common_name", "plants.variety"])
+        .where("yearly_bed_plantings.id", "in", yearlyPlantingIds)
+        .execute();
+      for (const planting of plantings) {
+        const plantName = formatPlantName(planting.common_name, planting.variety);
+        summaries.set(targetSummaryKey("yearly_bed_planting", planting.id), {
+          targetType: "yearly_bed_planting",
+          targetId: planting.id,
+          label: `${plantName ?? "Yearly planting"} ${planting.year}`,
+          placeId: planting.place_id
+        });
+      }
+    }
+
+    if (persistentBedPlantIds.length > 0) {
+      const persistentPlants = await db.db
+        .selectFrom("persistent_bed_plants")
+        .innerJoin("beds", "beds.id", "persistent_bed_plants.bed_id")
+        .leftJoin("plants", "plants.id", "persistent_bed_plants.plant_id")
+        .select(["persistent_bed_plants.id", "beds.place_id", "plants.common_name", "plants.variety"])
+        .where("persistent_bed_plants.id", "in", persistentBedPlantIds)
+        .execute();
+      for (const persistent of persistentPlants) {
+        summaries.set(targetSummaryKey("persistent_bed_plant", persistent.id), {
+          targetType: "persistent_bed_plant",
+          targetId: persistent.id,
+          label: formatPlantName(persistent.common_name, persistent.variety),
+          placeId: persistent.place_id
+        });
+      }
+    }
+
+    return summaries;
   }
+}
+
+function targetIdsForType(rows: SelectedActivityTarget[], targetType: TargetType): UUID[] {
+  return rows.filter((row) => row.target_type === targetType).map((row) => row.target_id);
+}
+
+function targetSummaryKey(targetType: TargetType, targetId: UUID): string {
+  return `${targetType}:${targetId}`;
 }
 
 function toActivity(row: SelectedActivity): Activity {
