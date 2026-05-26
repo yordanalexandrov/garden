@@ -5,8 +5,7 @@ import { describe, expect, it } from "vitest";
 const repoRoot = new URL("../../../", import.meta.url).pathname;
 
 describe("Phase 9 scope regression", () => {
-  it("does not add frontend inventory implementation or MCP/provider behavior", () => {
-    expect(listFiles("frontend/src").filter((path) => path.toLowerCase().includes("inventory"))).toEqual([]);
+  it("does not add MCP/provider behavior", () => {
     expect(listFiles("backend/src").filter((path) => path.includes("mcp"))).toEqual([]);
 
     const backendSource = listFiles("backend/src")

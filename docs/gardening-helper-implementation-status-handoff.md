@@ -1,6 +1,6 @@
 # Gardening Helper - Implementation Status Handoff
 
-Last updated: 2026-05-25
+Last updated: 2026-05-26
 
 This file tracks implementation progress only. It does not replace the source-of-truth specs, domain rules, canonical API contract, or task documents. If this file conflicts with a higher-priority document, follow the source-of-truth priority in `AGENTS.md`.
 
@@ -8,15 +8,15 @@ Implementation agents must update this file in the same branch/PR whenever phase
 
 ## Current Position
 
-- Last implemented phase: Phase 10 - Frontend Products and Inventory Pages.
-- Last implemented step: Phase 10 Step 8 - Phase 10 Verification and PR Readiness.
-- Last implemented step file: `docs/implementation-phases/phase-10/08-phase-10-verification-and-pr-readiness.md`.
-- Last implementation commit observed: Phase 10 frontend products and inventory implementation on `feature/frontend-products-inventory`.
-- Next implementation phase: Phase 11 - Backend Target Resolver.
-- Next implementation step: Phase 11 Step 1 - Target Module Contracts, Validation, and Wiring.
-- Next implementation step file: `docs/implementation-phases/phase-11/01-target-module-contracts-validation-and-wiring.md`.
+- Last implemented phase: Phase 11 - Backend Target Resolver.
+- Last implemented step: Phase 11 Step 6 - Phase 11 Verification and PR Readiness.
+- Last implemented step file: `docs/implementation-phases/phase-11/06-phase-11-verification-and-pr-readiness.md`.
+- Last implementation commit observed: Phase 11 backend target resolver implementation on `feature/backend-target-resolver`.
+- Next implementation phase: Phase 12 - Backend Activity Transaction Flow.
+- Next implementation step: Phase 12 Step 1 - Activities Module Contracts, Validation, and Route Wiring.
+- Next implementation step file: `docs/implementation-phases/phase-12/01-activities-module-contracts-validation-and-route-wiring.md`.
 
-Note: Phase 6 completed the backend growing-structure API for perennials, beds, persistent bed plants, and yearly bed plantings with account-scoped Fastify handlers, canonical envelopes, archive behavior, historical bed occupancy reads, and duplicate same bed/plant/year yearly planting support. Phase 7 completed the Angular frontend garden-structure pages for places, plants, perennials, beds, persistent bed plants, and yearly plantings. Phase 8 completed the backend products and product usage rules APIs with account-scoped Fastify handlers, canonical envelopes, product category/unit validation, product/rule archive behavior, duplicate active product+plant rule enforcement, product/plant/account consistency checks, placeholder-compatible inventory summary fields, and focused validation/service/repository/route/guard tests. Phase 9 completed the backend inventory ledger API with account-scoped inventory overview, product lot listing, transactional lot purchase movement creation, movement history, transactional manual adjustments, audit log writes for inventory mutations, FEFO allocation and shortage/unit policy helpers, validation/DTO mapping, route wiring, and focused unit/API/guard/scope tests. Phase 10 completed the Angular frontend products and inventory pages with typed products/rules/inventory API services, product CRUD/archive UI, product detail with rules/lots/movements, usage rule forms with plant selector, inventory overview/detail, add-lot and manual-adjustment forms, movement-history navigation, visible API errors, and frontend boundary/static tests. Phase 11 task docs are ready for backend target resolver implementation. Activity product consumption, target resolution implementation, problems/photos, tasks/calendar behavior, weather, AI, push, storage, provider, and MCP business tools remain deferred. Phase 12 through Phase 28 currently have top-level phase specs only.
+Note: Phase 6 completed the backend growing-structure API for perennials, beds, persistent bed plants, and yearly bed plantings with account-scoped Fastify handlers, canonical envelopes, archive behavior, historical bed occupancy reads, and duplicate same bed/plant/year yearly planting support. Phase 7 completed the Angular frontend garden-structure pages for places, plants, perennials, beds, persistent bed plants, and yearly plantings. Phase 8 completed the backend products and product usage rules APIs with account-scoped Fastify handlers, canonical envelopes, product category/unit validation, product/rule archive behavior, duplicate active product+plant rule enforcement, product/plant/account consistency checks, placeholder-compatible inventory summary fields, and focused validation/service/repository/route/guard tests. Phase 9 completed the backend inventory ledger API with account-scoped inventory overview, product lot listing, transactional lot purchase movement creation, movement history, transactional manual adjustments, audit log writes for inventory mutations, FEFO allocation and shortage/unit policy helpers, validation/DTO mapping, route wiring, and focused unit/API/guard/scope tests. Phase 10 completed the Angular frontend products and inventory pages with typed products/rules/inventory API services, product CRUD/archive UI, product detail with rules/lots/movements, usage rule forms with plant selector, inventory overview/detail, add-lot and manual-adjustment forms, movement-history navigation, visible API errors, and frontend boundary/static tests. Phase 11 completed the backend target resolver with canonical target contracts, validation/DTO helpers, account/place-scoped repository lookups, whole-place/all-group/selected-scope resolution, empty-result and partial-success rejection, transaction-compatible invocation, and focused validation/resolver tests. Activity creation, activity target persistence, product usage consumption, problems/photos, tasks/calendar behavior, weather, AI, push, storage, provider, and MCP business tools remain deferred. Phase 12 through Phase 28 currently have top-level phase specs only.
 
 ## Status Legend
 
@@ -37,7 +37,7 @@ Note: Phase 6 completed the backend growing-structure API for perennials, beds, 
 - [x] Phase 8 - Backend Products and Usage Rules API - implemented.
 - [x] Phase 9 - Backend Inventory Ledger API - implemented.
 - [x] Phase 10 - Frontend Products and Inventory Pages - implemented.
-- [ ] Phase 11 - Backend Target Resolver - not implemented; task docs ready.
+- [x] Phase 11 - Backend Target Resolver - implemented.
 - [ ] Phase 12 - Backend Activity Transaction Flow - not implemented; task docs ready.
 - [ ] Phase 13 - Backend Activity Correction and Audit Trail - not implemented; task docs ready.
 - [ ] Phase 14 - Frontend Activities and Create Activity Flow - not implemented; Task docs ready.
@@ -165,6 +165,15 @@ Note: Phase 6 completed the backend growing-structure API for perennials, beds, 
 - [x] Step 6 - Add Lot and Manual Adjustment Forms with Movement-History Refresh.
 - [x] Step 7 - Frontend Regression, Boundary, and Error-Display Tests.
 - [x] Step 8 - Phase 10 Verification and PR Readiness.
+
+### Phase 11 - Backend Target Resolver
+
+- [x] Step 1 - Target Module Contracts, Validation, and Wiring.
+- [x] Step 2 - Target Repository Lookup Helpers.
+- [x] Step 3 - Place and Whole-Group Scope Resolution.
+- [x] Step 4 - Selected Target Scope Resolution.
+- [x] Step 5 - Target Resolver Account, Place, and Archived Regression Tests.
+- [x] Step 6 - Phase 11 Verification and PR Readiness.
 
 ### Phase 12 - Backend Activity Transaction Flow
 
