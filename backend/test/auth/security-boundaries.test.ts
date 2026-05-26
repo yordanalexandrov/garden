@@ -65,7 +65,7 @@ describe("Phase 3 auth/account security boundaries", () => {
     }
   });
 
-  it("keeps implemented domain routes protected and unimplemented domain routes unavailable", async () => {
+  it("keeps implemented domain routes protected", async () => {
     app = await createTestApp({ enableTestRoutes: true });
     await app.ready();
 
@@ -79,7 +79,7 @@ describe("Phase 3 auth/account security boundaries", () => {
     expect(routes).toContain("__test");
     expect(placesResponse.statusCode).toBe(401);
     expect(productsResponse.statusCode).toBe(401);
-    expect(activitiesResponse.statusCode).toBe(404);
+    expect(activitiesResponse.statusCode).toBe(401);
   });
 });
 
