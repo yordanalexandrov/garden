@@ -11,6 +11,7 @@ import type {
   ActivitiesRepository,
   ActivityType,
   ActivityDetail,
+  ActivityCorrectionDirection,
   ActivityCorrectionMovementSummary,
   ActivityProductUsage,
   ActivityProductUsageInput,
@@ -267,7 +268,7 @@ export class ActivitiesService {
             unit: correction.unit,
             activityId: activity.id,
             occurredAt: new Date(),
-            notes: correction.notes ?? input.reason
+            notes: formatCorrectionMovementNotes(correction.direction, correction.notes ?? input.reason)
           },
           trx
         );
@@ -283,6 +284,7 @@ export class ActivitiesService {
           productId: movement.productId,
           inventoryLotId: movement.inventoryLotId,
           movementType: "correction",
+          direction: correction.direction,
           quantity: movement.quantity,
           unit: movement.unit,
           activityId: movement.activityId,
@@ -553,4 +555,8 @@ function addDays(date: string, days: number): string {
   const value = new Date(`${date}T00:00:00.000Z`);
   value.setUTCDate(value.getUTCDate() + days);
   return dateOnly(value);
+}
+
+function formatCorrectionMovementNotes(direction: ActivityCorrectionDirection, notes: string): string {
+  return `correction_direction=${direction}; ${notes}`;
 }

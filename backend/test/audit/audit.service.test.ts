@@ -13,6 +13,9 @@ describe("AuditService helpers", () => {
       sanitizeAuditJson({
         activityId: "activity-1",
         authorization: "Bearer secret",
+        auth: "push auth secret",
+        author: "kept",
+        authoredAt: "2026-05-26T00:00:00.000Z",
         nested: {
           serviceRoleKey: "secret",
           quantity: 5,
@@ -22,6 +25,8 @@ describe("AuditService helpers", () => {
       })
     ).toEqual({
       activityId: "activity-1",
+      author: "kept",
+      authoredAt: "2026-05-26T00:00:00.000Z",
       nested: {
         quantity: 5
       },

@@ -29,6 +29,7 @@ export function toCorrectActivityResultDto(result: CorrectActivityResult): Corre
       movementId: movement.id,
       productId: movement.productId,
       inventoryLotId: movement.inventoryLotId,
+      direction: movement.direction,
       quantity: movement.quantity,
       unit: movement.unit
     })),
@@ -128,6 +129,7 @@ type InventoryEffectDto = {
   movementId: string;
   productId: string;
   inventoryLotId: string | null;
+  direction?: string;
   quantity: number;
   unit: string;
 };

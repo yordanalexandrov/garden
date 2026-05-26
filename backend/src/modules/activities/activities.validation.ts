@@ -120,6 +120,7 @@ export const correctActivityBodySchema = z
           .strict()
       )
       .min(1)
+      .max(25)
   })
   .strict();
 

@@ -183,6 +183,7 @@ export type InventoryMovementDto = {
   productId: UUID;
   inventoryLotId: UUID | null;
   movementType: InventoryMovementType;
+  correctionDirection?: "increase_lot" | "decrease_lot";
   quantity: number;
   unit: SimpleUnit;
   activityId: UUID | null;

@@ -16,9 +16,10 @@ const SECRET_FIELD_PATTERNS = [
   "service_role_key",
   "apikey",
   "api_key",
-  "p256dh",
-  "auth"
+  "p256dh"
 ] as const;
+
+const EXACT_SECRET_FIELDS = ["auth"] as const;
 
 export type AuditEventInput = {
   actor: AuthenticatedActor;
@@ -80,5 +81,10 @@ export function sanitizeAuditJson(value: JsonValue | null): JsonValue | null {
 
 function isSecretField(key: string): boolean {
   const normalized = key.toLowerCase().replaceAll(/[^a-z0-9]+/g, "_");
-  return SECRET_FIELD_PATTERNS.some((pattern) => normalized.includes(pattern));
+  const compact = normalized.replaceAll("_", "");
+
+  return (
+    EXACT_SECRET_FIELDS.some((field) => normalized === field) ||
+    SECRET_FIELD_PATTERNS.some((pattern) => normalized.includes(pattern) || compact.includes(pattern.replaceAll("_", "")))
+  );
 }

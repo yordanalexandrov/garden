@@ -218,6 +218,7 @@ export type ActivityCorrectionMovementSummary = {
   productId: UUID;
   inventoryLotId: UUID | null;
   movementType: Extract<InventoryMovementType, "correction">;
+  direction: ActivityCorrectionDirection;
   quantity: number;
   unit: SimpleUnit;
   activityId: UUID | null;

@@ -50,7 +50,14 @@ type CreateActivityResponse = {
 type CorrectActivityResponse = {
   data: {
     activityId: string;
-    correctionMovements: Array<{ movementId: string; productId: string; inventoryLotId: string; quantity: number; unit: string }>;
+    correctionMovements: Array<{
+      movementId: string;
+      productId: string;
+      inventoryLotId: string;
+      direction: string;
+      quantity: number;
+      unit: string;
+    }>;
     lotEffects: Array<{ inventoryLotId: string; beforeQuantityRemaining: number; afterQuantityRemaining: number }>;
     auditLog: { id: string };
     warnings: string[];
@@ -134,12 +141,27 @@ describe("Activities routes", () => {
         inventoryCorrections: []
       }
     });
+    const tooManyCorrections = await app.inject({
+      method: "POST",
+      url: `/api/v1/activities/${Ids.placeA}/correct`,
+      headers: accountAAuthHeaders(),
+      payload: {
+        reason: "Too many rows",
+        inventoryCorrections: Array.from({ length: 26 }, () => ({
+          inventoryMovementId: Ids.lotA1,
+          direction: "increase_lot",
+          quantity: 1,
+          unit: "g"
+        }))
+      }
+    });
 
     expect(invalidType.statusCode).toBe(400);
     expect(targetMismatch.statusCode).toBe(400);
     expect(badQuantity.statusCode).toBe(400);
     expect(partialTargetFilter.statusCode).toBe(400);
     expect(unsupportedCorrectionShape.statusCode).toBe(400);
+    expect(tooManyCorrections.statusCode).toBe(400);
   });
 });
 
@@ -315,7 +337,13 @@ describeDatabase("Activities routes with database", () => {
     const correctionBody = parseJsonResponse<CorrectActivityResponse>(corrected);
     expect(correctionBody.data.activityId).toBe(activityId);
     expect(correctionBody.data.correctionMovements).toEqual([
-      expect.objectContaining({ productId: Ids.productA, inventoryLotId: Ids.lotA1, quantity: 5, unit: "g" })
+      expect.objectContaining({
+        productId: Ids.productA,
+        inventoryLotId: Ids.lotA1,
+        direction: "increase_lot",
+        quantity: 5,
+        unit: "g"
+      })
     ]);
     expect(correctionBody.data.lotEffects).toEqual([
       { inventoryLotId: Ids.lotA1, beforeQuantityRemaining: 10, afterQuantityRemaining: 15 }
@@ -329,13 +357,15 @@ describeDatabase("Activities routes with database", () => {
       correction_movements: string;
       activity_rows: string;
       audit_rows: string;
+      correction_notes: string;
     }>(
       `select
          (select quantity_remaining from inventory_lots where id = $1) as lot_remaining,
          (select count(*) from inventory_movements where id = $2 and movement_type = 'consumption') as original_movements,
          (select count(*) from inventory_movements where activity_id = $3 and movement_type = 'correction') as correction_movements,
          (select count(*) from activities where id = $3) as activity_rows,
-         (select count(*) from audit_logs where entity_id = $3 and action = 'activity.corrected') as audit_rows`,
+         (select count(*) from audit_logs where entity_id = $3 and action = 'activity.corrected') as audit_rows,
+         (select notes from inventory_movements where activity_id = $3 and movement_type = 'correction') as correction_notes`,
       [Ids.lotA1, originalMovementId, activityId]
     );
     expect(state.rows[0]).toMatchObject({
@@ -343,7 +373,8 @@ describeDatabase("Activities routes with database", () => {
       original_movements: "1",
       correction_movements: "1",
       activity_rows: "1",
-      audit_rows: "1"
+      audit_rows: "1",
+      correction_notes: "correction_direction=increase_lot; Recorded 5 g too much"
     });
   });
 
