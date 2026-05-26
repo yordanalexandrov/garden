@@ -33,13 +33,11 @@ export class BackendTargetResolver implements TargetResolver {
 
   async resolveTargets(accountId: UUID, input: ResolveTargetsInput, db?: DbHandle): Promise<ResolvedTarget[]> {
     validateTargetResolutionInput(input);
-    await this.assertPlaceExists(accountId, input.placeId, db);
+    const place = await this.requirePlaceTarget(accountId, input.placeId, db);
 
     switch (input.targetScopeType) {
-      case "whole_place": {
-        const place = await this.repository.findPlaceTarget(accountId, input.placeId, db);
-        return toResolvedTargets(place === null ? [] : [place]);
-      }
+      case "whole_place":
+        return toResolvedTargets([place]);
       case "all_perennials_in_place":
         return toResolvedTargets(
           requireNonEmptyTargets(
@@ -83,12 +81,14 @@ export class BackendTargetResolver implements TargetResolver {
     }
   }
 
-  private async assertPlaceExists(accountId: UUID, placeId: UUID, db?: DbHandle): Promise<void> {
+  private async requirePlaceTarget(accountId: UUID, placeId: UUID, db?: DbHandle): Promise<TargetLookupRow> {
     const place = await this.repository.findPlaceTarget(accountId, placeId, db);
 
     if (place === null) {
-      throw new AppError("NOT_FOUND", "Place was not found");
+      throw new AppError("NOT_FOUND", "Place not found");
     }
+
+    return place;
   }
 
   private resolveSelectedTargets(requestedIds: readonly UUID[], rows: TargetLookupRow[]): ResolvedTarget[] {
