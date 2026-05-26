@@ -1,6 +1,7 @@
 import type { FastifyPluginAsync } from "fastify";
 
 import type { DbClient } from "../db/transaction.js";
+import { registerActivitiesRoutes } from "../modules/activities/activities.routes.js";
 import { registerBedsRoutes, registerPlaceBedsRoutes } from "../modules/beds/beds.routes.js";
 import { registerHealthRoutes } from "../modules/health/health.routes.js";
 import { registerInventoryRoutes, registerProductInventoryRoutes } from "../modules/inventory/inventory.routes.js";
@@ -43,6 +44,7 @@ export const registerApiRoutes: FastifyPluginAsync<ApiRouteOptions> = async (app
   await app.register(registerProductInventoryRoutes, { prefix: "/products", ...businessRouteOptions });
   await app.register(registerProductUsageRuleRoutes, { prefix: "/product-rules", ...businessRouteOptions });
   await app.register(registerInventoryRoutes, { prefix: "/inventory", ...businessRouteOptions });
+  await app.register(registerActivitiesRoutes, { prefix: "/activities", ...businessRouteOptions });
 
   if (options.enableTestRoutes === true) {
     await app.register(registerTestRoutes, { prefix: "/__test" });

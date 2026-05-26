@@ -244,5 +244,11 @@ export interface InventoryRepository {
     quantityRemaining: number,
     db?: DbHandle
   ): Promise<InventoryLot | null>;
+  decrementLotRemainingQuantity(
+    accountId: UUID,
+    lotId: UUID,
+    quantity: number,
+    db?: DbHandle
+  ): Promise<InventoryLot | null>;
   createAuditLog(input: CreateAuditLogInput, db?: DbHandle): Promise<AuditLogRow>;
 }

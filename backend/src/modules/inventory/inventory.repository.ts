@@ -294,6 +294,29 @@ export class KyselyInventoryRepository implements InventoryRepository {
     return row === undefined ? null : toInventoryLot(row);
   }
 
+  async decrementLotRemainingQuantity(
+    accountId: UUID,
+    lotId: UUID,
+    quantity: number,
+    db: DbHandle = this.dbHandle
+  ): Promise<InventoryLot | null> {
+    if (quantity <= 0) {
+      return null;
+    }
+
+    const row = await db.db
+      .updateTable("inventory_lots")
+      .set({ quantity_remaining: sql`quantity_remaining - ${quantity}` })
+      .where("account_id", "=", accountId)
+      .where("id", "=", lotId)
+      .where("archived_at", "is", null)
+      .where(sql<boolean>`quantity_remaining >= ${quantity}`)
+      .returning(INVENTORY_LOT_COLUMNS)
+      .executeTakeFirst();
+
+    return row === undefined ? null : toInventoryLot(row);
+  }
+
   async createAuditLog(input: CreateAuditLogInput, db: DbHandle = this.dbHandle): Promise<AuditLogRow> {
     const row = await db.db
       .insertInto("audit_logs")
