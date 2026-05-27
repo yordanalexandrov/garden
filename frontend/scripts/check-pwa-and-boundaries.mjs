@@ -43,8 +43,14 @@ const frontendInventoryAllocationPatterns = [
   /\bquantityRemaining\s*[+\-*/]?=/,
   /\bquantityRemaining\s*:\s*[^,\n]+[+\-*/]\s*[^,\n]+/,
 ];
+const frontendBusinessTruthPatterns = [
+  /\bresolvedTargets\b/,
+  /\binventoryEffects\s*:/,
+  /\bquarantinePeriods\s*:/,
+  /\bsuggestedTasks\s*:/,
+  /\breminders\s*:/,
+];
 const deferredPhase7FeatureDirectories = [
-  'activities',
   'ai',
   'calendar',
   'mcp',
@@ -121,11 +127,23 @@ const findFrontendBoundaryViolations = (relativePath, content) => {
 
   if (
     (relativePath.startsWith('src/app/features/products/') ||
-      relativePath.startsWith('src/app/features/inventory/')) &&
+      relativePath.startsWith('src/app/features/inventory/') ||
+      relativePath.startsWith('src/app/features/activities/')) &&
     frontendInventoryAllocationPatterns.some((pattern) => pattern.test(content))
   ) {
     violations.push(
       `Frontend code must not implement inventory allocation or direct stock mutation logic in ${relativePath}.`,
+    );
+  }
+
+  if (
+    relativePath.startsWith('src/app/features/activities/') &&
+    frontendBusinessTruthPatterns.some((pattern) => pattern.test(content)) &&
+    !relativePath.endsWith('activities.models.ts') &&
+    !relativePath.endsWith('.spec.ts')
+  ) {
+    violations.push(
+      `Activity frontend code must not submit resolved targets or generated side effects in ${relativePath}.`,
     );
   }
 
@@ -211,6 +229,12 @@ assertBoundarySelfTestRejects(
   'const lots = allocateLots(productLots, requestedQuantity);',
   'inventory allocation',
   'src/app/features/inventory/example.ts',
+);
+assertBoundarySelfTestRejects(
+  'frontend activity generated side effects',
+  'const request = { resolvedTargets: [], inventoryEffects: [], quarantinePeriods: [], suggestedTasks: [] };',
+  'generated side effects',
+  'src/app/features/activities/example.ts',
 );
 
 const angular = readJson('angular.json');

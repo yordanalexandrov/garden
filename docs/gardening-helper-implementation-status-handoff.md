@@ -1,6 +1,6 @@
 # Gardening Helper - Implementation Status Handoff
 
-Last updated: 2026-05-26
+Last updated: 2026-05-27
 
 This file tracks implementation progress only. It does not replace the source-of-truth specs, domain rules, canonical API contract, or task documents. If this file conflicts with a higher-priority document, follow the source-of-truth priority in `AGENTS.md`.
 
@@ -8,15 +8,15 @@ Implementation agents must update this file in the same branch/PR whenever phase
 
 ## Current Position
 
-- Last implemented phase: Phase 13 - Backend Activity Correction and Audit Trail.
-- Last implemented step: Phase 13 Step 6 - Phase 13 Verification and PR Readiness.
-- Last implemented step file: `docs/implementation-phases/phase-13/06-phase-13-verification-and-pr-readiness.md`.
-- Last implementation commit observed: Phase 13 backend activity correction and audit implementation on `feature/activity-correction-audit`.
-- Next implementation phase: Phase 14 - Frontend Activities and Create Activity Flow.
-- Next implementation step: Phase 14 Step 1 - Activities API Services and Feature Scaffold.
-- Next implementation step file: `docs/implementation-phases/phase-14/01-activities-api-services-and-feature-scaffold.md`.
+- Last implemented phase: Phase 14 - Frontend Activities and Create Activity Flow.
+- Last implemented step: Phase 14 Step 8 - Phase 14 Verification and PR Readiness.
+- Last implemented step file: `docs/implementation-phases/phase-14/08-phase-14-verification-and-pr-readiness.md`.
+- Last implementation commit observed: Phase 14 frontend activities implementation and verification on `agents/phase-14-template-fixes-and-tests`.
+- Next implementation phase: Phase 15 - Backend Problems and Observations API.
+- Next implementation step: Phase 15 Step 1 - Problems Module Contracts, Validation, and Route Wiring.
+- Next implementation step file: `docs/implementation-phases/phase-15/01-problems-module-contracts-validation-and-route-wiring.md`.
 
-Note: Phase 6 completed the backend growing-structure API for perennials, beds, persistent bed plants, and yearly bed plantings with account-scoped Fastify handlers, canonical envelopes, archive behavior, historical bed occupancy reads, and duplicate same bed/plant/year yearly planting support. Phase 7 completed the Angular frontend garden-structure pages for places, plants, perennials, beds, persistent bed plants, and yearly plantings. Phase 8 completed the backend products and product usage rules APIs with account-scoped Fastify handlers, canonical envelopes, product category/unit validation, product/rule archive behavior, duplicate active product+plant rule enforcement, product/plant/account consistency checks, placeholder-compatible inventory summary fields, and focused validation/service/repository/route/guard tests. Phase 9 completed the backend inventory ledger API with account-scoped inventory overview, product lot listing, transactional lot purchase movement creation, movement history, transactional manual adjustments, audit log writes for inventory mutations, FEFO allocation and shortage/unit policy helpers, validation/DTO mapping, route wiring, and focused unit/API/guard/scope tests. Phase 10 completed the Angular frontend products and inventory pages with typed products/rules/inventory API services, product CRUD/archive UI, product detail with rules/lots/movements, usage rule forms with plant selector, inventory overview/detail, add-lot and manual-adjustment forms, movement-history navigation, visible API errors, and frontend boundary/static tests. Phase 11 completed the backend target resolver with canonical target contracts, validation/DTO helpers, account/place-scoped repository lookups, whole-place/all-group/selected-scope resolution, empty-result and partial-success rejection, transaction-compatible invocation, and focused validation/resolver tests. Phase 12 completed the backend activities list/detail/create APIs with service-owned transaction orchestration, resolved activity targets, product usage validation, FEFO consumption movements, shortage handling, rule-derived quarantine periods, suggested follow-up tasks without reminders, canonical side-effect arrays, and focused route/transaction regression tests. Phase 13 completed the backend audit module foundation, representative critical-operation audit integration, and account-scoped activity inventory correction endpoint with append-only correction movements, lot updates, audit rows, supported-case documentation, and focused validation/route tests. Problems/photos, manual task lifecycle/reminders, calendar behavior, weather, AI, push, storage, provider, and MCP business tools remain deferred. Phase 14 through Phase 28 remain not implemented.
+Note: Phase 6 completed the backend growing-structure API for perennials, beds, persistent bed plants, and yearly bed plantings with account-scoped Fastify handlers, canonical envelopes, archive behavior, historical bed occupancy reads, and duplicate same bed/plant/year yearly planting support. Phase 7 completed the Angular frontend garden-structure pages for places, plants, perennials, beds, persistent bed plants, and yearly plantings. Phase 8 completed the backend products and product usage rules APIs with account-scoped Fastify handlers, canonical envelopes, product category/unit validation, product/rule archive behavior, duplicate active product+plant rule enforcement, product/plant/account consistency checks, placeholder-compatible inventory summary fields, and focused validation/service/repository/route/guard tests. Phase 9 completed the backend inventory ledger API with account-scoped inventory overview, product lot listing, transactional lot purchase movement creation, movement history, transactional manual adjustments, audit log writes for inventory mutations, FEFO allocation and shortage/unit policy helpers, validation/DTO mapping, route wiring, and focused unit/API/guard/scope tests. Phase 10 completed the Angular frontend products and inventory pages with typed products/rules/inventory API services, product CRUD/archive UI, product detail with rules/lots/movements, usage rule forms with plant selector, inventory overview/detail, add-lot and manual-adjustment forms, movement-history navigation, visible API errors, and frontend boundary/static tests. Phase 11 completed the backend target resolver with canonical target contracts, validation/DTO helpers, account/place-scoped repository lookups, whole-place/all-group/selected-scope resolution, empty-result and partial-success rejection, transaction-compatible invocation, and focused validation/resolver tests. Phase 12 completed the backend activities list/detail/create APIs with service-owned transaction orchestration, resolved activity targets, product usage validation, FEFO consumption movements, shortage handling, rule-derived quarantine periods, suggested follow-up tasks without reminders, canonical side-effect arrays, and focused route/transaction regression tests. Phase 13 completed the backend audit module foundation, representative critical-operation audit integration, and account-scoped activity inventory correction endpoint with append-only correction movements, lot updates, audit rows, supported-case documentation, and focused validation/route tests. Phase 14 completed the Angular frontend activities flow with typed activity API services, list/detail/create pages, bulk target selector and product usage subforms, create-activity review/submit flow with backend side-effect rendering, route/spec wiring, and frontend regression/static checks. Problems/photos, manual task lifecycle/reminders, calendar behavior, weather, AI, push, storage, provider, and MCP business tools remain deferred. Phase 15 through Phase 28 remain not implemented.
 
 ## Status Legend
 
@@ -40,7 +40,7 @@ Note: Phase 6 completed the backend growing-structure API for perennials, beds, 
 - [x] Phase 11 - Backend Target Resolver - implemented.
 - [x] Phase 12 - Backend Activity Transaction Flow - implemented.
 - [x] Phase 13 - Backend Activity Correction and Audit Trail - implemented.
-- [ ] Phase 14 - Frontend Activities and Create Activity Flow - not implemented; Task docs ready.
+- [x] Phase 14 - Frontend Activities and Create Activity Flow - implemented.
 - [ ] Phase 15 - Backend Problems and Observations API - not implemented; Task docs ready.
 - [ ] Phase 16 - Backend Problem Photo Storage - not implemented; task docs ready.
 - [ ] Phase 17 - Frontend Problems and Photos Flow - not implemented; task docs ready.
@@ -200,16 +200,16 @@ Implemented.
 
 ### Phase 14 - Frontend Activities and Create Activity Flow
 
-Task docs ready only; implementation is not started.
+Implemented.
 
-- [ ] Step 1 - Activities API Services and Feature Scaffold.
-- [ ] Step 2 - Activities List and Detail Pages.
-- [ ] Step 3 - Bulk Target Selector.
-- [ ] Step 4 - Product Usage Form Array.
-- [ ] Step 5 - Create Activity Form and Review Flow.
-- [ ] Step 6 - Create Activity Submit, Errors, and Side-Effect Summary.
-- [ ] Step 7 - Frontend Regression, Boundary, and Error-Display Tests.
-- [ ] Step 8 - Phase 14 Verification and PR Readiness.
+- [x] Step 1 - Activities API Services and Feature Scaffold.
+- [x] Step 2 - Activities List and Detail Pages.
+- [x] Step 3 - Bulk Target Selector.
+- [x] Step 4 - Product Usage Form Array.
+- [x] Step 5 - Create Activity Form and Review Flow.
+- [x] Step 6 - Create Activity Submit, Errors, and Side-Effect Summary.
+- [x] Step 7 - Frontend Regression, Boundary, and Error-Display Tests.
+- [x] Step 8 - Phase 14 Verification and PR Readiness.
 
 ### Phase 15 - Backend Problems and Observations API
 
@@ -247,16 +247,14 @@ Task docs ready only; implementation is not started.
 
 ## Next Phase Step Checklist
 
-### Phase 14 - Frontend Activities and Create Activity Flow
+### Phase 15 - Backend Problems and Observations API
 
-- [ ] Step 1 - Activities API Services and Feature Scaffold.
-- [ ] Step 2 - Activities List and Detail Pages.
-- [ ] Step 3 - Bulk Target Selector.
-- [ ] Step 4 - Product Usage Form Array.
-- [ ] Step 5 - Create Activity Form and Review Flow.
-- [ ] Step 6 - Create Activity Submit, Errors, and Side-Effect Summary.
-- [ ] Step 7 - Frontend Regression, Boundary, and Error-Display Tests.
-- [ ] Step 8 - Phase 14 Verification and PR Readiness.
+- [ ] Step 1 - Problems Module Contracts, Validation, and Route Wiring.
+- [ ] Step 2 - Problems Repository and Read Models.
+- [ ] Step 3 - Problems Service Create/Update and Linked Activity Validation.
+- [ ] Step 4 - Problems Routes and API Contract.
+- [ ] Step 5 - Problems Account, Place, Target, and Response Regression Tests.
+- [ ] Step 6 - Phase 15 Verification and PR Readiness.
 
 ## Update Rules
 

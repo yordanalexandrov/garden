@@ -1,0 +1,80 @@
+<section class="activities-page" aria-labelledby="activities-title">
+  <app-page-header
+    title="Activities"
+    titleId="activities-title"
+    subtitle="Garden activity history"
+    icon="history"
+  />
+
+  <form class="filters" [formGroup]="filters" (ngSubmit)="search()">
+    <mat-form-field appearance="outline">
+      <mat-label>Place</mat-label>
+      <mat-select formControlName="placeId">
+        <mat-option [value]="null">All places</mat-option>
+        @for (place of places(); track place.id) {
+          <mat-option [value]="place.id">{{ place.name }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Type</mat-label>
+      <mat-select formControlName="type">
+        <mat-option [value]="null">All types</mat-option>
+        @for (type of activityTypes; track type) {
+          <mat-option [value]="type">{{ type.replaceAll('_', ' ') }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>From</mat-label>
+      <input matInput type="date" formControlName="from" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>To</mat-label>
+      <input matInput type="date" formControlName="to" />
+    </mat-form-field>
+
+    <button mat-flat-button type="submit">Filter</button>
+    <a mat-flat-button color="primary" routerLink="/activities/new">New activity</a>
+  </form>
+
+  <app-api-error-summary [error]="error()" />
+
+  @if (loading()) {
+    <p>Loading activities...</p>
+  } @else if (activities().length === 0) {
+    <app-empty-state title="No activities" message="Log an activity to start building history." />
+  } @else {
+    <div class="activity-list">
+      @for (activity of activities(); track activity.id) {
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>
+              <a [routerLink]="['/activities', activity.id]">{{
+                activity.type.replaceAll('_', ' ')
+              }}</a>
+            </mat-card-title>
+            <mat-card-subtitle>{{ activity.performedAt | date: 'medium' }}</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <p>{{ activity.placeName || 'No place' }} - {{ activity.targetSummary }}</p>
+            @if (activity.productSummary) {
+              <p>Products: {{ activity.productSummary }}</p>
+            }
+            <p class="effects">
+              Inventory {{ activity.sideEffects.inventoryMovementsCount }}, quarantine
+              {{ activity.sideEffects.quarantinePeriodsCount }}, suggested
+              {{ activity.sideEffects.suggestedTasksCount }}
+            </p>
+            @for (warning of activity.sideEffects.warnings; track warning) {
+              <p class="warning">{{ warning }}</p>
+            }
+          </mat-card-content>
+        </mat-card>
+      }
+    </div>
+  }
+</section>

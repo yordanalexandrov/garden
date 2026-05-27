@@ -1,0 +1,80 @@
+<section class="activity-detail-page" aria-labelledby="activity-detail-title">
+  <app-page-header
+    title="Activity Detail"
+    titleId="activity-detail-title"
+    subtitle="Backend activity record and side effects"
+    icon="assignment"
+  />
+
+  <app-api-error-summary [error]="error()" />
+
+  @if (loading()) {
+    <p>Loading activity...</p>
+  } @else if (activity(); as item) {
+    <div class="detail-grid">
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>{{ item.type.replaceAll('_', ' ') }}</mat-card-title>
+          <mat-card-subtitle>{{ item.performedAt | date: 'medium' }}</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <p>Target scope: {{ item.targetScopeType.replaceAll('_', ' ') }}</p>
+          @if (item.notes) {
+            <p>{{ item.notes }}</p>
+          }
+          <a routerLink="/activities">Back to activities</a>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card>
+        <mat-card-header><mat-card-title>Targets</mat-card-title></mat-card-header>
+        <mat-card-content>
+          @for (target of item.targets; track target.targetId) {
+            <p>
+              {{ target.targetType.replaceAll('_', ' ') }}: {{ target.label || target.targetId }}
+            </p>
+          } @empty {
+            <p>No target details returned.</p>
+          }
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card>
+        <mat-card-header><mat-card-title>Product Usage</mat-card-title></mat-card-header>
+        <mat-card-content>
+          @for (usage of item.productUsages; track usage.id) {
+            <p>{{ usage.quantityUsed }} {{ usage.unit }} of {{ usage.productId }}</p>
+          } @empty {
+            <p>No products used.</p>
+          }
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card>
+        <mat-card-header><mat-card-title>Side Effects</mat-card-title></mat-card-header>
+        <mat-card-content>
+          <h3>Inventory</h3>
+          @for (effect of item.inventoryMovements; track effect.movementId) {
+            <p>{{ effect.quantity }} {{ effect.unit }} - product {{ effect.productId }}</p>
+          } @empty {
+            <p>No inventory movements.</p>
+          }
+
+          <h3>Quarantine</h3>
+          @for (period of item.quarantinePeriods; track period.id) {
+            <p>{{ period.startsOn }} to {{ period.endsOn }}</p>
+          } @empty {
+            <p>No quarantine periods.</p>
+          }
+
+          <h3>Suggested Tasks</h3>
+          @for (task of item.suggestedTasks; track task.id) {
+            <p>Suggested: {{ task.type }} due {{ task.dueDate }}</p>
+          } @empty {
+            <p>No suggested tasks.</p>
+          }
+        </mat-card-content>
+      </mat-card>
+    </div>
+  }
+</section>
