@@ -1,0 +1,27 @@
+.filters {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(140px, 1fr)) auto auto;
+  gap: 12px;
+  align-items: start;
+  margin-block: 16px;
+}
+
+.activity-list {
+  display: grid;
+  gap: 12px;
+}
+
+.effects,
+.warning {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.warning {
+  color: var(--mat-sys-error);
+}
+
+@media (max-width: 860px) {
+  .filters {
+    grid-template-columns: 1fr;
+  }
+}

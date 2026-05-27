@@ -2,11 +2,11 @@ import { Route, Routes } from '@angular/router';
 
 import { LoginPage } from './features/auth/pages/login-page/login-page';
 import { BedDetailPage } from './features/beds/pages/bed-detail-page/bed-detail-page';
+import { inventoryRoutes } from './features/inventory/inventory.routes';
 import { NotFoundPage } from './features/not-found/not-found-page';
 import { FeaturePlaceholderPage } from './features/placeholders/feature-placeholder-page';
 import { placesRoutes } from './features/places/places.routes';
 import { plantsRoutes } from './features/plants/plants.routes';
-import { inventoryRoutes } from './features/inventory/inventory.routes';
 import { productRulesRoutes, productsRoutes } from './features/products/products.routes';
 
 const placeholderRoute = (path: string, title: string, pathMatch?: 'full'): Route => ({
@@ -29,11 +29,8 @@ export const routes: Routes = [
   { path: 'inventory', children: inventoryRoutes },
   {
     path: 'activities',
-    children: [
-      placeholderRoute('', 'Activities', 'full'),
-      placeholderRoute('new', 'New Activity'),
-      placeholderRoute(':activityId', 'Activity Detail'),
-    ],
+    loadChildren: () =>
+      import('./features/activities/activities.routes').then((module) => module.activitiesRoutes),
   },
   {
     path: 'problems',
@@ -65,5 +62,10 @@ export const routes: Routes = [
       placeholderRoute('account', 'Account Settings'),
     ],
   },
-  { path: '**', title: 'Page not found', component: NotFoundPage, data: { title: 'Page not found' } },
+  {
+    path: '**',
+    title: 'Page not found',
+    component: NotFoundPage,
+    data: { title: 'Page not found' },
+  },
 ];

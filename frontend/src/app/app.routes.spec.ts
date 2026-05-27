@@ -8,6 +8,8 @@ import { ArchiveConfirmationService } from './shared/components/confirm-dialog/c
 import { InventoryApiService } from './features/inventory/inventory-api.service';
 import { ProductsApiService, ProductRulesApiService } from './features/products/products-api.service';
 import { PlantsApiService } from './features/plants/plants-api.service';
+import { ActivitiesApiService } from './features/activities/activities-api.service';
+import { PlacesApiService } from './features/places/places-api.service';
 import { SnackbarService } from './core/notifications/snackbar.service';
 import { routes } from './app.routes';
 
@@ -18,6 +20,18 @@ describe('app routes', () => {
       providers: [
         provideNoopAnimations(),
         provideRouter(routes),
+        {
+          provide: ActivitiesApiService,
+          useValue: {
+            list: () => of({ items: [], page: 1, pageSize: 20, total: 0 }),
+            get: () => of(activityDetail()),
+            create: () => of({ activity: activityDetail(), inventoryEffects: [], quarantinePeriods: [], suggestedTasks: [], warnings: [] }),
+          },
+        },
+        {
+          provide: PlacesApiService,
+          useValue: { list: () => of({ items: [], page: 1, pageSize: 20, total: 0 }) },
+        },
         {
           provide: ProductsApiService,
           useValue: {
@@ -167,4 +181,18 @@ const productRuleDetail = () => ({
   archivedAt: null,
   createdAt: '2026-05-25T00:00:00.000Z',
   updatedAt: '2026-05-25T00:00:00.000Z',
+});
+
+const activityDetail = () => ({
+  id: 'activity-1',
+  placeId: 'place-1',
+  type: 'watering',
+  performedAt: '2026-05-26T08:00:00.000Z',
+  targetScopeType: 'whole_place',
+  targets: [],
+  productUsages: [],
+  inventoryMovements: [],
+  quarantinePeriods: [],
+  suggestedTasks: [],
+  notes: null,
 });

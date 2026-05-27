@@ -1,0 +1,155 @@
+<section class="activity-create-page" aria-labelledby="activity-create-title">
+  <app-page-header
+    title="New Activity"
+    titleId="activity-create-title"
+    subtitle="Submit activity intent for backend processing"
+    icon="add_task"
+  />
+
+  <app-api-error-summary [error]="error()" />
+
+  @if (result(); as created) {
+    <mat-card class="success">
+      <mat-card-header>
+        <mat-card-title>Activity created</mat-card-title>
+        <mat-card-subtitle>Backend side effects</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <a [routerLink]="['/activities', created.activity.id]">Open activity detail</a>
+
+        <h3>Warnings</h3>
+        @for (warning of created.warnings; track $index) {
+          <p class="warning">{{ warning }}</p>
+        } @empty {
+          <p>No warnings returned.</p>
+        }
+
+        <h3>Inventory</h3>
+        @for (effect of created.inventoryEffects; track effect.movementId) {
+          <p>{{ effect.quantity }} {{ effect.unit }} - product {{ effect.productId }}</p>
+        } @empty {
+          <p>No inventory effects.</p>
+        }
+
+        <h3>Quarantine</h3>
+        @for (period of created.quarantinePeriods; track period.id) {
+          <p>{{ period.startsOn }} to {{ period.endsOn }}</p>
+        } @empty {
+          <p>No quarantine periods.</p>
+        }
+
+        <h3>Suggested Tasks</h3>
+        @for (task of created.suggestedTasks; track task.id) {
+          <p>Suggested: {{ task.type }} due {{ task.dueDate }}</p>
+        } @empty {
+          <p>No suggested tasks.</p>
+        }
+      </mat-card-content>
+    </mat-card>
+  } @else {
+    <form class="activity-form" [formGroup]="form">
+      <mat-card>
+        <mat-card-header><mat-card-title>Activity</mat-card-title></mat-card-header>
+        <mat-card-content class="form-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Place</mat-label>
+            <mat-select formControlName="placeId">
+              @for (place of places(); track place.id) {
+                <mat-option [value]="place.id">{{ place.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Type</mat-label>
+            <mat-select formControlName="type">
+              @for (type of activityTypes; track type) {
+                <mat-option [value]="type">{{ type.replaceAll('_', ' ') }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Performed at</mat-label>
+            <input matInput type="datetime-local" formControlName="performedAt" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="wide">
+            <mat-label>Notes</mat-label>
+            <textarea matInput rows="3" formControlName="notes"></textarea>
+          </mat-form-field>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card>
+        <mat-card-header><mat-card-title>Targets</mat-card-title></mat-card-header>
+        <mat-card-content>
+          <app-bulk-target-selector
+            [placeId]="form.controls.placeId.value"
+            (intentChange)="updateTargetIntent($event)"
+          />
+          @if (!targetIntentIsValid()) {
+            <p class="warning">Select the required targets for this scope.</p>
+          }
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card>
+        <mat-card-header><mat-card-title>Product Usage</mat-card-title></mat-card-header>
+        <mat-card-content>
+          <app-product-usage-form-array
+            (productUsagesChange)="updateProductUsages($event)"
+            (validityChange)="updateProductUsagesValidity($event)"
+          />
+          @if (!productUsagesValid()) {
+            <p class="warning">One or more product usage rows are incomplete. Fix them before submitting.</p>
+          }
+          @if (shortageOverrideVisible()) {
+            <mat-checkbox formControlName="allowInventoryShortage">
+              Explicitly allow inventory shortage
+            </mat-checkbox>
+          }
+        </mat-card-content>
+      </mat-card>
+
+      <div class="actions">
+        <button mat-stroked-button type="button" (click)="openReview()">Review</button>
+        <button
+          mat-flat-button
+          color="primary"
+          type="button"
+          [disabled]="saving()"
+          (click)="submit()"
+        >
+          {{ saving() ? 'Saving...' : 'Save activity' }}
+        </button>
+        <a mat-button routerLink="/activities">Cancel</a>
+      </div>
+
+      @if (reviewOpen()) {
+        <mat-card>
+          <mat-card-header><mat-card-title>Review</mat-card-title></mat-card-header>
+          <mat-card-content>
+            <p>Place: {{ selectedPlaceName() }}</p>
+            <p>Type: {{ form.controls.type.value.replaceAll('_', ' ') }}</p>
+            <p>Performed: {{ buildRequest().performedAt | date: 'medium' }}</p>
+            <p>Target scope: {{ targetIntent()?.targetScopeType?.replaceAll('_', ' ') }}</p>
+            <p>Targets: {{ targetIntent()?.targetSummary ?? '—' }}</p>
+            @for (label of targetIntent()?.selectedLabels ?? []; track $index) {
+              <p>{{ label }}</p>
+            }
+            <p>Product usage rows: {{ productUsages().length }}</p>
+            @for (usage of productUsages(); track $index) {
+              <p>
+                {{ usage.quantityUsed }} {{ usage.unit }} - product {{ usage.productId }}
+                @if (!usage.productUsageRuleId) {
+                  <span class="warning">No structured rule selected.</span>
+                }
+              </p>
+            }
+          </mat-card-content>
+        </mat-card>
+      }
+    </form>
+  }
+</section>

@@ -1,0 +1,31 @@
+<div class="target-selector">
+  <mat-form-field appearance="outline">
+    <mat-label>Target scope</mat-label>
+    <mat-select [formControl]="scope" [disabled]="!placeId()">
+      @for (option of scopeOptions; track option) {
+        <mat-option [value]="option">{{ option.replaceAll('_', ' ') }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+
+  @if (requiresSelection()) {
+    <mat-form-field appearance="outline">
+      <mat-label>Targets</mat-label>
+      <mat-select [formControl]="selectedIds" multiple>
+        @for (option of options(); track option.id) {
+          <mat-option [value]="option.id">{{ option.label }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  }
+
+  <div class="target-summary" aria-live="polite">
+    @if (loading()) {
+      Loading targets...
+    } @else if (empty()) {
+      No eligible targets for this place.
+    } @else {
+      {{ targetSummary() }}
+    }
+  </div>
+</div>

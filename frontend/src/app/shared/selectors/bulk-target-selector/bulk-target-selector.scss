@@ -1,0 +1,9 @@
+.target-selector {
+  display: grid;
+  gap: 12px;
+}
+
+.target-summary {
+  min-height: 24px;
+  color: var(--mat-sys-on-surface-variant);
+}
