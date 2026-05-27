@@ -45,6 +45,7 @@ type ProductUsageRow = FormGroup<{
 })
 export class ProductUsageFormArray {
   readonly productUsagesChange = output<readonly ActivityProductUsageRequest[]>();
+  readonly validityChange = output<boolean>();
   readonly products = signal<readonly ProductListItem[]>([]);
   readonly rulesByRow = signal<Record<number, readonly ProductUsageRule[]>>({});
   readonly units = PRODUCT_UNITS;
@@ -120,10 +121,11 @@ export class ProductUsageFormArray {
   private loadRules(row: ProductUsageRow, productId: string): void {
     const currentIndex = this.rows.controls.indexOf(row);
 
+    if (currentIndex !== -1) {
+      this.rulesByRow.update((rules) => ({ ...rules, [currentIndex]: [] }));
+    }
+
     if (!productId) {
-      if (currentIndex !== -1) {
-        this.rulesByRow.update((rules) => ({ ...rules, [currentIndex]: [] }));
-      }
       return;
     }
 
@@ -133,7 +135,7 @@ export class ProductUsageFormArray {
       .subscribe((result) => {
         const idx = this.rows.controls.indexOf(row);
 
-        if (idx !== -1) {
+        if (idx !== -1 && row.controls.productId.value === productId) {
           this.rulesByRow.update((rules) => ({ ...rules, [idx]: result.items }));
         }
       });
@@ -151,5 +153,6 @@ export class ProductUsageFormArray {
       }));
 
     this.productUsagesChange.emit(rows);
+    this.validityChange.emit(this.rows.valid);
   }
 }

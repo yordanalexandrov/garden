@@ -65,6 +65,7 @@ export class ActivityCreatePage {
   readonly result = signal<CreateActivityResult | null>(null);
   readonly targetIntent = signal<BulkTargetIntent | null>(null);
   readonly productUsages = signal<readonly ActivityProductUsageRequest[]>([]);
+  readonly productUsagesValid = signal(true);
   readonly shortageOverrideVisible = signal(false);
 
   readonly form = new FormGroup({
@@ -101,11 +102,15 @@ export class ActivityCreatePage {
     this.productUsages.set(rows);
   }
 
+  updateProductUsagesValidity(valid: boolean): void {
+    this.productUsagesValid.set(valid);
+  }
+
   openReview(): void {
     this.form.markAllAsTouched();
     this.error.set(null);
 
-    if (!this.form.valid || !this.targetIntentIsValid()) {
+    if (!this.form.valid || !this.targetIntentIsValid() || !this.productUsagesValid()) {
       this.reviewOpen.set(false);
       return;
     }

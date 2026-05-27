@@ -69,7 +69,7 @@
               {{ activity.sideEffects.quarantinePeriodsCount }}, suggested
               {{ activity.sideEffects.suggestedTasksCount }}
             </p>
-            @for (warning of activity.sideEffects.warnings; track warning) {
+            @for (warning of activity.sideEffects.warnings; track $index) {
               <p class="warning">{{ warning }}</p>
             }
           </mat-card-content>

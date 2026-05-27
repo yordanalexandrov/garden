@@ -1,9 +1,7 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, effect, inject, input, output, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
 import { MatOptionModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
 import { forkJoin, map, of, switchMap } from 'rxjs';
@@ -33,6 +31,7 @@ export interface BulkTargetIntent {
   readonly targetScopeType: TargetScopeType;
   readonly targetSelection?: TargetSelection;
   readonly selectedLabels: readonly string[];
+  readonly targetSummary: string;
 }
 
 const selectedScopeKeys: Partial<Record<TargetScopeType, keyof TargetSelection>> = {
@@ -46,9 +45,7 @@ const selectedScopeKeys: Partial<Record<TargetScopeType, keyof TargetSelection>>
 @Component({
   selector: 'app-bulk-target-selector',
   imports: [
-    MatCheckboxModule,
     MatFormFieldModule,
-    MatInputModule,
     MatOptionModule,
     MatSelectModule,
     ReactiveFormsModule,
@@ -194,6 +191,7 @@ export class BulkTargetSelector {
       targetScopeType: scope,
       targetSelection: key ? { [key]: selectedIds } : undefined,
       selectedLabels,
+      targetSummary: this.targetSummary(),
     });
   }
 }

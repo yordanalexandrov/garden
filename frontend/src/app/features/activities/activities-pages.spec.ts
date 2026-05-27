@@ -4,16 +4,16 @@ import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/route
 import { of, throwError } from 'rxjs';
 
 import { ApiError } from '../../core/errors/api-error';
-import { PlacesApiService } from '../places/places-api.service';
-import { ActivitiesApiService } from './activities-api.service';
-import { ActivityCreatePage } from './pages/activity-create-page/activity-create-page';
-import { ActivityDetailPage } from './pages/activity-detail-page/activity-detail-page';
-import { ActivitiesListPage } from './pages/activities-list-page/activities-list-page';
 import { BedsApiService } from '../beds/beds-api.service';
 import { PerennialsApiService } from '../perennials/perennials-api.service';
+import { PlacesApiService } from '../places/places-api.service';
 import { PersistentBedPlantsApiService } from '../plantings/persistent-bed-plants-api.service';
 import { YearlyBedPlantingsApiService } from '../plantings/yearly-bed-plantings-api.service';
 import { ProductRulesApiService, ProductsApiService } from '../products/products-api.service';
+import { ActivitiesApiService } from './activities-api.service';
+import { ActivitiesListPage } from './pages/activities-list-page/activities-list-page';
+import { ActivityCreatePage } from './pages/activity-create-page/activity-create-page';
+import { ActivityDetailPage } from './pages/activity-detail-page/activity-detail-page';
 
 describe('Phase 14 activity pages', () => {
   const activity = {
@@ -26,7 +26,9 @@ describe('Phase 14 activity pages', () => {
     productUsages: [],
     inventoryMovements: [],
     quarantinePeriods: [],
-    suggestedTasks: [{ id: 'task-1', type: 'spraying', dueDate: '2026-06-01', status: 'suggested' }],
+    suggestedTasks: [
+      { id: 'task-1', type: 'spraying', dueDate: '2026-06-01', status: 'suggested' },
+    ],
     notes: 'Spray',
   };
   const activitiesApi = {
@@ -85,25 +87,46 @@ describe('Phase 14 activity pages', () => {
     activitiesApi.create.mockReturnValue(
       of({
         activity,
-        inventoryEffects: [{ movementId: 'move-1', productId: 'product-1', inventoryLotId: null, quantity: 30, unit: 'ml' }],
-        quarantinePeriods: [{ id: 'period-1', productId: 'product-1', startsOn: '2026-05-26', endsOn: '2026-06-09' }],
+        inventoryEffects: [
+          {
+            movementId: 'move-1',
+            productId: 'product-1',
+            inventoryLotId: null,
+            quantity: 30,
+            unit: 'ml',
+          },
+        ],
+        quarantinePeriods: [
+          { id: 'period-1', productId: 'product-1', startsOn: '2026-05-26', endsOn: '2026-06-09' },
+        ],
         suggestedTasks: activity.suggestedTasks,
         warnings: ['Backend warning'],
       }),
     );
-    placesApi.list.mockReturnValue(of({ items: [{ id: 'place-1', name: 'Home' }], page: 1, pageSize: 20, total: 1 }));
+    placesApi.list.mockReturnValue(
+      of({ items: [{ id: 'place-1', name: 'Home' }], page: 1, pageSize: 20, total: 1 }),
+    );
     productsApi.list.mockReturnValue(of({ items: [], page: 1, pageSize: 20, total: 0 }));
     rulesApi.listByProduct.mockReturnValue(of({ items: [] }));
-    bedsApi.listByPlace.mockReturnValue(of({ items: [{ id: 'bed-1', name: 'Bed A' }], page: 1, pageSize: 20, total: 1 }));
+    bedsApi.listByPlace.mockReturnValue(
+      of({ items: [{ id: 'bed-1', name: 'Bed A' }], page: 1, pageSize: 20, total: 1 }),
+    );
     perennialsApi.listByPlace.mockReturnValue(of({ items: [], page: 1, pageSize: 20, total: 0 }));
-    yearlyPlantingsApi.listByBed.mockReturnValue(of({ items: [], page: 1, pageSize: 20, total: 0 }));
-    persistentPlantsApi.listByBed.mockReturnValue(of({ items: [], page: 1, pageSize: 20, total: 0 }));
+    yearlyPlantingsApi.listByBed.mockReturnValue(
+      of({ items: [], page: 1, pageSize: 20, total: 0 }),
+    );
+    persistentPlantsApi.listByBed.mockReturnValue(
+      of({ items: [], page: 1, pageSize: 20, total: 0 }),
+    );
 
     TestBed.configureTestingModule({
       providers: [
         provideNoopAnimations(),
         provideRouter([]),
-        { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap({ activityId: 'activity-1' }) } } },
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { paramMap: convertToParamMap({ activityId: 'activity-1' }) } },
+        },
         { provide: ActivitiesApiService, useValue: activitiesApi },
         { provide: PlacesApiService, useValue: placesApi },
         { provide: ProductsApiService, useValue: productsApi },
@@ -151,7 +174,9 @@ describe('Phase 14 activity pages', () => {
   });
 
   it('builds canonical create request and displays backend errors without clearing input', () => {
-    activitiesApi.create.mockReturnValueOnce(throwError(() => new ApiError('INVENTORY_SHORTAGE', 'Not enough stock')));
+    activitiesApi.create.mockReturnValueOnce(
+      throwError(() => new ApiError('INVENTORY_SHORTAGE', 'Not enough stock')),
+    );
     const fixture = TestBed.createComponent(ActivityCreatePage);
     const component = fixture.componentInstance;
 
@@ -160,6 +185,7 @@ describe('Phase 14 activity pages', () => {
       targetScopeType: 'selected_beds',
       targetSelection: { bedIds: ['bed-1'] },
       selectedLabels: ['Bed A'],
+      targetSummary: '1 selected',
     });
     component.updateProductUsages([{ productId: 'product-1', quantityUsed: 30, unit: 'ml', productUsageRuleId: null }]);
     component.submit();
@@ -170,7 +196,9 @@ describe('Phase 14 activity pages', () => {
         type: 'treatment',
         targetScopeType: 'selected_beds',
         targetSelection: { bedIds: ['bed-1'] },
-        productUsages: [{ productId: 'product-1', quantityUsed: 30, unit: 'ml', productUsageRuleId: null }],
+        productUsages: [
+          { productId: 'product-1', quantityUsed: 30, unit: 'ml', productUsageRuleId: null },
+        ],
         allowInventoryShortage: false,
       }),
     );
@@ -187,6 +215,7 @@ describe('Phase 14 activity pages', () => {
       targetScopeType: 'selected_beds',
       targetSelection: { bedIds: ['bed-1'] },
       selectedLabels: ['Bed A'],
+      targetSummary: '1 selected',
     });
     component.submit();
     fixture.detectChanges();

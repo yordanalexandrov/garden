@@ -18,7 +18,7 @@
         <a [routerLink]="['/activities', created.activity.id]">Open activity detail</a>
 
         <h3>Warnings</h3>
-        @for (warning of created.warnings; track warning) {
+        @for (warning of created.warnings; track $index) {
           <p class="warning">{{ warning }}</p>
         } @empty {
           <p>No warnings returned.</p>
@@ -97,7 +97,13 @@
       <mat-card>
         <mat-card-header><mat-card-title>Product Usage</mat-card-title></mat-card-header>
         <mat-card-content>
-          <app-product-usage-form-array (productUsagesChange)="updateProductUsages($event)" />
+          <app-product-usage-form-array
+            (productUsagesChange)="updateProductUsages($event)"
+            (validityChange)="updateProductUsagesValidity($event)"
+          />
+          @if (!productUsagesValid()) {
+            <p class="warning">One or more product usage rows are incomplete. Fix them before submitting.</p>
+          }
           @if (shortageOverrideVisible()) {
             <mat-checkbox formControlName="allowInventoryShortage">
               Explicitly allow inventory shortage
@@ -128,12 +134,12 @@
             <p>Type: {{ form.controls.type.value.replaceAll('_', ' ') }}</p>
             <p>Performed: {{ buildRequest().performedAt | date: 'medium' }}</p>
             <p>Target scope: {{ targetIntent()?.targetScopeType?.replaceAll('_', ' ') }}</p>
-            <p>Selected targets: {{ targetIntent()?.selectedLabels?.length ?? 0 }}</p>
-            @for (label of targetIntent()?.selectedLabels ?? []; track label) {
+            <p>Targets: {{ targetIntent()?.targetSummary ?? '—' }}</p>
+            @for (label of targetIntent()?.selectedLabels ?? []; track $index) {
               <p>{{ label }}</p>
             }
             <p>Product usage rows: {{ productUsages().length }}</p>
-            @for (usage of productUsages(); track usage.productId + usage.quantityUsed) {
+            @for (usage of productUsages(); track $index) {
               <p>
                 {{ usage.quantityUsed }} {{ usage.unit }} - product {{ usage.productId }}
                 @if (!usage.productUsageRuleId) {
