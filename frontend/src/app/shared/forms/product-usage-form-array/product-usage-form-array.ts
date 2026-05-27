@@ -72,11 +72,10 @@ export class ProductUsageFormArray {
       unit: new FormControl<ProductUnit>('ml', { nonNullable: true, validators: [Validators.required] }),
       notes: new FormControl('', { nonNullable: true }),
     });
-    const index = this.rows.length;
 
     row.controls.productId.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((productId) => {
       row.controls.productUsageRuleId.setValue(null);
-      this.loadRules(index, productId);
+      this.loadRules(row, productId);
       const product = this.products().find((item) => item.id === productId);
       if (product) {
         row.controls.unit.setValue(product.defaultUnit);
@@ -118,9 +117,13 @@ export class ProductUsageFormArray {
     return this.products().find((item) => item.id === productId)?.name ?? productId;
   }
 
-  private loadRules(index: number, productId: string): void {
+  private loadRules(row: ProductUsageRow, productId: string): void {
+    const currentIndex = this.rows.controls.indexOf(row);
+
     if (!productId) {
-      this.rulesByRow.update((rules) => ({ ...rules, [index]: [] }));
+      if (currentIndex !== -1) {
+        this.rulesByRow.update((rules) => ({ ...rules, [currentIndex]: [] }));
+      }
       return;
     }
 
@@ -128,7 +131,11 @@ export class ProductUsageFormArray {
       .listByProduct(productId)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((result) => {
-        this.rulesByRow.update((rules) => ({ ...rules, [index]: result.items }));
+        const idx = this.rows.controls.indexOf(row);
+
+        if (idx !== -1) {
+          this.rulesByRow.update((rules) => ({ ...rules, [idx]: result.items }));
+        }
       });
   }
 

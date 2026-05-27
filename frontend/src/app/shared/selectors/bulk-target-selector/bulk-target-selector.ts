@@ -88,7 +88,12 @@ export class BulkTargetSelector {
       this.emitIntent();
     });
 
-    this.selectedIds.valueChanges.pipe(takeUntilDestroyed()).subscribe(() => this.emitIntent());
+    this.selectedIds.valueChanges.pipe(takeUntilDestroyed()).subscribe((ids) => {
+      if (this.scope.value === 'single_bed' && ids.length > 1) {
+        this.selectedIds.setValue([ids[ids.length - 1]], { emitEvent: false });
+      }
+      this.emitIntent();
+    });
   }
 
   requiresSelection(): boolean {

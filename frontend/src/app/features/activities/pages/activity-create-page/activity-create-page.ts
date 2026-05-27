@@ -29,6 +29,11 @@ import {
   TargetScopeType,
 } from '../../activities.models';
 
+function localDateTimeString(): string {
+  const now = new Date();
+  return new Date(now.getTime() - now.getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
+}
+
 @Component({
   selector: 'app-activity-create-page',
   imports: [
@@ -65,7 +70,7 @@ export class ActivityCreatePage {
   readonly form = new FormGroup({
     placeId: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
     type: new FormControl<ActivityType>('watering', { nonNullable: true, validators: [Validators.required] }),
-    performedAt: new FormControl(new Date().toISOString().slice(0, 16), {
+    performedAt: new FormControl(localDateTimeString(), {
       nonNullable: true,
       validators: [Validators.required],
     }),
