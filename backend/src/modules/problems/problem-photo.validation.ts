@@ -47,7 +47,7 @@ export function validateProblemPhotoMultipart(
   }
 
   const file = fileParts[0]!;
-  const mimeType = file.contentType?.toLowerCase() ?? "";
+  const mimeType = mediaTypeFromContentType(file.contentType);
 
   if (!options.allowedMimeTypes.map((item) => item.toLowerCase()).includes(mimeType)) {
     throw new AppError("VALIDATION_ERROR", "Unsupported problem photo MIME type", { file: ["Only configured image MIME types are allowed"] });
@@ -67,6 +67,10 @@ export function validateProblemPhotoMultipart(
     mimeType,
     fileSizeBytes: file.body.length
   };
+}
+
+function mediaTypeFromContentType(contentType: string | null): string {
+  return contentType?.split(";")[0]?.trim().toLowerCase() ?? "";
 }
 
 function boundaryFromContentType(contentType: string): string | null {

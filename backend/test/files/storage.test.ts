@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { loadConfig } from "../../src/config/config.js";
+import { ConfigError, loadConfig } from "../../src/config/config.js";
 import { buildProblemPhotoStorageKey } from "../../src/modules/files/storage-key.js";
 import { TestStorageAdapter } from "../../src/modules/files/test-storage.adapter.js";
 
@@ -44,6 +44,15 @@ describe("problem photo storage boundary", () => {
     await storage.deleteObject(upload.storageKey);
     expect(storage.objects.has(upload.storageKey)).toBe(false);
     expect(storage.deletedKeys).toEqual([upload.storageKey]);
+  });
+
+  it("fails fast when configured MIME types are unsupported by storage keys", () => {
+    expect(() =>
+      loadConfig({
+        NODE_ENV: "test",
+        PROBLEM_PHOTO_ALLOWED_MIME_TYPES: "image/jpeg,image/svg+xml"
+      })
+    ).toThrow(ConfigError);
   });
 
   it("keeps problem photo storage settings backend-only and secret-safe", () => {

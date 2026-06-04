@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 const VALID_NODE_ENV_VALUES = ["development", "test", "production"] as const;
+const SUPPORTED_PROBLEM_PHOTO_MIME_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"] as const;
 
 const emptyStringToUndefined = (value: unknown): unknown => {
   if (typeof value === "string" && value.trim() === "") {
@@ -49,7 +50,7 @@ const envSchema = z.object({
   PROBLEM_PHOTO_MAX_BYTES: z.preprocess(emptyStringToUndefined, z.coerce.number().int().positive().default(5 * 1024 * 1024)),
   PROBLEM_PHOTO_ALLOWED_MIME_TYPES: z.preprocess(
     csvToStringArray,
-    z.array(z.string().regex(/^image\/[a-z0-9.+-]+$/i)).default(["image/jpeg", "image/png", "image/webp"])
+    z.array(z.enum(SUPPORTED_PROBLEM_PHOTO_MIME_TYPES)).default(["image/jpeg", "image/png", "image/webp"])
   ),
   PROBLEM_PHOTO_SIGNED_URL_TTL_SECONDS: z.preprocess(
     emptyStringToUndefined,

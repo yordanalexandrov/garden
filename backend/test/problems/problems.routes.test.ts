@@ -369,7 +369,7 @@ describeDatabase("Problems routes with database", () => {
     const createdProblem = parseJsonResponse<CreateProblemResponse>(
       await app!.inject({ method: "POST", url: "/api/v1/problems", headers: accountAAuthHeaders(), payload: validCreatePayload() })
     ).data.id;
-    const multipart = multipartPayload({ filename: "leaf spot.jpg", contentType: "image/jpeg", body: Buffer.from("jpeg") });
+    const multipart = multipartPayload({ filename: "leaf spot.jpg", contentType: "image/jpeg; charset=binary", body: Buffer.from("jpeg") });
 
     const upload = await app!.inject({
       method: "POST",
@@ -404,6 +404,8 @@ describeDatabase("Problems routes with database", () => {
     expect(detailPhotos[0]?.id).toBe(uploadBody.data.id);
     expect(detailPhotos[0]?.url).toContain("https://storage.test/signed/");
     expect(detailPhotos[0]?.mimeType).toBe("image/jpeg");
+    expect(detailPhotos[0]?.originalFilename).toBe("leaf spot.jpg");
+    expect(detailPhotos[0]?.fileSizeBytes).toBe(4);
   });
 
   it("rejects observation, cross-account, invalid MIME, and oversized photo uploads before unsafe side effects", async () => {
