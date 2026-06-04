@@ -54,7 +54,6 @@ const deferredPhase7FeatureDirectories = [
   'ai',
   'calendar',
   'mcp',
-  'problems',
   'push',
   'storage',
   'tasks',

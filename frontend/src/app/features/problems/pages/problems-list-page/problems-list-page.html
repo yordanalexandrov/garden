@@ -1,0 +1,105 @@
+<section class="problems-page" aria-labelledby="problems-title">
+  <app-page-header
+    title="Problems"
+    titleId="problems-title"
+    subtitle="Problems and observations across the garden"
+    icon="bug_report"
+  />
+
+  <form class="filters" [formGroup]="filters" (ngSubmit)="search()">
+    <mat-form-field appearance="outline">
+      <mat-label>Place</mat-label>
+      <mat-select formControlName="placeId">
+        <mat-option [value]="null">All places</mat-option>
+        @for (place of places(); track place.id) {
+          <mat-option [value]="place.id">{{ place.name }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Type</mat-label>
+      <mat-select formControlName="type">
+        <mat-option [value]="null">All types</mat-option>
+        @for (type of problemTypes; track type) {
+          <mat-option [value]="type">{{ type.replaceAll('_', ' ') }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Status</mat-label>
+      <mat-select formControlName="status">
+        <mat-option [value]="null">All statuses</mat-option>
+        @for (status of problemStatuses; track status) {
+          <mat-option [value]="status">{{ status }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Category</mat-label>
+      <mat-select formControlName="category">
+        <mat-option [value]="null">All categories</mat-option>
+        @for (category of problemCategories; track category) {
+          <mat-option [value]="category">{{ category.replaceAll('_', ' ') }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>From</mat-label>
+      <input matInput type="date" formControlName="from" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>To</mat-label>
+      <input matInput type="date" formControlName="to" />
+    </mat-form-field>
+
+    <button mat-flat-button type="submit">Filter</button>
+    <a mat-flat-button color="primary" routerLink="/problems/new">New problem</a>
+  </form>
+
+  <app-api-error-summary [error]="error()" />
+
+  @if (loading()) {
+    <p>Loading problems...</p>
+  } @else if (problems().length === 0) {
+    <app-empty-state
+      title="No problems"
+      message="Record a problem or observation to start tracking garden health."
+    />
+  } @else {
+    <div class="problem-list">
+      @for (problem of problems(); track problem.id) {
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>
+              <a [routerLink]="['/problems', problem.id]">{{ problem.title }}</a>
+            </mat-card-title>
+            <mat-card-subtitle>
+              {{ problem.type }} · {{ problem.observedAt | date: 'medium' }}
+            </mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <p>
+              {{ problem.targetType.replaceAll('_', ' ') }}:
+              {{ problem.targetLabel || problem.targetId }}
+            </p>
+            <p class="meta">
+              Status: {{ problem.status }}
+              @if (problem.category) {
+                · {{ problem.category.replaceAll('_', ' ') }}
+              }
+              @if (problem.severity) {
+                · severity {{ problem.severity }}
+              }
+            </p>
+            <p class="meta">Photos: {{ problem.photosCount }}</p>
+          </mat-card-content>
+        </mat-card>
+      }
+    </div>
+  }
+</section>

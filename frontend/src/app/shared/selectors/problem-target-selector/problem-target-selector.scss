@@ -1,0 +1,17 @@
+.problem-target-selector {
+  display: grid;
+  gap: 12px;
+}
+
+.summary {
+  min-height: 24px;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.hint {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.warning {
+  color: var(--mat-sys-error);
+}

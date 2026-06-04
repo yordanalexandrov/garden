@@ -1,0 +1,17 @@
+.detail-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.photo {
+  margin: 0 0 12px;
+}
+
+.photo img {
+  max-width: 100%;
+  border-radius: 8px;
+}
+
+figcaption {
+  color: var(--mat-sys-on-surface-variant);
+}

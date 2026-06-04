@@ -1,0 +1,69 @@
+<section class="problem-detail-page" aria-labelledby="problem-detail-title">
+  <app-page-header
+    title="Problem Detail"
+    titleId="problem-detail-title"
+    subtitle="Backend problem or observation record"
+    icon="bug_report"
+  />
+
+  <app-api-error-summary [error]="error()" />
+
+  @if (loading()) {
+    <p>Loading problem...</p>
+  } @else if (problem(); as item) {
+    <div class="detail-grid">
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>{{ item.title }}</mat-card-title>
+          <mat-card-subtitle>
+            {{ item.type }} · {{ item.observedAt | date: 'medium' }}
+          </mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <p>{{ item.description }}</p>
+          <p>Status: {{ item.status }}</p>
+          @if (item.category) {
+            <p>Category: {{ item.category.replaceAll('_', ' ') }}</p>
+          }
+          @if (item.severity) {
+            <p>Severity: {{ item.severity }}</p>
+          }
+          <a routerLink="/problems">Back to problems</a>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card>
+        <mat-card-header><mat-card-title>Target</mat-card-title></mat-card-header>
+        <mat-card-content>
+          <p>
+            {{ item.targetType.replaceAll('_', ' ') }}: {{ item.targetLabel || item.targetId }}
+          </p>
+          @if (item.linkedActivity; as linked) {
+            <p>
+              Linked activity:
+              <a [routerLink]="['/activities', linked.id]">
+                {{ linked.type.replaceAll('_', ' ') }} ({{ linked.performedAt | date: 'mediumDate' }})
+              </a>
+            </p>
+          }
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card>
+        <mat-card-header><mat-card-title>Photos</mat-card-title></mat-card-header>
+        <mat-card-content>
+          @for (photo of item.photos; track photo.id) {
+            <figure class="photo">
+              <img [src]="photo.url" [alt]="photo.originalFilename || 'Problem photo'" />
+              @if (photo.originalFilename) {
+                <figcaption>{{ photo.originalFilename }}</figcaption>
+              }
+            </figure>
+          } @empty {
+            <p>No photos attached.</p>
+          }
+        </mat-card-content>
+      </mat-card>
+    </div>
+  }
+</section>

@@ -1,0 +1,36 @@
+@if (enabled()) {
+  <div class="problem-photo-uploader">
+    <label class="file-field">
+      <span class="label">Photo (optional)</span>
+      <input
+        type="file"
+        accept="image/*"
+        capture="environment"
+        (change)="onFileChange($event)"
+        data-testid="problem-photo-input"
+      />
+    </label>
+
+    @if (previewName(); as name) {
+      <p class="selected">Selected: {{ name }}</p>
+    }
+
+    @if (validationError(); as error) {
+      <p class="error" role="alert">{{ error }}</p>
+    }
+
+    @if (uploading()) {
+      <p class="status">Uploading photo...</p>
+    }
+
+    @if (uploadError(); as error) {
+      <p class="error" role="alert">Photo upload failed: {{ error }}</p>
+    }
+
+    @if (uploaded()) {
+      <p class="status">Photo uploaded.</p>
+    }
+  </div>
+} @else {
+  <p class="hint">Photos can be attached to problems only.</p>
+}

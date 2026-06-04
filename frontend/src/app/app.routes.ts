@@ -34,11 +34,8 @@ export const routes: Routes = [
   },
   {
     path: 'problems',
-    children: [
-      placeholderRoute('', 'Problems', 'full'),
-      placeholderRoute('new', 'New Problem'),
-      placeholderRoute(':problemId', 'Problem Detail'),
-    ],
+    loadChildren: () =>
+      import('./features/problems/problems.routes').then((module) => module.problemsRoutes),
   },
   placeholderRoute('calendar', 'Calendar'),
   {
