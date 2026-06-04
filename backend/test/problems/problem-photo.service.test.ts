@@ -33,12 +33,36 @@ describe("ProblemsService problem photo workflow", () => {
     expect(storage.objects.size).toBe(0);
   });
 
-  it("maps signed URL failures to EXTERNAL_SERVICE_ERROR", async () => {
+  it("maps signed URL provider failures to EXTERNAL_SERVICE_ERROR", async () => {
     const storage = new TestStorageAdapter({ failSignedUrls: true });
     const repository = new FakeProblemsRepository({ detailHasPhoto: true });
     const service = new ProblemsService(repository, new FakeDbClient(), storage, 3600);
 
     await expect(service.getProblem(actor, problemId)).rejects.toMatchObject({ code: "EXTERNAL_SERVICE_ERROR" });
+  });
+
+  it("does not mask generic upload errors as provider failures", async () => {
+    const service = new ProblemsService(new FakeProblemsRepository(), new FakeDbClient(), new BuggyUploadStorageAdapter(), 3600);
+
+    await expect(
+      service.uploadProblemPhoto(actor, problemId, {
+        originalFilename: "leaf.jpg",
+        mimeType: "image/jpeg",
+        fileSizeBytes: 4,
+        body: Buffer.from("test")
+      })
+    ).rejects.toThrow("internal upload bug");
+  });
+
+  it("does not mask generic signed URL errors as provider failures", async () => {
+    const service = new ProblemsService(
+      new FakeProblemsRepository({ detailHasPhoto: true }),
+      new FakeDbClient(),
+      new BuggySignedUrlStorageAdapter(),
+      3600
+    );
+
+    await expect(service.getProblem(actor, problemId)).rejects.toThrow("internal signed URL bug");
   });
 });
 
@@ -141,5 +165,19 @@ class FakeProblemsRepository implements ProblemsRepository {
 
   findLinkedActivity(): never {
     throw new Error("not implemented");
+  }
+}
+
+class BuggyUploadStorageAdapter extends TestStorageAdapter {
+  override async uploadProblemPhoto(): ReturnType<TestStorageAdapter["uploadProblemPhoto"]> {
+    await Promise.resolve();
+    throw new Error("internal upload bug");
+  }
+}
+
+class BuggySignedUrlStorageAdapter extends TestStorageAdapter {
+  override async getSignedUrl(): ReturnType<TestStorageAdapter["getSignedUrl"]> {
+    await Promise.resolve();
+    throw new Error("internal signed URL bug");
   }
 }

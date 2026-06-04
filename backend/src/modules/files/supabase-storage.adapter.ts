@@ -17,7 +17,7 @@ export class SupabaseStorageAdapter implements StoragePort {
 
   async uploadProblemPhoto(input: ProblemPhotoUploadInput): Promise<UploadedProblemPhoto> {
     const storageKey = buildProblemPhotoStorageKey(input);
-    const response = await fetch(`${this.baseUrl}/storage/v1/object/${encodePath(this.options.bucket)}/${encodeStoragePath(storageKey)}`, {
+    const response = await storageFetch(`${this.baseUrl}/storage/v1/object/${encodePath(this.options.bucket)}/${encodeStoragePath(storageKey)}`, {
       method: "POST",
       headers: {
         authorization: `Bearer ${this.options.serviceRoleKey}`,
@@ -26,7 +26,7 @@ export class SupabaseStorageAdapter implements StoragePort {
         "x-upsert": "false"
       },
       body: input.body
-    });
+    }, "Supabase Storage upload failed");
 
     if (!response.ok) {
       throw new StorageProviderError("Supabase Storage upload failed");
@@ -44,11 +44,11 @@ export class SupabaseStorageAdapter implements StoragePort {
 
   async deleteObject(storageKey: string): Promise<void> {
     assertSafeStorageKey(storageKey);
-    const response = await fetch(`${this.baseUrl}/storage/v1/object/${encodePath(this.options.bucket)}`, {
+    const response = await storageFetch(`${this.baseUrl}/storage/v1/object/${encodePath(this.options.bucket)}`, {
       method: "DELETE",
       headers: this.jsonHeaders(),
       body: JSON.stringify({ prefixes: [storageKey] })
-    });
+    }, "Supabase Storage delete failed");
 
     if (!response.ok) {
       throw new StorageProviderError("Supabase Storage delete failed");
@@ -57,20 +57,21 @@ export class SupabaseStorageAdapter implements StoragePort {
 
   async getSignedUrl(input: GetSignedUrlInput): Promise<string> {
     assertSafeStorageKey(input.storageKey);
-    const response = await fetch(
+    const response = await storageFetch(
       `${this.baseUrl}/storage/v1/object/sign/${encodePath(this.options.bucket)}/${encodeStoragePath(input.storageKey)}`,
       {
         method: "POST",
         headers: this.jsonHeaders(),
         body: JSON.stringify({ expiresIn: input.expiresInSeconds ?? 3600 })
-      }
+      },
+      "Supabase Storage signed URL failed"
     );
 
     if (!response.ok) {
       throw new StorageProviderError("Supabase Storage signed URL failed");
     }
 
-    const payload = (await response.json()) as { signedURL?: string; signedUrl?: string };
+    const payload = (await storageJson(response, "Supabase Storage signed URL response was invalid")) as { signedURL?: string; signedUrl?: string };
     const signedPath = payload.signedURL ?? payload.signedUrl;
 
     if (signedPath === undefined) {
@@ -95,4 +96,20 @@ function encodePath(value: string): string {
 
 function encodeStoragePath(storageKey: string): string {
   return storageKey.split("/").map(encodeURIComponent).join("/");
+}
+
+async function storageFetch(url: string, init: RequestInit, message: string): Promise<Response> {
+  try {
+    return await fetch(url, init);
+  } catch {
+    throw new StorageProviderError(message);
+  }
+}
+
+async function storageJson(response: Response, message: string): Promise<unknown> {
+  try {
+    return await response.json();
+  } catch {
+    throw new StorageProviderError(message);
+  }
 }

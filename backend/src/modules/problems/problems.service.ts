@@ -81,7 +81,7 @@ export class ProblemsService {
         body: file.body
       });
     } catch (error) {
-      if (isStorageProviderError(error) || error instanceof Error) {
+      if (isStorageProviderError(error)) {
         throw new AppError("EXTERNAL_SERVICE_ERROR", "Problem photo storage upload failed");
       }
 
@@ -151,7 +151,7 @@ export class ProblemsService {
     try {
       return await this.storagePort.getSignedUrl({ storageKey, expiresInSeconds: this.signedUrlTtlSeconds });
     } catch (error) {
-      if (isStorageProviderError(error) || error instanceof Error) {
+      if (isStorageProviderError(error)) {
         throw new AppError("EXTERNAL_SERVICE_ERROR", "Problem photo URL generation failed");
       }
 
