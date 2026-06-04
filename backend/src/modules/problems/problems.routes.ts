@@ -1,12 +1,17 @@
-import type { FastifyPluginCallback } from "fastify";
+import type { FastifyInstance, FastifyPluginCallback } from "fastify";
 
+import type { AppConfig } from "../../config/config.js";
 import type { DbClient } from "../../db/transaction.js";
 import { successEnvelope } from "../../shared/api/envelope.js";
 import { validateRequest } from "../../shared/validation/request-validation.js";
 import { hasAuthDecorator, requireActor } from "../auth/request-actor.js";
-import { toProblemDetailDto, toProblemListItemDto, toProblemMutationDto } from "./problems.dto.js";
+import type { StoragePort } from "../files/storage.port.js";
+import { TestStorageAdapter } from "../files/test-storage.adapter.js";
+import { SupabaseStorageAdapter } from "../files/supabase-storage.adapter.js";
+import { toProblemDetailDto, toProblemListItemDto, toProblemMutationDto, toProblemPhotoMutationDto } from "./problems.dto.js";
 import { KyselyProblemsRepository } from "./problems.repository.js";
 import { ProblemsService } from "./problems.service.js";
+import { validateProblemPhotoMultipart } from "./problem-photo.validation.js";
 import type { CreateProblemRequest, ListProblemsFilters, UpdateProblemRequest } from "./problems.types.js";
 import {
   createProblemBodySchema,
@@ -20,10 +25,14 @@ import {
 
 export type ProblemsRouteOptions = {
   db?: DbClient;
+  config?: AppConfig;
+  storage?: StoragePort;
 };
 
 export const registerProblemsRoutes: FastifyPluginCallback<ProblemsRouteOptions> = (app, options, done) => {
-  const problemsService = createProblemsService(options.db);
+  const config = options.config;
+  registerMultipartParser(app, config);
+  const problemsService = createProblemsService(options.db, config, options.storage);
   const protectedRoute = hasAuthDecorator(app) ? { preHandler: app.authenticate } : {};
 
   app.get("/", protectedRoute, async (request) => {
@@ -55,6 +64,19 @@ export const registerProblemsRoutes: FastifyPluginCallback<ProblemsRouteOptions>
     return successEnvelope(toProblemDetailDto(result));
   });
 
+
+  app.post("/:problemId/photos", protectedRoute, async (request) => {
+    const actor = requireActor(request);
+    const { params } = validateRequest(request, { params: problemParamsSchema });
+    const file = validateProblemPhotoMultipart(request.headers["content-type"], request.body, {
+      allowedMimeTypes: photoAllowedMimeTypes(config),
+      maxBytes: photoMaxBytes(config)
+    });
+    const result = await requireProblemsService(problemsService).uploadProblemPhoto(actor, params.problemId, file);
+
+    return successEnvelope(toProblemPhotoMutationDto(result));
+  });
+
   app.patch("/:problemId", protectedRoute, async (request) => {
     const actor = requireActor(request);
     const { params, body } = validateRequest(request, {
@@ -73,12 +95,55 @@ export const registerProblemsRoutes: FastifyPluginCallback<ProblemsRouteOptions>
   done();
 };
 
-function createProblemsService(db: DbClient | undefined): ProblemsService | undefined {
+function createProblemsService(
+  db: DbClient | undefined,
+  config: AppConfig | undefined,
+  storage: StoragePort | undefined
+): ProblemsService | undefined {
   if (db === undefined) {
     return undefined;
   }
 
-  return new ProblemsService(new KyselyProblemsRepository(db), db);
+  return new ProblemsService(
+    new KyselyProblemsRepository(db),
+    db,
+    storage ?? createStoragePort(config),
+    config?.integrations.problemPhotoSignedUrlTtlSeconds ?? 60 * 60
+  );
+}
+
+function registerMultipartParser(app: FastifyInstance, config: AppConfig | undefined): void {
+  if (app.hasContentTypeParser("multipart/form-data")) {
+    return;
+  }
+
+  app.addContentTypeParser("multipart/form-data", { parseAs: "buffer", bodyLimit: photoMaxBytes(config) + 1024 * 1024 }, (_request, body, done) => {
+    done(null, body);
+  });
+}
+
+function createStoragePort(config: AppConfig | undefined): StoragePort {
+  if (config?.nodeEnv === "production") {
+    const storageUrl = config.integrations.supabaseStorageUrl;
+    const bucket = config.integrations.supabaseStorageBucketProblemPhotos;
+    const serviceRoleKey = config.backendOnly.supabaseServiceRoleKey;
+
+    if (storageUrl === undefined || bucket === undefined || serviceRoleKey === undefined) {
+      throw new Error("Production problem photo storage requires Supabase Storage URL, bucket, and backend service role key");
+    }
+
+    return new SupabaseStorageAdapter({ storageUrl, bucket, serviceRoleKey });
+  }
+
+  return new TestStorageAdapter();
+}
+
+function photoMaxBytes(config: AppConfig | undefined): number {
+  return config?.integrations.problemPhotoMaxBytes ?? 5 * 1024 * 1024;
+}
+
+function photoAllowedMimeTypes(config: AppConfig | undefined): readonly string[] {
+  return config?.integrations.problemPhotoAllowedMimeTypes ?? ["image/jpeg", "image/png", "image/webp"];
 }
 
 function requireProblemsService(service: ProblemsService | undefined): ProblemsService {

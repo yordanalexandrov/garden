@@ -3,6 +3,7 @@ import Fastify, { type FastifyInstance } from "fastify";
 import { loadConfig, type AppConfig } from "../config/config.js";
 import { createLoggerOptions, type AppLoggerOptions } from "../config/logger.js";
 import type { DbClient } from "../db/transaction.js";
+import type { StoragePort } from "../modules/files/storage.port.js";
 import { registerErrorHandling } from "../shared/errors/fastify-error-handler.js";
 import type { AuthPluginOptions } from "../shared/plugins/auth.js";
 import { API_PREFIX, registerApiRoutes } from "./routes.js";
@@ -13,6 +14,7 @@ export type CreateAppOptions = {
   enableTestRoutes?: boolean;
   auth?: AuthPluginOptions;
   db?: DbClient;
+  storage?: StoragePort;
 };
 
 export async function createApp(options: CreateAppOptions = {}): Promise<FastifyInstance> {
@@ -39,7 +41,9 @@ export async function createApp(options: CreateAppOptions = {}): Promise<Fastify
     prefix: API_PREFIX,
     ...(options.enableTestRoutes === undefined ? {} : { enableTestRoutes: options.enableTestRoutes }),
     ...(options.auth === undefined ? {} : { auth: options.auth }),
-    ...(db === undefined ? {} : { db })
+    ...(db === undefined ? {} : { db }),
+    config,
+    ...(options.storage === undefined ? {} : { storage: options.storage })
   };
 
   await app.register(registerApiRoutes, routeOptions);

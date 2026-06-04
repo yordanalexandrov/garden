@@ -52,16 +52,33 @@ export type ProblemLinkedActivitySummary = {
   performedAt: Date;
 };
 
+export type ProblemPhotoMetadata = {
+  id: UUID;
+  storageKey: string;
+  originalFilename: string | null;
+  mimeType: string | null;
+  fileSizeBytes: number | null;
+  widthPx: number | null;
+  heightPx: number | null;
+  createdAt: Date;
+};
+
 export type ProblemPhotoSummary = {
   id: UUID;
   url: string;
   mimeType: string | null;
+  originalFilename: string | null;
+  fileSizeBytes: number | null;
 };
 
-export type ProblemDetail = Omit<Problem, "accountId" | "createdAt" | "updatedAt"> & {
+export type ProblemDetailRecord = Omit<Problem, "accountId" | "createdAt" | "updatedAt"> & {
   targetLabel: string | null;
-  photos: ProblemPhotoSummary[];
+  photos: ProblemPhotoMetadata[];
   linkedActivity: ProblemLinkedActivitySummary | null;
+};
+
+export type ProblemDetail = Omit<ProblemDetailRecord, "photos"> & {
+  photos: ProblemPhotoSummary[];
 };
 
 export type CreateProblemRequest = {
@@ -127,14 +144,46 @@ export type LinkedActivityLookup = {
   performedAt: Date;
 };
 
+export type CreateProblemPhotoMetadataInput = {
+  id: UUID;
+  problemId: UUID;
+  storageKey: string;
+  originalFilename: string | null;
+  mimeType: string | null;
+  fileSizeBytes: number | null;
+  widthPx: number | null;
+  heightPx: number | null;
+};
+
+export type ProblemForPhotoUpload = {
+  id: UUID;
+  accountId: UUID;
+  type: ProblemType;
+  placeId: UUID;
+};
+
+export type UploadProblemPhotoRequest = {
+  originalFilename: string | null;
+  mimeType: string;
+  fileSizeBytes: number;
+  body: Buffer;
+};
+
+export type UploadProblemPhotoResult = {
+  id: UUID;
+  storageKey: string;
+};
+
 export type ProblemRow = Selectable<ProblemsTable>;
 
 export interface ProblemsRepository {
   create(input: CreateProblemInput, db?: DbHandle): Promise<Problem>;
   list(accountId: UUID, filters: ListProblemsFilters, db?: DbHandle): Promise<PaginatedProblems>;
-  getDetail(accountId: UUID, problemId: UUID, db?: DbHandle): Promise<ProblemDetail | null>;
+  getDetail(accountId: UUID, problemId: UUID, db?: DbHandle): Promise<ProblemDetailRecord | null>;
   update(accountId: UUID, problemId: UUID, patch: UpdateProblemInput, db?: DbHandle): Promise<Problem | null>;
   findPlace(accountId: UUID, placeId: UUID, db?: DbHandle): Promise<{ id: UUID } | null>;
   findTarget(accountId: UUID, targetType: TargetType, targetId: UUID, db?: DbHandle): Promise<ProblemTargetLookup | null>;
   findLinkedActivity(accountId: UUID, activityId: UUID, db?: DbHandle): Promise<LinkedActivityLookup | null>;
+  findProblemForPhotoUpload(accountId: UUID, problemId: UUID, db?: DbHandle): Promise<ProblemForPhotoUpload | null>;
+  createPhotoMetadata(input: CreateProblemPhotoMetadataInput, db?: DbHandle): Promise<ProblemPhotoMetadata>;
 }

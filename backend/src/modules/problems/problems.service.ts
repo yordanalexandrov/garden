@@ -1,5 +1,9 @@
+import { randomUUID } from "node:crypto";
+
 import type { DbClient, DbHandle } from "../../db/transaction.js";
 import { AppError } from "../../shared/errors/app-error.js";
+import type { StoragePort } from "../files/storage.port.js";
+import { isStorageProviderError } from "../files/storage.port.js";
 import type { AuthenticatedActor, UUID } from "../auth/auth.types.js";
 import type {
   CreateProblemInput,
@@ -9,13 +13,17 @@ import type {
   Problem,
   ProblemDetail,
   ProblemsRepository,
-  UpdateProblemRequest
+  UpdateProblemRequest,
+  UploadProblemPhotoRequest,
+  UploadProblemPhotoResult
 } from "./problems.types.js";
 
 export class ProblemsService {
   constructor(
     private readonly problemsRepository: ProblemsRepository,
-    private readonly dbClient: DbClient
+    private readonly dbClient: DbClient,
+    private readonly storagePort: StoragePort,
+    private readonly signedUrlTtlSeconds: number
   ) {}
 
   async listProblems(actor: AuthenticatedActor, filters: ListProblemsFilters): Promise<PaginatedProblems> {
@@ -29,7 +37,79 @@ export class ProblemsService {
       throw new AppError("NOT_FOUND", "Problem not found");
     }
 
-    return problem;
+    return {
+      ...problem,
+      photos: await Promise.all(
+        problem.photos.map(async (photo) => ({
+          id: photo.id,
+          url: await this.getSignedPhotoUrl(photo.storageKey),
+          mimeType: photo.mimeType,
+          originalFilename: photo.originalFilename,
+          fileSizeBytes: photo.fileSizeBytes
+        }))
+      )
+    };
+  }
+
+
+  async uploadProblemPhoto(
+    actor: AuthenticatedActor,
+    problemId: UUID,
+    file: UploadProblemPhotoRequest
+  ): Promise<UploadProblemPhotoResult> {
+    const problem = await this.problemsRepository.findProblemForPhotoUpload(actor.accountId, problemId);
+
+    if (problem === null) {
+      throw new AppError("NOT_FOUND", "Problem not found");
+    }
+
+    if (problem.type !== "problem") {
+      throw new AppError("BUSINESS_RULE_VIOLATION", "Photos are supported only for problems in v1");
+    }
+
+    const photoId = randomUUID();
+    let uploaded: Awaited<ReturnType<StoragePort["uploadProblemPhoto"]>>;
+
+    try {
+      uploaded = await this.storagePort.uploadProblemPhoto({
+        accountId: actor.accountId,
+        problemId,
+        photoId,
+        originalFilename: file.originalFilename,
+        mimeType: file.mimeType,
+        fileSizeBytes: file.fileSizeBytes,
+        body: file.body
+      });
+    } catch (error) {
+      if (isStorageProviderError(error)) {
+        throw new AppError("EXTERNAL_SERVICE_ERROR", "Problem photo storage upload failed");
+      }
+
+      throw error;
+    }
+
+    try {
+      const metadata = await this.dbClient.transaction((trx) =>
+        this.problemsRepository.createPhotoMetadata(
+          {
+            id: photoId,
+            problemId,
+            storageKey: uploaded.storageKey,
+            originalFilename: uploaded.originalFilename,
+            mimeType: uploaded.mimeType,
+            fileSizeBytes: uploaded.fileSizeBytes,
+            widthPx: uploaded.widthPx,
+            heightPx: uploaded.heightPx
+          },
+          trx
+        )
+      );
+
+      return { id: metadata.id, storageKey: metadata.storageKey };
+    } catch (error) {
+      await this.cleanupUploadedPhoto(uploaded.storageKey);
+      throw error;
+    }
   }
 
   async createProblem(actor: AuthenticatedActor, input: CreateProblemRequest): Promise<Problem> {
@@ -65,6 +145,26 @@ export class ProblemsService {
 
       return updated;
     });
+  }
+
+  private async getSignedPhotoUrl(storageKey: string): Promise<string> {
+    try {
+      return await this.storagePort.getSignedUrl({ storageKey, expiresInSeconds: this.signedUrlTtlSeconds });
+    } catch (error) {
+      if (isStorageProviderError(error)) {
+        throw new AppError("EXTERNAL_SERVICE_ERROR", "Problem photo URL generation failed");
+      }
+
+      throw error;
+    }
+  }
+
+  private async cleanupUploadedPhoto(storageKey: string): Promise<void> {
+    try {
+      await this.storagePort.deleteObject(storageKey);
+    } catch {
+      // Preserve the original metadata failure; orphan cleanup can be retried from storage logs/key.
+    }
   }
 
   private async validateProblemContext(
