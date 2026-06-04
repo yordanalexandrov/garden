@@ -13,6 +13,18 @@ const emptyStringToUndefined = (value: unknown): unknown => {
 const optionalString = z.preprocess(emptyStringToUndefined, z.string().min(1).optional());
 const optionalUrl = z.preprocess(emptyStringToUndefined, z.string().url().optional());
 const optionalInteger = z.preprocess(emptyStringToUndefined, z.coerce.number().int().positive().optional());
+const csvToStringArray = (value: unknown): unknown => {
+  if (typeof value !== "string") {
+    return value;
+  }
+
+  const values = value
+    .split(",")
+    .map((item) => item.trim())
+    .filter((item) => item.length > 0);
+
+  return values.length === 0 ? undefined : values;
+};
 
 const envSchema = z.object({
   NODE_ENV: z.enum(VALID_NODE_ENV_VALUES).default("development"),
@@ -34,6 +46,15 @@ const envSchema = z.object({
   SUPABASE_AUTH_SITE_URL: optionalUrl,
   SUPABASE_STORAGE_URL: optionalUrl,
   SUPABASE_STORAGE_BUCKET_PROBLEM_PHOTOS: optionalString,
+  PROBLEM_PHOTO_MAX_BYTES: z.preprocess(emptyStringToUndefined, z.coerce.number().int().positive().default(5 * 1024 * 1024)),
+  PROBLEM_PHOTO_ALLOWED_MIME_TYPES: z.preprocess(
+    csvToStringArray,
+    z.array(z.string().regex(/^image\/[a-z0-9.+-]+$/i)).default(["image/jpeg", "image/png", "image/webp"])
+  ),
+  PROBLEM_PHOTO_SIGNED_URL_TTL_SECONDS: z.preprocess(
+    emptyStringToUndefined,
+    z.coerce.number().int().positive().default(60 * 60)
+  ),
   WEATHER_PROVIDER: z.preprocess(emptyStringToUndefined, z.enum(["open-meteo"]).optional()),
   OPEN_METEO_BASE_URL: optionalUrl,
   VAPID_PUBLIC_KEY: optionalString,
@@ -93,6 +114,9 @@ export type IntegrationConfig = {
   supabaseAuthSiteUrl: string | undefined;
   supabaseStorageUrl: string | undefined;
   supabaseStorageBucketProblemPhotos: string | undefined;
+  problemPhotoMaxBytes: number;
+  problemPhotoAllowedMimeTypes: string[];
+  problemPhotoSignedUrlTtlSeconds: number;
   weatherProvider: "open-meteo" | undefined;
   openMeteoBaseUrl: string | undefined;
   vapidSubject: string | undefined;
@@ -159,6 +183,9 @@ function toAppConfig(env: ParsedEnv): AppConfig {
       supabaseAuthSiteUrl: env.SUPABASE_AUTH_SITE_URL,
       supabaseStorageUrl: env.SUPABASE_STORAGE_URL,
       supabaseStorageBucketProblemPhotos: env.SUPABASE_STORAGE_BUCKET_PROBLEM_PHOTOS,
+      problemPhotoMaxBytes: env.PROBLEM_PHOTO_MAX_BYTES,
+      problemPhotoAllowedMimeTypes: env.PROBLEM_PHOTO_ALLOWED_MIME_TYPES,
+      problemPhotoSignedUrlTtlSeconds: env.PROBLEM_PHOTO_SIGNED_URL_TTL_SECONDS,
       weatherProvider: env.WEATHER_PROVIDER,
       openMeteoBaseUrl: env.OPEN_METEO_BASE_URL,
       vapidSubject: env.VAPID_SUBJECT,

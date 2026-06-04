@@ -7,6 +7,7 @@ import { createDbClient } from "../../src/db/db.js";
 import type { DbClient } from "../../src/db/transaction.js";
 import { KyselyAccountsRepository } from "../../src/modules/accounts/accounts.repository.js";
 import { TestAuthAdapter } from "../../src/modules/auth/test-auth.adapter.js";
+import { TestStorageAdapter } from "../../src/modules/files/test-storage.adapter.js";
 import { createTestPool, hasTestDatabase, resetAndApplyBaseline } from "../db/helpers/test-database.js";
 import { AccountFixtureIds, insertAuthAccountFixtures } from "../helpers/accounts.js";
 import { createTestApp } from "../helpers/app.js";
@@ -68,7 +69,7 @@ type ProblemDetailResponse = {
     severity: string | null;
     status: string;
     observedAt: string;
-    photos: unknown[];
+    photos: Array<{ id: string; url: string; mimeType: string | null; originalFilename?: string | null; fileSizeBytes?: number | null }>;
     linkedActivity: { id: string; type: string; performedAt: string } | null;
   };
 };
@@ -133,6 +134,7 @@ describeDatabase("Problems routes with database", () => {
   let pool: Pool;
   let dbClient: DbClient;
   let app: FastifyInstance | undefined;
+  let storage: TestStorageAdapter;
 
   beforeEach(async () => {
     pool = createTestPool();
@@ -145,8 +147,10 @@ describeDatabase("Problems routes with database", () => {
         DATABASE_URL: process.env.TEST_DATABASE_URL ?? process.env.DATABASE_URL
       })
     );
+    storage = new TestStorageAdapter();
     app = await createTestApp({
       db: dbClient,
+      storage,
       auth: {
         authPort: new TestAuthAdapter(),
         accountsRepository: new KyselyAccountsRepository(dbClient)
@@ -358,7 +362,136 @@ describeDatabase("Problems routes with database", () => {
 
     expect(getFromB.statusCode).toBe(404);
     expect(patchFromB.statusCode).toBe(404);
-    expect(photoRoute.statusCode).toBe(404);
+    expect(photoRoute.statusCode).toBe(400);
+  });
+
+  it("uploads valid problem photos, persists metadata only, and maps controlled detail URLs", async () => {
+    const createdProblem = parseJsonResponse<CreateProblemResponse>(
+      await app!.inject({ method: "POST", url: "/api/v1/problems", headers: accountAAuthHeaders(), payload: validCreatePayload() })
+    ).data.id;
+    const multipart = multipartPayload({ filename: "leaf spot.jpg", contentType: "image/jpeg", body: Buffer.from("jpeg") });
+
+    const upload = await app!.inject({
+      method: "POST",
+      url: `/api/v1/problems/${createdProblem}/photos`,
+      headers: { ...accountAAuthHeaders(), ...multipart.headers },
+      payload: multipart.body
+    });
+
+    expect(upload.statusCode).toBe(200);
+    const uploadBody = parseJsonResponse<{ data: { id: string; storageKey: string } }>(upload);
+    expect(typeof uploadBody.data.id).toBe("string");
+    expect(uploadBody.data.storageKey).toContain(`/problems/${createdProblem}/`);
+    expect(storage.objects.has(uploadBody.data.storageKey)).toBe(true);
+
+    const rows = await pool.query<{ storage_key: string; original_filename: string; mime_type: string; file_size_bytes: string }>(
+      "select storage_key, original_filename, mime_type, file_size_bytes from problem_photos where problem_id = $1",
+      [createdProblem]
+    );
+    expect(rows.rows).toEqual([
+      {
+        storage_key: uploadBody.data.storageKey,
+        original_filename: "leaf spot.jpg",
+        mime_type: "image/jpeg",
+        file_size_bytes: "4"
+      }
+    ]);
+
+    const detail = await app!.inject({ method: "GET", url: `/api/v1/problems/${createdProblem}`, headers: accountAAuthHeaders() });
+    expect(detail.statusCode).toBe(200);
+    const detailPhotos = parseJsonResponse<ProblemDetailResponse>(detail).data.photos;
+    expect(detailPhotos).toHaveLength(1);
+    expect(detailPhotos[0]?.id).toBe(uploadBody.data.id);
+    expect(detailPhotos[0]?.url).toContain("https://storage.test/signed/");
+    expect(detailPhotos[0]?.mimeType).toBe("image/jpeg");
+  });
+
+  it("rejects observation, cross-account, invalid MIME, and oversized photo uploads before unsafe side effects", async () => {
+    const problem = parseJsonResponse<CreateProblemResponse>(
+      await app!.inject({ method: "POST", url: "/api/v1/problems", headers: accountAAuthHeaders(), payload: validCreatePayload() })
+    ).data.id;
+    const observation = parseJsonResponse<CreateProblemResponse>(
+      await app!.inject({
+        method: "POST",
+        url: "/api/v1/problems",
+        headers: accountAAuthHeaders(),
+        payload: { ...validCreatePayload(), type: "observation", title: "Healthy growth", category: null, linkedActivityId: null }
+      })
+    ).data.id;
+    const accountBProblem = parseJsonResponse<CreateProblemResponse>(
+      await app!.inject({
+        method: "POST",
+        url: "/api/v1/problems",
+        headers: accountBAuthHeaders(),
+        payload: validCreatePayload({ placeId: Ids.placeB, targetId: Ids.bedB, linkedActivityId: Ids.activityB })
+      })
+    ).data.id;
+
+    const textFile = multipartPayload({ filename: "notes.txt", contentType: "text/plain", body: Buffer.from("text") });
+    const oversized = multipartPayload({ filename: "large.jpg", contentType: "image/jpeg", body: Buffer.alloc(6 * 1024 * 1024, 1) });
+    const image = multipartPayload({ filename: "leaf.jpg", contentType: "image/jpeg", body: Buffer.from("jpeg") });
+
+    const invalidMime = await app!.inject({
+      method: "POST",
+      url: `/api/v1/problems/${problem}/photos`,
+      headers: { ...accountAAuthHeaders(), ...textFile.headers },
+      payload: textFile.body
+    });
+    const tooLarge = await app!.inject({
+      method: "POST",
+      url: `/api/v1/problems/${problem}/photos`,
+      headers: { ...accountAAuthHeaders(), ...oversized.headers },
+      payload: oversized.body
+    });
+    const observationUpload = await app!.inject({
+      method: "POST",
+      url: `/api/v1/problems/${observation}/photos`,
+      headers: { ...accountAAuthHeaders(), ...image.headers },
+      payload: image.body
+    });
+    const crossAccount = await app!.inject({
+      method: "POST",
+      url: `/api/v1/problems/${accountBProblem}/photos`,
+      headers: { ...accountAAuthHeaders(), ...image.headers },
+      payload: image.body
+    });
+
+    expect(invalidMime.statusCode).toBe(400);
+    expect(parseJsonResponse<{ error: { code: string } }>(invalidMime)).toMatchObject({ error: { code: "VALIDATION_ERROR" } });
+    expect(tooLarge.statusCode).toBe(400);
+    expect(observationUpload.statusCode).toBe(422);
+    expect(parseJsonResponse<{ error: { code: string } }>(observationUpload)).toMatchObject({ error: { code: "BUSINESS_RULE_VIOLATION" } });
+    expect(crossAccount.statusCode).toBe(404);
+    expect(storage.objects.size).toBe(0);
+  });
+
+  it("maps storage provider upload failures without creating metadata", async () => {
+    const createdProblem = parseJsonResponse<CreateProblemResponse>(
+      await app!.inject({ method: "POST", url: "/api/v1/problems", headers: accountAAuthHeaders(), payload: validCreatePayload() })
+    ).data.id;
+    await app!.close();
+    storage = new TestStorageAdapter({ failUploads: true });
+    app = await createTestApp({
+      db: dbClient,
+      storage,
+      auth: {
+        authPort: new TestAuthAdapter(),
+        accountsRepository: new KyselyAccountsRepository(dbClient)
+      }
+    });
+    const image = multipartPayload({ filename: "leaf.jpg", contentType: "image/jpeg", body: Buffer.from("jpeg") });
+
+    const response = await app.inject({
+      method: "POST",
+      url: `/api/v1/problems/${createdProblem}/photos`,
+      headers: { ...accountAAuthHeaders(), ...image.headers },
+      payload: image.body
+    });
+
+    expect(response.statusCode).toBe(502);
+    expect(parseJsonResponse<{ error: { code: string } }>(response)).toMatchObject({ error: { code: "EXTERNAL_SERVICE_ERROR" } });
+    const photos = await pool.query<{ count: string }>("select count(*) from problem_photos where problem_id = $1", [createdProblem]);
+    expect(photos.rows[0]?.count).toBe("0");
   });
 });
 
@@ -408,6 +541,20 @@ async function insertProblemsFixture(pool: Pool): Promise<void> {
 
 function parseJsonResponse<T>(response: LightMyRequestResponse): T {
   return response.json<T>();
+}
+
+function multipartPayload(input: { filename: string; contentType: string; body: Buffer }): { headers: Record<string, string>; body: Buffer } {
+  const boundary = `----garden-${Math.random().toString(16).slice(2)}`;
+  const prefix = Buffer.from(
+    `--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="${input.filename}"\r\nContent-Type: ${input.contentType}\r\n\r\n`,
+    "latin1"
+  );
+  const suffix = Buffer.from(`\r\n--${boundary}--\r\n`, "latin1");
+
+  return {
+    headers: { "content-type": `multipart/form-data; boundary=${boundary}` },
+    body: Buffer.concat([prefix, input.body, suffix])
+  };
 }
 
 class StaticAccountsRepository {

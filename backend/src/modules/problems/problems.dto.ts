@@ -1,4 +1,4 @@
-import type { Problem, ProblemDetail, ProblemListItem } from "./problems.types.js";
+import type { Problem, ProblemDetail, ProblemListItem, UploadProblemPhotoResult } from "./problems.types.js";
 
 export function toProblemListItemDto(item: ProblemListItem): ProblemListItemDto {
   return {
@@ -47,6 +47,10 @@ export function toProblemMutationDto(problem: Problem): ProblemMutationDto {
   return { id: problem.id };
 }
 
+export function toProblemPhotoMutationDto(photo: UploadProblemPhotoResult): ProblemPhotoMutationDto {
+  return { id: photo.id, storageKey: photo.storageKey };
+}
+
 type ProblemListItemDto = Omit<ProblemListItem, "observedAt"> & {
   observedAt: string;
 };
@@ -58,4 +62,9 @@ type ProblemDetailDto = Omit<ProblemDetail, "observedAt" | "linkedActivity" | "l
 
 type ProblemMutationDto = {
   id: string;
+};
+
+type ProblemPhotoMutationDto = {
+  id: string;
+  storageKey: string;
 };

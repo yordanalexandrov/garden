@@ -1,16 +1,19 @@
 import { sql, type Selectable, type Updateable } from "kysely";
 
-import type { ProblemsTable } from "../../db/database.types.js";
+import type { ProblemPhotosTable, ProblemsTable } from "../../db/database.types.js";
 import type { DbHandle } from "../../db/transaction.js";
 import type { UUID } from "../auth/auth.types.js";
 import type { TargetType } from "../targets/target-resolver.types.js";
 import type {
   CreateProblemInput,
+  CreateProblemPhotoMetadataInput,
   LinkedActivityLookup,
   ListProblemsFilters,
   PaginatedProblems,
   Problem,
-  ProblemDetail,
+  ProblemDetailRecord,
+  ProblemForPhotoUpload,
+  ProblemPhotoMetadata,
   ProblemsRepository,
   ProblemTargetLookup,
   UpdateProblemInput
@@ -36,6 +39,7 @@ const PROBLEM_COLUMNS = [
 ] as const;
 
 type SelectedProblem = Pick<Selectable<ProblemsTable>, (typeof PROBLEM_COLUMNS)[number]>;
+type SelectedProblemPhoto = Selectable<ProblemPhotosTable>;
 type CountRow = { count: string | number | bigint };
 
 export class KyselyProblemsRepository implements ProblemsRepository {
@@ -153,7 +157,7 @@ export class KyselyProblemsRepository implements ProblemsRepository {
     };
   }
 
-  async getDetail(accountId: UUID, problemId: UUID, db: DbHandle = this.dbHandle): Promise<ProblemDetail | null> {
+  async getDetail(accountId: UUID, problemId: UUID, db: DbHandle = this.dbHandle): Promise<ProblemDetailRecord | null> {
     const row = await db.db
       .selectFrom("problems as pr")
       .select([
@@ -184,11 +188,12 @@ export class KyselyProblemsRepository implements ProblemsRepository {
 
     const linkedActivity =
       row.linked_activity_id === null ? null : await this.findLinkedActivity(accountId, row.linked_activity_id, db);
+    const photos = await this.listPhotoMetadata(row.id, db);
 
     return {
       ...toProblem(row),
       targetLabel: row.target_label,
-      photos: [],
+      photos,
       linkedActivity:
         linkedActivity === null
           ? null
@@ -270,6 +275,62 @@ export class KyselyProblemsRepository implements ProblemsRepository {
           type: row.type,
           performedAt: row.performed_at
         };
+  }
+
+  async findProblemForPhotoUpload(
+    accountId: UUID,
+    problemId: UUID,
+    db: DbHandle = this.dbHandle
+  ): Promise<ProblemForPhotoUpload | null> {
+    const row = await db.db
+      .selectFrom("problems")
+      .select(["id", "account_id", "type", "place_id"])
+      .where("account_id", "=", accountId)
+      .where("id", "=", problemId)
+      .executeTakeFirst();
+
+    return row === undefined
+      ? null
+      : {
+          id: row.id,
+          accountId: row.account_id,
+          type: row.type as ProblemType,
+          placeId: row.place_id
+        };
+  }
+
+  async createPhotoMetadata(
+    input: CreateProblemPhotoMetadataInput,
+    db: DbHandle = this.dbHandle
+  ): Promise<ProblemPhotoMetadata> {
+    const row = await db.db
+      .insertInto("problem_photos")
+      .values({
+        id: input.id,
+        problem_id: input.problemId,
+        storage_key: input.storageKey,
+        original_filename: input.originalFilename,
+        mime_type: input.mimeType,
+        file_size_bytes: input.fileSizeBytes,
+        width_px: input.widthPx,
+        height_px: input.heightPx
+      })
+      .returning(["id", "problem_id", "storage_key", "original_filename", "mime_type", "file_size_bytes", "width_px", "height_px", "created_at"])
+      .executeTakeFirstOrThrow();
+
+    return toProblemPhotoMetadata(row);
+  }
+
+  private async listPhotoMetadata(problemId: UUID, db: DbHandle): Promise<ProblemPhotoMetadata[]> {
+    const rows = await db.db
+      .selectFrom("problem_photos")
+      .select(["id", "problem_id", "storage_key", "original_filename", "mime_type", "file_size_bytes", "width_px", "height_px", "created_at"])
+      .where("problem_id", "=", problemId)
+      .orderBy("created_at", "asc")
+      .orderBy("id", "asc")
+      .execute();
+
+    return rows.map(toProblemPhotoMetadata);
   }
 
   private async findPlaceTarget(accountId: UUID, targetId: UUID, db: DbHandle): Promise<ProblemTargetLookup | null> {
@@ -479,4 +540,17 @@ function toCount(row: CountRow | undefined): number {
   }
 
   return Number(row.count);
+}
+
+function toProblemPhotoMetadata(row: SelectedProblemPhoto): ProblemPhotoMetadata {
+  return {
+    id: row.id,
+    storageKey: row.storage_key,
+    originalFilename: row.original_filename,
+    mimeType: row.mime_type,
+    fileSizeBytes: row.file_size_bytes === null ? null : Number(row.file_size_bytes),
+    widthPx: row.width_px,
+    heightPx: row.height_px,
+    createdAt: row.created_at
+  };
 }

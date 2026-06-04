@@ -1,6 +1,8 @@
 import type { FastifyPluginAsync } from "fastify";
 
+import type { AppConfig } from "../config/config.js";
 import type { DbClient } from "../db/transaction.js";
+import type { StoragePort } from "../modules/files/storage.port.js";
 import { registerActivitiesRoutes } from "../modules/activities/activities.routes.js";
 import { registerBedsRoutes, registerPlaceBedsRoutes } from "../modules/beds/beds.routes.js";
 import { registerHealthRoutes } from "../modules/health/health.routes.js";
@@ -19,6 +21,8 @@ export type ApiRouteOptions = {
   enableTestRoutes?: boolean;
   auth?: AuthPluginOptions;
   db?: DbClient;
+  config?: AppConfig;
+  storage?: StoragePort;
 };
 
 export const API_PREFIX = "/api/v1";
@@ -30,7 +34,11 @@ export const registerApiRoutes: FastifyPluginAsync<ApiRouteOptions> = async (app
 
   await app.register(registerHealthRoutes, { prefix: "/health" });
 
-  const businessRouteOptions = options.db === undefined ? {} : { db: options.db };
+  const businessRouteOptions = {
+    ...(options.db === undefined ? {} : { db: options.db }),
+    ...(options.config === undefined ? {} : { config: options.config }),
+    ...(options.storage === undefined ? {} : { storage: options.storage })
+  };
   await app.register(registerPlacesRoutes, { prefix: "/places", ...businessRouteOptions });
   await app.register(registerPlantsRoutes, { prefix: "/plants", ...businessRouteOptions });
   await app.register(registerPlacePerennialsRoutes, { prefix: "/places/:placeId/perennials", ...businessRouteOptions });
