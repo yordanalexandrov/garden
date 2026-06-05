@@ -14,6 +14,7 @@ import { registerPlacesRoutes } from "../modules/places/places.routes.js";
 import { registerPlantsRoutes } from "../modules/plants/plants.routes.js";
 import { registerProblemsRoutes } from "../modules/problems/problems.routes.js";
 import { registerProductUsageRuleRoutes, registerProductsRoutes } from "../modules/products/products.routes.js";
+import { registerTasksRoutes } from "../modules/tasks/tasks.routes.js";
 import { installAuth, type AuthPluginOptions } from "../shared/plugins/auth.js";
 import { registerTestRoutes } from "./test-routes.js";
 
@@ -55,6 +56,7 @@ export const registerApiRoutes: FastifyPluginAsync<ApiRouteOptions> = async (app
   await app.register(registerInventoryRoutes, { prefix: "/inventory", ...businessRouteOptions });
   await app.register(registerActivitiesRoutes, { prefix: "/activities", ...businessRouteOptions });
   await app.register(registerProblemsRoutes, { prefix: "/problems", ...businessRouteOptions });
+  await app.register(registerTasksRoutes, { prefix: "/tasks", ...businessRouteOptions });
 
   if (options.enableTestRoutes === true) {
     await app.register(registerTestRoutes, { prefix: "/__test" });
