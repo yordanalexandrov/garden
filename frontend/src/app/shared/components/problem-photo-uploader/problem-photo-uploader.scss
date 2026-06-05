@@ -1,0 +1,26 @@
+.problem-photo-uploader {
+  display: grid;
+  gap: 8px;
+}
+
+.file-field {
+  display: grid;
+  gap: 4px;
+}
+
+.label {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.selected,
+.status {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.error {
+  color: var(--mat-sys-error);
+}
+
+.hint {
+  color: var(--mat-sys-on-surface-variant);
+}

@@ -1,0 +1,29 @@
+<div class="problem-target-selector">
+  <mat-form-field appearance="outline">
+    <mat-label>Target type</mat-label>
+    <mat-select [formControl]="targetType">
+      @for (type of targetTypes; track type) {
+        <mat-option [value]="type">{{ type.replaceAll('_', ' ') }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+
+  @if (!isPlaceTarget()) {
+    <mat-form-field appearance="outline">
+      <mat-label>Target</mat-label>
+      <mat-select [formControl]="targetId">
+        @for (option of options(); track option.id) {
+          <mat-option [value]="option.id">{{ option.label }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  }
+
+  @if (loading()) {
+    <p class="hint">Loading targets...</p>
+  } @else if (empty()) {
+    <p class="warning">No targets of this type exist in the selected place.</p>
+  }
+
+  <p class="summary">{{ summary() }}</p>
+</div>
