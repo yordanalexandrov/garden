@@ -7,6 +7,7 @@ import {
   input,
   output,
   signal,
+  untracked,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
@@ -67,13 +68,24 @@ export class ProblemTargetSelector {
   private readonly persistentPlantsApi = inject(PersistentBedPlantsApiService);
   private readonly destroyRef = inject(DestroyRef);
 
+  private optionsRequestId = 0;
+
   constructor() {
+    // React to place changes only: reset the selection and reload options.
     effect(() => {
       const currentPlaceId = this.placeId();
+      untracked(() => {
+        this.targetId.setValue(null, { emitEvent: false });
+        this.loadOptions(currentPlaceId, this.targetType.value);
+        this.emitIntent();
+      });
+    });
+
+    // Refresh the emitted label/summary when the place name loads later, without
+    // wiping a selection the user already made.
+    effect(() => {
       this.placeName();
-      this.targetId.setValue(null, { emitEvent: false });
-      this.loadOptions(currentPlaceId, this.targetType.value);
-      this.emitIntent();
+      untracked(() => this.emitIntent());
     });
 
     this.targetType.valueChanges.pipe(takeUntilDestroyed()).subscribe((targetType) => {
@@ -95,7 +107,7 @@ export class ProblemTargetSelector {
 
   resolvedTargetId(): string | null {
     if (this.isPlaceTarget()) {
-      return this.placeId();
+      return this.placeId() || null;
     }
 
     return this.targetId.value;
@@ -136,6 +148,9 @@ export class ProblemTargetSelector {
   }
 
   private loadOptions(placeId: string | null, targetType: ProblemTargetType): void {
+    // Invalidate any in-flight request so a slower previous load cannot overwrite
+    // the options for the current place/type with stale data.
+    const requestId = ++this.optionsRequestId;
     this.options.set([]);
     this.empty.set(false);
 
@@ -149,11 +164,17 @@ export class ProblemTargetSelector {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (options) => {
+          if (requestId !== this.optionsRequestId) {
+            return;
+          }
           this.options.set(options);
           this.empty.set(options.length === 0);
           this.loading.set(false);
         },
         error: () => {
+          if (requestId !== this.optionsRequestId) {
+            return;
+          }
           this.options.set([]);
           this.empty.set(true);
           this.loading.set(false);

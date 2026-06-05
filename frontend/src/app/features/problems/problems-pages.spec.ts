@@ -234,6 +234,22 @@ describe('Phase 17 problem pages', () => {
     expect((fixture.nativeElement as HTMLElement).textContent).toContain('Place: Home');
   });
 
+  it('does not treat an unselected place as a resolved target', () => {
+    const fixture = TestBed.createComponent(ProblemCreatePage);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.form.patchValue({ type: 'problem', title: 'Leaf spots', description: 'Dark spots' });
+    fixture.detectChanges();
+
+    expect(component.targetIntent()?.targetId).toBeNull();
+    expect(component.targetIsValid()).toBe(false);
+
+    component.submit();
+
+    expect(problemsApi.create).not.toHaveBeenCalled();
+  });
+
   it('requires title and description before submitting', () => {
     const fixture = TestBed.createComponent(ProblemCreatePage);
     const component = fixture.componentInstance;

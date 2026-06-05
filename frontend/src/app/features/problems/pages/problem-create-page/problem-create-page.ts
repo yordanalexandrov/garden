@@ -151,13 +151,17 @@ export class ProblemCreatePage {
 
     this.saving.set(true);
 
+    // Snapshot the type at submit time so an in-flight type change cannot make
+    // the upload step disagree with the record that was actually created.
+    const isProblem = this.form.controls.type.value === 'problem';
+
     this.problemsApi
       .create(this.buildRequest())
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (result) => {
           this.created.set(result);
-          this.uploadPhotoIfNeeded(result.id);
+          this.uploadPhotoIfNeeded(result.id, isProblem);
         },
         error: (error: unknown) => {
           const apiError = mapApiError(error);
@@ -187,10 +191,10 @@ export class ProblemCreatePage {
     };
   }
 
-  private uploadPhotoIfNeeded(problemId: string): void {
+  private uploadPhotoIfNeeded(problemId: string, isProblem: boolean): void {
     const uploader = this.uploader();
 
-    if (!this.isProblemType() || uploader === undefined || !uploader.hasFile()) {
+    if (!isProblem || uploader === undefined || !uploader.hasFile()) {
       this.saving.set(false);
       return;
     }
