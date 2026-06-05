@@ -1,6 +1,6 @@
 # Gardening Helper - Implementation Status Handoff
 
-Last updated: 2026-06-05 (Phase 21 task docs ready; Phase 21 not implemented)
+Last updated: 2026-06-05 (Phase 22 task docs ready; Phase 22 not implemented)
 
 This file tracks implementation progress only. It does not replace the source-of-truth specs, domain rules, canonical API contract, or task documents. If this file conflicts with a higher-priority document, follow the source-of-truth priority in `AGENTS.md`.
 
@@ -17,6 +17,7 @@ Implementation agents must update this file in the same branch/PR whenever phase
 - Next implementation step file: `docs/implementation-phases/phase-18/01-tasks-module-contracts-validation-and-route-wiring.md`.
 - Phase 20 task docs are ready in `docs/implementation-phases/phase-20/`, but Phase 20 remains not implemented until Phase 18 and Phase 19 backend dependencies are implemented and the frontend work is completed.
 - Phase 21 task docs are ready at `docs/implementation-phases/phase-21/`, but Phase 21 remains not implemented.
+- Phase 22 task docs are ready at `docs/implementation-phases/phase-22/`, but Phase 22 remains not implemented.
 
 Note: Phase 6 completed the backend growing-structure API for perennials, beds, persistent bed plants, and yearly bed plantings with account-scoped Fastify handlers, canonical envelopes, archive behavior, historical bed occupancy reads, and duplicate same bed/plant/year yearly planting support. Phase 7 completed the Angular frontend garden-structure pages for places, plants, perennials, beds, persistent bed plants, and yearly plantings. Phase 8 completed the backend products and product usage rules APIs with account-scoped Fastify handlers, canonical envelopes, product category/unit validation, product/rule archive behavior, duplicate active product+plant rule enforcement, product/plant/account consistency checks, placeholder-compatible inventory summary fields, and focused validation/service/repository/route/guard tests. Phase 9 completed the backend inventory ledger API with account-scoped inventory overview, product lot listing, transactional lot purchase movement creation, movement history, transactional manual adjustments, audit log writes for inventory mutations, FEFO allocation and shortage/unit policy helpers, validation/DTO mapping, route wiring, and focused unit/API/guard/scope tests. Phase 10 completed the Angular frontend products and inventory pages with typed products/rules/inventory API services, product CRUD/archive UI, product detail with rules/lots/movements, usage rule forms with plant selector, inventory overview/detail, add-lot and manual-adjustment forms, movement-history navigation, visible API errors, and frontend boundary/static tests. Phase 11 completed the backend target resolver with canonical target contracts, validation/DTO helpers, account/place-scoped repository lookups, whole-place/all-group/selected-scope resolution, empty-result and partial-success rejection, transaction-compatible invocation, and focused validation/resolver tests. Phase 12 completed the backend activities list/detail/create APIs with service-owned transaction orchestration, resolved activity targets, product usage validation, FEFO consumption movements, shortage handling, rule-derived quarantine periods, suggested follow-up tasks without reminders, canonical side-effect arrays, and focused route/transaction regression tests. Phase 13 completed the backend audit module foundation, representative critical-operation audit integration, and account-scoped activity inventory correction endpoint with append-only correction movements, lot updates, audit rows, supported-case documentation, and focused validation/route tests. Phase 14 completed the Angular frontend activities flow with typed activity API services, list/detail/create pages, bulk target selector and product usage subforms, create-activity review/submit flow with backend side-effect rendering, route/spec wiring, and frontend regression/static checks. Manual task lifecycle/reminders, calendar behavior, weather, AI, push, and MCP business tools remain deferred. Phase 15 completed the backend problems and observations metadata API with account-scoped list/create/detail/update routes, service-owned place/target/linked activity validation, target label read models, empty Phase 15 photo metadata behavior, and focused validation/DTO/route regression tests. Phase 16 completed backend-mediated problem photo storage with StoragePort, deterministic test storage, Supabase Storage REST adapter boundary, multipart validation, problem-only/account-scoped upload, metadata persistence, cleanup on metadata failure, controlled signed URL detail mapping, and storage/security boundary tests. Phase 17 completed the Angular frontend problems and photos flow with typed `ProblemsApiService` (list/detail/create/update plus multipart `file` photo upload), `/problems` list filters, `/problems/:problemId` detail rendering backend-provided photo URLs and linked activity, `/problems/new` Reactive Forms create page with a reusable single-target `ProblemTargetSelector`, a problem-only `ProblemPhotoUploader` (hidden/disabled for observations, client MIME/size validation as UX only, backend-API upload after problem creation), save-without-photo support, metadata-preserving upload error handling, lazy problems routes, removal of `problems` from the deferred-feature boundary guard, and focused API-service/page regression tests. Phase 18 through Phase 28 remain not implemented.
 
@@ -50,7 +51,7 @@ Note: Phase 6 completed the backend growing-structure API for perennials, beds, 
 - [ ] Phase 19 - Backend Calendar and Dashboard Read APIs - not implemented; task docs ready.
 - [ ] Phase 20 - Frontend Tasks, Calendar, and Dashboard - not implemented; task docs ready.
 - [ ] Phase 21 - Backend Weather and Rain Confirmation - not implemented; task docs ready.
-- [ ] Phase 22 - Frontend Weather UX - not implemented; top-level spec only.
+- [ ] Phase 22 - Frontend Weather UX - not implemented; task docs ready.
 - [ ] Phase 23 - Backend AI Suggestion Workflows - not implemented; top-level spec only.
 - [ ] Phase 24 - Frontend AI Assistant Pages - not implemented; top-level spec only.
 - [ ] Phase 25 - Backend Push Notifications and Worker Scheduler - not implemented; top-level spec only.
@@ -271,6 +272,7 @@ Not implemented; task docs ready.
 - [ ] Step 7 - Phase 20 Frontend Regression, Boundary, and Error Tests.
 - [ ] Step 8 - Phase 20 Verification and PR Readiness.
 
+
 ### Phase 21 - Backend Weather and Rain Confirmation
 
 Not implemented; task docs ready.
@@ -281,6 +283,18 @@ Not implemented; task docs ready.
 - [ ] Step 4 - Rain Confirmation Service and Route.
 - [ ] Step 5 - Weather Account, Provider, and Side-Effect Regression Tests.
 - [ ] Step 6 - Phase 21 Verification and PR Readiness.
+
+### Phase 22 - Frontend Weather UX
+
+Not implemented; task docs ready.
+
+- [ ] Step 1 - Weather API Services and Feature Scaffold.
+- [ ] Step 2 - Place Weather Page and Forecast States.
+- [ ] Step 3 - Rain Confirmation Prompt and Actions.
+- [ ] Step 4 - Calendar Weather Markers.
+- [ ] Step 5 - Frontend Regression, Boundary, and Error Tests.
+- [ ] Step 6 - Phase 22 Verification and PR Readiness.
+
 
 ## Next Phase Step Checklist
 
