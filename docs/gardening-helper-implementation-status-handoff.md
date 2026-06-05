@@ -1,6 +1,6 @@
 # Gardening Helper - Implementation Status Handoff
 
-Last updated: 2026-06-04 (Phase 17 frontend problems and photos flow)
+Last updated: 2026-06-05 (Phase 19 task docs ready; Phase 19 not implemented)
 
 This file tracks implementation progress only. It does not replace the source-of-truth specs, domain rules, canonical API contract, or task documents. If this file conflicts with a higher-priority document, follow the source-of-truth priority in `AGENTS.md`.
 
@@ -45,7 +45,7 @@ Note: Phase 6 completed the backend growing-structure API for perennials, beds, 
 - [x] Phase 16 - Backend Problem Photo Storage - implemented.
 - [x] Phase 17 - Frontend Problems and Photos Flow - implemented.
 - [ ] Phase 18 - Backend Task Lifecycle and Reminders - not implemented; executable step docs ready in `docs/implementation-phases/phase-18/`.
-- [ ] Phase 19 - Backend Calendar and Dashboard Read APIs - not implemented; top-level spec only.
+- [ ] Phase 19 - Backend Calendar and Dashboard Read APIs - not implemented; task docs ready.
 - [ ] Phase 20 - Frontend Tasks, Calendar, and Dashboard - not implemented; top-level spec only.
 - [ ] Phase 21 - Backend Weather and Rain Confirmation - not implemented; top-level spec only.
 - [ ] Phase 22 - Frontend Weather UX - not implemented; top-level spec only.
@@ -244,6 +244,17 @@ Implemented.
 - [x] Step 5 - Problem Submit, Upload Errors, and Detail Photo Display.
 - [x] Step 6 - Frontend Regression, Boundary, and Error Tests.
 - [x] Step 7 - Phase 17 Verification and PR Readiness.
+
+### Phase 19 - Backend Calendar and Dashboard Read APIs
+
+Not implemented; task docs ready.
+
+- [ ] Step 1 - Calendar/Dashboard Module Contracts, Validation, and Route Wiring.
+- [ ] Step 2 - Calendar Read Repository and Service.
+- [ ] Step 3 - Dashboard Read Repository and Service.
+- [ ] Step 4 - Calendar/Dashboard Routes and API Contract.
+- [ ] Step 5 - Calendar/Dashboard Account Scope, Read-Only, and Response Tests.
+- [ ] Step 6 - Phase 19 Verification and PR Readiness.
 
 ## Next Phase Step Checklist
 
