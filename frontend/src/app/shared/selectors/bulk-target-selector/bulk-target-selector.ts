@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, effect, inject, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, effect, inject, input, output, signal, untracked } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -76,7 +76,7 @@ export class BulkTargetSelector {
       const currentPlaceId = this.placeId();
       this.selectedIds.setValue([], { emitEvent: false });
       this.loadOptions(currentPlaceId, this.scope.value);
-      this.emitIntent();
+      untracked(() => this.emitIntent());
     });
 
     this.scope.valueChanges.pipe(takeUntilDestroyed()).subscribe((scope) => {
@@ -132,6 +132,7 @@ export class BulkTargetSelector {
           this.options.set(options);
           this.empty.set(options.length === 0 && scope !== 'whole_place');
           this.loading.set(false);
+          this.emitIntent();
         },
         error: () => {
           this.options.set([]);
