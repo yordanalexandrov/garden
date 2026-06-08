@@ -1,0 +1,42 @@
+.calendar-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.calendar-legend li {
+  align-items: center;
+  color: var(--mat-sys-on-surface-variant);
+  display: inline-flex;
+  gap: 6px;
+}
+
+.calendar-legend__marker {
+  border-radius: 4px;
+  display: inline-block;
+  height: 12px;
+  width: 12px;
+}
+
+.calendar-legend__marker--activity {
+  background: var(--mat-sys-outline);
+}
+
+.calendar-legend__marker--planned {
+  background: var(--mat-sys-primary);
+}
+
+.calendar-legend__marker--suggested {
+  background: var(--mat-sys-tertiary);
+}
+
+.calendar-legend__marker--quarantine {
+  background: var(--mat-sys-error);
+}
+
+.calendar-legend__marker--weather {
+  background: var(--mat-sys-secondary);
+}

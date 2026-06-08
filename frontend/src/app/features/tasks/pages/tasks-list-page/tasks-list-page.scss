@@ -1,0 +1,47 @@
+.tasks-page {
+  display: grid;
+  gap: 20px;
+}
+
+.tasks-page__filters {
+  align-items: start;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(5, minmax(130px, 1fr)) auto;
+}
+
+.tasks-page__list {
+  display: grid;
+  gap: 12px;
+}
+
+.task-card {
+  border-left: 4px solid var(--mat-sys-outline-variant);
+}
+
+.task-card--planned {
+  border-left-color: var(--mat-sys-primary);
+}
+
+.task-card--suggested {
+  border-left-color: var(--mat-sys-tertiary);
+  background: color-mix(in srgb, var(--mat-sys-tertiary-container) 22%, transparent);
+}
+
+.task-card--terminal {
+  opacity: 0.82;
+}
+
+.tasks-page__meta {
+  align-items: center;
+  color: var(--mat-sys-on-surface-variant);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+@media (max-width: 980px) {
+  .tasks-page__filters {
+    grid-template-columns: 1fr;
+  }
+}

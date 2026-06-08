@@ -1,0 +1,99 @@
+<section class="calendar-page" aria-labelledby="calendar-title">
+  <app-page-header
+    title="Calendar"
+    titleId="calendar-title"
+    subtitle="Read-only garden schedule"
+    icon="calendar_month"
+  />
+
+  <div class="calendar-page__toolbar">
+    <div class="calendar-page__month-actions">
+      <button mat-icon-button type="button" aria-label="Previous month" (click)="previousMonth()">
+        <mat-icon aria-hidden="true" fontIcon="chevron_left" />
+      </button>
+      <h2>{{ visibleMonth() | date: 'LLLL yyyy' }}</h2>
+      <button mat-icon-button type="button" aria-label="Next month" (click)="nextMonth()">
+        <mat-icon aria-hidden="true" fontIcon="chevron_right" />
+      </button>
+      <button mat-stroked-button type="button" (click)="currentMonth()">Today</button>
+    </div>
+
+    <form class="calendar-page__filter" (ngSubmit)="load()">
+      <mat-form-field appearance="outline">
+        <mat-label>Place</mat-label>
+        <mat-select [formControl]="placeId">
+          <mat-option [value]="null">All places</mat-option>
+          @for (place of places(); track place.id) {
+            <mat-option [value]="place.id">{{ place.name }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      <button mat-flat-button type="submit">Filter</button>
+    </form>
+  </div>
+
+  <app-calendar-legend />
+  <app-api-error-summary [error]="error()" />
+
+  @if (loading()) {
+    <p>Loading calendar...</p>
+  }
+
+  @if (!loading() && agenda().length === 0) {
+    <app-empty-state title="No calendar items" message="Try another month or place filter." />
+  }
+
+  <div class="calendar-page__month" aria-label="Month calendar">
+    @for (dayName of ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']; track dayName) {
+      <strong class="calendar-page__weekday">{{ dayName }}</strong>
+    }
+    @for (day of days(); track day.date) {
+      <article class="calendar-day" [class.calendar-day--outside]="!day.inMonth">
+        <header>{{ day.dayNumber }}</header>
+        <div class="calendar-day__items">
+          @for (item of day.items; track item.type + item.id) {
+            @if (item.type === 'activity') {
+              <a [class]="itemClass(item)" [routerLink]="['/activities', item.id]">
+                <span>{{ item.title }}</span>
+              </a>
+            } @else if (item.type === 'task') {
+              <a [class]="itemClass(item)" [routerLink]="['/tasks', item.id]">
+                <span>{{ item.title }}</span>
+              </a>
+            } @else if (item.type === 'quarantine') {
+              <button [class]="itemClass(item)" type="button" (click)="openQuarantine(item)">
+                <span>{{ item.title }}</span>
+              </button>
+            } @else {
+              <button [class]="itemClass(item)" type="button" (click)="openWeather(item)">
+                <span>{{ item.eventType }}</span>
+              </button>
+            }
+          }
+        </div>
+      </article>
+    }
+  </div>
+
+  <mat-card class="calendar-page__agenda">
+    <mat-card-header>
+      <mat-card-title>Agenda</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      @for (item of agenda(); track item.type + item.id) {
+        <div class="agenda-row" [ngClass]="itemClass(item)">
+          <span>{{ itemDate(item) | date: 'mediumDate' }}</span>
+          @if (item.type === 'activity') {
+            <a [routerLink]="['/activities', item.id]">{{ item.title }}</a>
+          } @else if (item.type === 'task') {
+            <a [routerLink]="['/tasks', item.id]">{{ item.title }} ({{ item.status }})</a>
+          } @else if (item.type === 'quarantine') {
+            <button type="button" (click)="openQuarantine(item)">{{ item.title }}</button>
+          } @else {
+            <button type="button" (click)="openWeather(item)">{{ item.eventType }}</button>
+          }
+        </div>
+      }
+    </mat-card-content>
+  </mat-card>
+</section>

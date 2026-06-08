@@ -1,0 +1,8 @@
+<ul class="calendar-legend" aria-label="Calendar legend">
+  @for (entry of entries; track entry.label) {
+    <li>
+      <span class="calendar-legend__marker {{ entry.className }}" aria-hidden="true"></span>
+      {{ entry.label }}
+    </li>
+  }
+</ul>

@@ -9,8 +9,11 @@ import { InventoryApiService } from './features/inventory/inventory-api.service'
 import { ProductsApiService, ProductRulesApiService } from './features/products/products-api.service';
 import { PlantsApiService } from './features/plants/plants-api.service';
 import { ActivitiesApiService } from './features/activities/activities-api.service';
+import { CalendarApiService } from './features/calendar/calendar-api.service';
+import { DashboardApiService } from './features/dashboard/dashboard-api.service';
 import { PlacesApiService } from './features/places/places-api.service';
 import { SnackbarService } from './core/notifications/snackbar.service';
+import { TasksApiService } from './features/tasks/tasks-api.service';
 import { routes } from './app.routes';
 
 describe('app routes', () => {
@@ -31,6 +34,40 @@ describe('app routes', () => {
         {
           provide: PlacesApiService,
           useValue: { list: () => of({ items: [], page: 1, pageSize: 20, total: 0 }) },
+        },
+        {
+          provide: DashboardApiService,
+          useValue: {
+            getDashboard: () =>
+              of({
+                upcomingTasks: [],
+                suggestedTasks: [],
+                activeQuarantinePeriods: [],
+                recentActivities: [],
+                openProblems: [],
+                lowStockProducts: [],
+                places: [],
+              }),
+          },
+        },
+        {
+          provide: CalendarApiService,
+          useValue: {
+            getCalendar: () =>
+              of({ activities: [], tasks: [], quarantinePeriods: [], weatherEvents: [] }),
+          },
+        },
+        {
+          provide: TasksApiService,
+          useValue: {
+            list: () => of({ items: [], page: 1, pageSize: 20, total: 0 }),
+            get: () => of(taskDetail()),
+            confirm: () =>
+              of({ id: 'task-1', status: 'planned', confirmedAt: '2026-06-01T00:00:00.000Z', reminders: [] }),
+            dismiss: () => of(taskDetail()),
+            complete: () => of(taskDetail()),
+            skip: () => of(taskDetail()),
+          },
         },
         {
           provide: ProductsApiService,
@@ -102,6 +139,7 @@ describe('app routes', () => {
     const primaryRoutes = [
       ['/dashboard', 'Dashboard'],
       ['/calendar', 'Calendar'],
+      ['/tasks', 'Tasks'],
       ['/activities', 'Activities'],
       ['/problems', 'Problems'],
       ['/products', 'Products'],
@@ -195,4 +233,22 @@ const activityDetail = () => ({
   quarantinePeriods: [],
   suggestedTasks: [],
   notes: null,
+});
+
+const taskDetail = () => ({
+  id: 'task-1',
+  placeId: 'place-1',
+  type: 'spraying',
+  dueDate: '2026-06-10',
+  status: 'suggested',
+  targetScopeType: 'whole_place',
+  targetSummary: 'Home Garden',
+  sourceType: 'activity',
+  sourceReferenceId: 'activity-1',
+  targets: [],
+  reminders: [],
+  weatherEvents: [],
+  notes: null,
+  confirmedAt: null,
+  completedAt: null,
 });

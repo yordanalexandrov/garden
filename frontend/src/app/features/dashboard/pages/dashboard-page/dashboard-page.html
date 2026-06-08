@@ -1,0 +1,151 @@
+<section class="dashboard-page" aria-labelledby="dashboard-title">
+  <app-page-header
+    title="Dashboard"
+    titleId="dashboard-title"
+    subtitle="Current garden work and alerts"
+    icon="dashboard"
+  >
+    <form page-actions class="dashboard-page__filter" (ngSubmit)="load()">
+      <mat-form-field appearance="outline">
+        <mat-label>Place</mat-label>
+        <mat-select [formControl]="placeId">
+          <mat-option [value]="null">All places</mat-option>
+          @for (place of dashboard().places; track place.id) {
+            <mat-option [value]="place.id">{{ place.name }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      <button mat-flat-button type="submit">Filter</button>
+    </form>
+  </app-page-header>
+
+  <app-api-error-summary [error]="error()" />
+
+  @if (loading()) {
+    <p>Loading dashboard...</p>
+  }
+
+  <div class="dashboard-page__grid">
+    <mat-card class="dashboard-widget dashboard-widget--planned">
+      <mat-card-header>
+        <mat-icon mat-card-avatar aria-hidden="true" fontIcon="event_available" />
+        <mat-card-title>Upcoming Planned Tasks</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        @for (task of dashboard().upcomingTasks; track task.id) {
+          <a class="dashboard-row" [routerLink]="['/tasks', task.id]">
+            <span>{{ task.title }}</span>
+            <small>{{ task.dueDate | date: 'mediumDate' }} - {{ task.targetSummary }}</small>
+            <app-status-chip [status]="task.status" />
+          </a>
+        } @empty {
+          <app-empty-state title="No planned tasks" message="Confirmed work appears here." />
+        }
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="dashboard-widget dashboard-widget--suggested">
+      <mat-card-header>
+        <mat-icon mat-card-avatar aria-hidden="true" fontIcon="tips_and_updates" />
+        <mat-card-title>Suggested Tasks</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        @for (task of dashboard().suggestedTasks; track task.id) {
+          <a class="dashboard-row dashboard-row--suggested" [routerLink]="['/tasks', task.id]">
+            <span>{{ task.title }}</span>
+            <small>{{ task.dueDate | date: 'mediumDate' }} - {{ task.targetSummary }}</small>
+            <app-status-chip [status]="task.status" />
+          </a>
+        } @empty {
+          <app-empty-state title="No suggestions" message="Backend suggestions awaiting review appear here." />
+        }
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="dashboard-widget dashboard-widget--quarantine">
+      <mat-card-header>
+        <mat-icon mat-card-avatar aria-hidden="true" fontIcon="block" />
+        <mat-card-title>Active Quarantine</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        @for (period of dashboard().activeQuarantinePeriods; track period.id) {
+          <a class="dashboard-row dashboard-row--readonly" [routerLink]="['/activities', period.activityId]">
+            <span>{{ period.title }}</span>
+            <small>{{ period.startsOn | date: 'mediumDate' }} to {{ period.endsOn | date: 'mediumDate' }}</small>
+          </a>
+        } @empty {
+          <app-empty-state title="No active quarantine" message="Quarantine ranges are read-only." />
+        }
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="dashboard-widget">
+      <mat-card-header>
+        <mat-icon mat-card-avatar aria-hidden="true" fontIcon="history" />
+        <mat-card-title>Recent Activities</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        @for (activity of dashboard().recentActivities; track activity.id) {
+          <a class="dashboard-row" [routerLink]="['/activities', activity.id]">
+            <span>{{ activity.title }}</span>
+            <small>{{ activity.performedAt | date: 'medium' }} - {{ activity.targetSummary }}</small>
+          </a>
+        } @empty {
+          <app-empty-state title="No recent activities" message="Logged activities appear here." />
+        }
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="dashboard-widget">
+      <mat-card-header>
+        <mat-icon mat-card-avatar aria-hidden="true" fontIcon="report_problem" />
+        <mat-card-title>Open Problems</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        @for (problem of dashboard().openProblems; track problem.id) {
+          <a class="dashboard-row" [routerLink]="['/problems', problem.id]">
+            <span>{{ problem.title }}</span>
+            <small>{{ problem.observedAt | date: 'mediumDate' }}</small>
+            <app-status-chip [status]="problem.status" />
+          </a>
+        } @empty {
+          <app-empty-state title="No open problems" message="Open problems and observations appear here." />
+        }
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="dashboard-widget">
+      <mat-card-header>
+        <mat-icon mat-card-avatar aria-hidden="true" fontIcon="inventory_2" />
+        <mat-card-title>Low Stock Products</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        @for (product of dashboard().lowStockProducts; track product.productId) {
+          <a class="dashboard-row" [routerLink]="['/inventory/products', product.productId]">
+            <span>{{ product.productName }}</span>
+            <small>{{ product.quantityRemaining }} {{ product.defaultUnit }} remaining</small>
+          </a>
+        } @empty {
+          <app-empty-state title="No low stock products" message="Products below threshold appear here." />
+        }
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="dashboard-widget dashboard-widget--places">
+      <mat-card-header>
+        <mat-icon mat-card-avatar aria-hidden="true" fontIcon="yard" />
+        <mat-card-title>Places</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        @for (place of dashboard().places; track place.id) {
+          <a class="dashboard-row" [routerLink]="['/places', place.id, 'overview']">
+            <span>{{ place.name }}</span>
+            <small>{{ place.weatherEnabled ? 'Weather enabled' : 'Weather disabled' }}</small>
+          </a>
+        } @empty {
+          <app-empty-state title="No places" message="Create places to organize garden work." />
+        }
+      </mat-card-content>
+    </mat-card>
+  </div>
+</section>

@@ -27,7 +27,7 @@ export const placesRoutes: Routes = [
       { path: 'beds', title: 'Place Beds', component: PlaceBedsPage },
       placeholderChild('activities', 'Place Activities'),
       placeholderChild('problems', 'Place Problems'),
-      placeholderChild('calendar', 'Place Calendar'),
+      { path: 'calendar', title: 'Place Calendar', loadComponent: () => import('../calendar/pages/calendar-page/calendar-page').then((module) => module.CalendarPage) },
       placeholderChild('weather', 'Place Weather'),
     ],
   },

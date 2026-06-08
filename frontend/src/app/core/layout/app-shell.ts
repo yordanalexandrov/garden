@@ -23,6 +23,7 @@ export const PRIMARY_NAVIGATION_ITEMS: readonly PrimaryNavigationItem[] = [
   { label: 'Sign in', route: '/login', icon: 'login', exact: true },
   { label: 'Places', route: '/places', icon: 'yard', exact: false },
   { label: 'Calendar', route: '/calendar', icon: 'calendar_month', exact: false },
+  { label: 'Tasks', route: '/tasks', icon: 'event_available', exact: false },
   { label: 'Activities', route: '/activities', icon: 'task_alt', exact: false },
   { label: 'Problems', route: '/problems', icon: 'report_problem', exact: false },
   { label: 'Plants', route: '/plants', icon: 'local_florist', exact: false },
