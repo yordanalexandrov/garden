@@ -117,9 +117,11 @@ export class CalendarPage {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (feed) => {
+          const agenda = buildAgenda(feed);
+
           this.feed.set(feed);
-          this.days.set(buildMonthDays(month, feed));
-          this.agenda.set(buildAgenda(feed));
+          this.days.set(buildMonthDays(month, agenda));
+          this.agenda.set(agenda);
           this.loading.set(false);
         },
         error: (error: unknown) => {
@@ -191,7 +193,7 @@ const formatDate = (date: Date): string => {
   return `${year}-${month}-${day}`;
 };
 
-const buildMonthDays = (month: Date, feed: CalendarFeed): readonly CalendarDay[] => {
+const buildMonthDays = (month: Date, agenda: readonly CalendarItem[]): readonly CalendarDay[] => {
   const first = new Date(month.getFullYear(), month.getMonth(), 1);
   const firstGridDate = new Date(first);
   firstGridDate.setDate(first.getDate() - first.getDay());
@@ -205,7 +207,7 @@ const buildMonthDays = (month: Date, feed: CalendarFeed): readonly CalendarDay[]
       date: iso,
       dayNumber: date.getDate(),
       inMonth: date.getMonth() === month.getMonth(),
-      items: itemsForDate(feed, iso),
+      items: itemsForDate(agenda, iso),
     };
   });
 };
@@ -221,8 +223,8 @@ const buildAgenda = (feed: CalendarFeed): readonly CalendarItem[] =>
 const compareCalendarItems = (left: CalendarItem, right: CalendarItem): number =>
   dateKey(left).localeCompare(dateKey(right));
 
-const itemsForDate = (feed: CalendarFeed, iso: string): readonly CalendarItem[] =>
-  buildAgenda(feed).filter((item) => {
+const itemsForDate = (agenda: readonly CalendarItem[], iso: string): readonly CalendarItem[] =>
+  agenda.filter((item) => {
     if (item.type === 'quarantine') {
       return item.startsOn <= iso && item.endsOn >= iso;
     }
