@@ -1,0 +1,116 @@
+<section class="task-detail-page" aria-labelledby="task-detail-title">
+  <app-page-header
+    title="Task Detail"
+    titleId="task-detail-title"
+    subtitle="Backend task state and side effects"
+    icon="event_available"
+  />
+
+  <app-api-error-summary [error]="error()" />
+
+  @if (loading()) {
+    <p>Loading task...</p>
+  } @else if (task(); as item) {
+    <div class="task-detail-page__grid">
+      <mat-card
+        class="task-detail-page__summary"
+        [class.task-detail-page__summary--suggested]="item.status === 'suggested'"
+        [class.task-detail-page__summary--planned]="item.status === 'planned'"
+      >
+        <mat-card-header>
+          <mat-card-title>{{ item.type.replaceAll('_', ' ') }}</mat-card-title>
+          <mat-card-subtitle>{{ item.dueDate | date: 'mediumDate' }}</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="task-detail-page__status">
+            <app-status-chip [status]="item.status" />
+            <span>Source: {{ item.sourceType || 'manual' }}</span>
+          </div>
+          <p>Target scope: {{ item.targetScopeType.replaceAll('_', ' ') }}</p>
+          <p>{{ item.targetSummary }}</p>
+          @if (item.notes) {
+            <p>{{ item.notes }}</p>
+          }
+          @if (item.confirmedAt) {
+            <p>Confirmed {{ item.confirmedAt | date: 'medium' }}</p>
+          }
+          @if (item.completedAt) {
+            <p>Completed {{ item.completedAt | date: 'medium' }}</p>
+          }
+          <a routerLink="/tasks">Back to tasks</a>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card>
+        <mat-card-header><mat-card-title>Actions</mat-card-title></mat-card-header>
+        <mat-card-content>
+          @if (item.status === 'suggested') {
+            <div class="task-detail-page__actions task-detail-page__actions--suggested">
+              <button mat-flat-button color="primary" type="button" [disabled]="mutating()" (click)="runAction('confirm')">
+                Confirm
+              </button>
+              <button mat-stroked-button type="button" [disabled]="mutating()" (click)="runAction('dismiss')">
+                Dismiss
+              </button>
+            </div>
+          } @else if (item.status === 'planned') {
+            <div class="task-detail-page__actions task-detail-page__actions--planned">
+              <button mat-flat-button color="primary" type="button" [disabled]="mutating()" (click)="runAction('complete')">
+                Done
+              </button>
+              <button mat-stroked-button type="button" [disabled]="mutating()" (click)="runAction('skip')">
+                Skip
+              </button>
+            </div>
+          } @else {
+            <p>Terminal task states are read-only.</p>
+          }
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card>
+        <mat-card-header><mat-card-title>Targets</mat-card-title></mat-card-header>
+        <mat-card-content>
+          @for (target of item.targets; track target.targetId) {
+            <p>{{ target.targetType.replaceAll('_', ' ') }}: {{ target.label || target.targetId }}</p>
+          } @empty {
+            <p>No target details returned.</p>
+          }
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card>
+        <mat-card-header><mat-card-title>Reminders</mat-card-title></mat-card-header>
+        <mat-card-content>
+          @if (lastConfirmResult(); as confirmed) {
+            <p class="task-detail-page__backend-result">
+              Backend confirmed this task at {{ confirmed.confirmedAt | date: 'medium' }}.
+            </p>
+          }
+          @for (reminder of item.reminders; track reminder.id) {
+            <p>{{ reminder.reminderType.replaceAll('_', ' ') }} - {{ reminder.scheduledFor | date: 'medium' }} ({{ reminder.status }})</p>
+          } @empty {
+            <p>No reminders returned by backend.</p>
+          }
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card>
+        <mat-card-header><mat-card-title>Weather Context</mat-card-title></mat-card-header>
+        <mat-card-content>
+          @for (event of item.weatherEvents; track event.id) {
+            <p>
+              {{ event.eventType }} - forecasted rain:
+              {{ event.forecastedRain === null ? 'unknown' : event.forecastedRain }}
+              - observed rain:
+              {{ event.observedRain === null ? 'unconfirmed' : event.observedRain }}
+            </p>
+          } @empty {
+            <p>No weather context returned.</p>
+          }
+          <p class="task-detail-page__advisory">Weather is advisory and does not change task state here.</p>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  }
+</section>

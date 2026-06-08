@@ -1,0 +1,40 @@
+.task-detail-page {
+  display: grid;
+  gap: 20px;
+}
+
+.task-detail-page__grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.task-detail-page__summary {
+  border-left: 4px solid var(--mat-sys-outline-variant);
+}
+
+.task-detail-page__summary--planned {
+  border-left-color: var(--mat-sys-primary);
+}
+
+.task-detail-page__summary--suggested {
+  border-left-color: var(--mat-sys-tertiary);
+  background: color-mix(in srgb, var(--mat-sys-tertiary-container) 22%, transparent);
+}
+
+.task-detail-page__status,
+.task-detail-page__actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.task-detail-page__backend-result {
+  color: var(--mat-sys-primary);
+  font-weight: 600;
+}
+
+.task-detail-page__advisory {
+  color: var(--mat-sys-on-surface-variant);
+}

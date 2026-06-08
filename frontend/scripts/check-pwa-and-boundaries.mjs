@@ -50,13 +50,24 @@ const frontendBusinessTruthPatterns = [
   /\bsuggestedTasks\s*:/,
   /\breminders\s*:/,
 ];
+const phase20ReminderSideEffectPatterns = [
+  /\bset(?:Timeout|Interval)\s*\(/,
+  /\breminderType\s*:/,
+  /\bscheduledFor\s*:/,
+];
+const phase20CalendarMutationPatterns = [
+  /\.post\s*(?:<[^>\n]+>)?\s*\(\s*['"]\/calendar/,
+  /\.patch\s*(?:<[^>\n]+>)?\s*\(\s*['"]\/calendar/,
+  /\.delete\s*(?:<[^>\n]+>)?\s*\(\s*['"]\/calendar/,
+  /\.post\s*(?:<[^>\n]+>)?\s*\(\s*['"].*quarantine/,
+  /\.patch\s*(?:<[^>\n]+>)?\s*\(\s*['"].*quarantine/,
+];
+
 const deferredPhase7FeatureDirectories = [
   'ai',
-  'calendar',
   'mcp',
   'push',
   'storage',
-  'tasks',
   'weather',
 ];
 
@@ -143,6 +154,27 @@ const findFrontendBoundaryViolations = (relativePath, content) => {
   ) {
     violations.push(
       `Activity frontend code must not submit resolved targets or generated side effects in ${relativePath}.`,
+    );
+  }
+
+  if (
+    relativePath.startsWith('src/app/features/tasks/') &&
+    phase20ReminderSideEffectPatterns.some((pattern) => pattern.test(content)) &&
+    !relativePath.endsWith('tasks.models.ts') &&
+    !relativePath.endsWith('.spec.ts')
+  ) {
+    violations.push(
+      'Task frontend code must not schedule reminders or create reminder payload fields in ' + relativePath + '.',
+    );
+  }
+
+  if (
+    relativePath.startsWith('src/app/features/calendar/') &&
+    phase20CalendarMutationPatterns.some((pattern) => pattern.test(content)) &&
+    !relativePath.endsWith('.spec.ts')
+  ) {
+    violations.push(
+      'Calendar frontend code must remain read-only and must not mutate calendar or quarantine state in ' + relativePath + '.',
     );
   }
 
@@ -234,6 +266,18 @@ assertBoundarySelfTestRejects(
   'const request = { resolvedTargets: [], inventoryEffects: [], quarantinePeriods: [], suggestedTasks: [] };',
   'generated side effects',
   'src/app/features/activities/example.ts',
+);
+assertBoundarySelfTestRejects(
+  'frontend task reminder payload fields',
+  'const request = { reminderType: selectedType, scheduledFor: selectedDate };',
+  'schedule reminders',
+  'src/app/features/tasks/example.ts',
+);
+assertBoundarySelfTestRejects(
+  'frontend calendar mutation calls',
+  "return this.api.patch('/calendar/item-1', body);",
+  'read-only',
+  'src/app/features/calendar/example.ts',
 );
 
 const angular = readJson('angular.json');

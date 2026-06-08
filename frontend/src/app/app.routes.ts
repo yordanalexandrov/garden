@@ -20,7 +20,11 @@ const placeholderRoute = (path: string, title: string, pathMatch?: 'full'): Rout
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
   { path: 'login', title: 'Sign in', component: LoginPage },
-  placeholderRoute('dashboard', 'Dashboard'),
+  {
+    path: 'dashboard',
+    loadChildren: () =>
+      import('./features/dashboard/dashboard.routes').then((module) => module.dashboardRoutes),
+  },
   { path: 'places', children: placesRoutes },
   { path: 'beds/:bedId', title: 'Bed Detail', component: BedDetailPage },
   { path: 'plants', children: plantsRoutes },
@@ -37,10 +41,15 @@ export const routes: Routes = [
     loadChildren: () =>
       import('./features/problems/problems.routes').then((module) => module.problemsRoutes),
   },
-  placeholderRoute('calendar', 'Calendar'),
+  {
+    path: 'calendar',
+    loadChildren: () =>
+      import('./features/calendar/calendar.routes').then((module) => module.calendarRoutes),
+  },
   {
     path: 'tasks',
-    children: [placeholderRoute(':taskId', 'Task Detail')],
+    loadChildren: () =>
+      import('./features/tasks/tasks.routes').then((module) => module.tasksRoutes),
   },
   {
     path: 'ai',

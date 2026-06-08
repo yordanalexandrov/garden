@@ -1,0 +1,88 @@
+<section class="tasks-page" aria-labelledby="tasks-title">
+  <app-page-header
+    title="Tasks"
+    titleId="tasks-title"
+    subtitle="Planned and suggested garden work"
+    icon="event_available"
+  />
+
+  <form class="tasks-page__filters" [formGroup]="filters" (ngSubmit)="search()">
+    <mat-form-field appearance="outline">
+      <mat-label>Place</mat-label>
+      <mat-select formControlName="placeId">
+        <mat-option [value]="null">All places</mat-option>
+        @for (place of places(); track place.id) {
+          <mat-option [value]="place.id">{{ place.name }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Status</mat-label>
+      <mat-select formControlName="status">
+        <mat-option [value]="null">All statuses</mat-option>
+        @for (status of taskStatuses; track status) {
+          <mat-option [value]="status">{{ status.replaceAll('_', ' ') }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Type</mat-label>
+      <mat-select formControlName="type">
+        <mat-option [value]="null">All types</mat-option>
+        @for (type of taskTypes; track type) {
+          <mat-option [value]="type">{{ type.replaceAll('_', ' ') }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Due from</mat-label>
+      <input matInput type="date" formControlName="dueFrom" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Due to</mat-label>
+      <input matInput type="date" formControlName="dueTo" />
+    </mat-form-field>
+
+    <button mat-flat-button type="submit">Filter</button>
+  </form>
+
+  <app-api-error-summary [error]="error()" />
+
+  @if (loading()) {
+    <p>Loading tasks...</p>
+  } @else if (tasks().length === 0) {
+    <app-empty-state title="No tasks" message="Planned and suggested tasks appear here." />
+  } @else {
+    <div class="tasks-page__list">
+      @for (task of tasks(); track task.id) {
+        <mat-card
+          class="task-card"
+          [class.task-card--suggested]="task.status === 'suggested'"
+          [class.task-card--planned]="task.status === 'planned'"
+          [class.task-card--terminal]="['done', 'skipped', 'canceled'].includes(task.status)"
+        >
+          <mat-card-header>
+            <mat-card-title>
+              <a [routerLink]="['/tasks', task.id]">{{ task.type.replaceAll('_', ' ') }}</a>
+            </mat-card-title>
+            <mat-card-subtitle>{{ task.dueDate | date: 'mediumDate' }}</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <p>{{ task.targetSummary }}</p>
+            @if (task.notes) {
+              <p>{{ task.notes }}</p>
+            }
+            <div class="tasks-page__meta">
+              <app-status-chip [status]="task.status" />
+              <span>{{ task.sourceType || 'manual' }}</span>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      }
+    </div>
+  }
+</section>
