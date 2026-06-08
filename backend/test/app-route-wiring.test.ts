@@ -42,7 +42,7 @@ describe("business route dependency wiring", () => {
     expect(db.transactionCalls).toBe(0);
   });
 
-  it("registers places, plants, products, inventory, and tasks as protected business routes", async () => {
+  it("registers places, plants, products, inventory, tasks, calendar, and dashboard as protected business routes", async () => {
     app = await createTestApp({ db: new RecordingDbClient() });
 
     const placesResponse = await app.inject({ method: "GET", url: "/api/v1/places" });
@@ -50,12 +50,16 @@ describe("business route dependency wiring", () => {
     const productsResponse = await app.inject({ method: "GET", url: "/api/v1/products" });
     const inventoryResponse = await app.inject({ method: "GET", url: "/api/v1/inventory" });
     const tasksResponse = await app.inject({ method: "GET", url: "/api/v1/tasks" });
+    const calendarResponse = await app.inject({ method: "GET", url: "/api/v1/calendar?from=2026-05-01&to=2026-05-31" });
+    const dashboardResponse = await app.inject({ method: "GET", url: "/api/v1/dashboard" });
 
     expect(placesResponse.statusCode).toBe(401);
     expect(plantsResponse.statusCode).toBe(401);
     expect(productsResponse.statusCode).toBe(401);
     expect(inventoryResponse.statusCode).toBe(401);
     expect(tasksResponse.statusCode).toBe(401);
+    expect(calendarResponse.statusCode).toBe(401);
+    expect(dashboardResponse.statusCode).toBe(401);
   });
 
   it("destroys the injected db client when the app closes", async () => {

@@ -5,6 +5,8 @@ import type { DbClient } from "../db/transaction.js";
 import type { StoragePort } from "../modules/files/storage.port.js";
 import { registerActivitiesRoutes } from "../modules/activities/activities.routes.js";
 import { registerBedsRoutes, registerPlaceBedsRoutes } from "../modules/beds/beds.routes.js";
+import { registerCalendarRoutes } from "../modules/calendar/calendar.routes.js";
+import { registerDashboardRoutes } from "../modules/dashboard/dashboard.routes.js";
 import { registerHealthRoutes } from "../modules/health/health.routes.js";
 import { registerInventoryRoutes, registerProductInventoryRoutes } from "../modules/inventory/inventory.routes.js";
 import { registerBedPersistentPlantsRoutes, registerPersistentBedPlantsRoutes } from "../modules/plantings/persistent-bed-plants.routes.js";
@@ -57,6 +59,8 @@ export const registerApiRoutes: FastifyPluginAsync<ApiRouteOptions> = async (app
   await app.register(registerActivitiesRoutes, { prefix: "/activities", ...businessRouteOptions });
   await app.register(registerProblemsRoutes, { prefix: "/problems", ...businessRouteOptions });
   await app.register(registerTasksRoutes, { prefix: "/tasks", ...businessRouteOptions });
+  await app.register(registerCalendarRoutes, { prefix: "/calendar", ...businessRouteOptions });
+  await app.register(registerDashboardRoutes, { prefix: "/dashboard", ...businessRouteOptions });
 
   if (options.enableTestRoutes === true) {
     await app.register(registerTestRoutes, { prefix: "/__test" });
