@@ -2,6 +2,7 @@ import { sql } from "kysely";
 
 import type { DbHandle } from "../../db/transaction.js";
 import { AppError } from "../../shared/errors/app-error.js";
+import { targetSummary, titleFromType } from "../../shared/formatting/read-model-helpers.js";
 import type { UUID } from "../auth/auth.types.js";
 import type {
   CalendarActivityItem,
@@ -181,15 +182,3 @@ export class KyselyCalendarRepository implements CalendarRepository {
   }
 }
 
-function titleFromType(value: string): string {
-  return value
-    .split("_")
-    .filter((part) => part.length > 0)
-    .map((part) => part[0]!.toUpperCase() + part.slice(1))
-    .join(" ");
-}
-
-function targetSummary(value: string | number | bigint | null): string {
-  const count = Number(value ?? 0);
-  return count === 1 ? "1 target" : `${count} targets`;
-}
