@@ -7,17 +7,17 @@ import { of, throwError } from 'rxjs';
 import { ApiError } from '../../core/errors/api-error';
 import { PlacesApiService } from '../places/places-api.service';
 import { TasksApiService } from './tasks-api.service';
+import type { TaskDetail, TaskStatus } from './tasks.models';
 import { TaskDetailPage } from './pages/task-detail-page/task-detail-page';
 import { TasksListPage } from './pages/tasks-list-page/tasks-list-page';
 
-const taskDetail = (status: 'suggested' | 'planned' | 'done' = 'suggested') => ({
+const taskDetail = (status: TaskStatus = 'suggested'): TaskDetail => ({
   id: 'task-1',
   placeId: 'place-1',
   type: 'spraying',
   dueDate: '2026-06-12',
   status,
   targetScopeType: 'whole_place',
-  targetSummary: 'Home Garden',
   sourceType: 'activity',
   sourceReferenceId: 'activity-1',
   targets: [{ targetType: 'place', targetId: 'place-1', label: 'Home Garden', placeId: 'place-1' }],
@@ -70,9 +70,9 @@ describe('Phase 20 task pages', () => {
         reminders: [{ id: 'task-reminder-1', reminderType: 'same_day', scheduledFor: '2026-06-12T06:00:00.000Z', status: 'scheduled', sentAt: null }],
       }),
     );
-    tasksApi.dismiss.mockReturnValue(of(taskDetail('done')));
+    tasksApi.dismiss.mockReturnValue(of(taskDetail('canceled')));
     tasksApi.complete.mockReturnValue(of(taskDetail('done')));
-    tasksApi.skip.mockReturnValue(of(taskDetail('done')));
+    tasksApi.skip.mockReturnValue(of(taskDetail('skipped')));
     placesApi.list.mockReturnValue(
       of({ items: [{ id: 'place-1', name: 'Home Garden' }], page: 1, pageSize: 20, total: 1 }),
     );

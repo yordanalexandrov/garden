@@ -27,7 +27,9 @@
             <span>Source: {{ item.sourceType || 'manual' }}</span>
           </div>
           <p>Target scope: {{ item.targetScopeType.replaceAll('_', ' ') }}</p>
-          <p>{{ item.targetSummary }}</p>
+          @if (item.targets.length > 0) {
+            <p>{{ item.targets.length === 1 ? (item.targets[0].label || item.targets[0].targetId) : item.targets.length + ' targets' }}</p>
+          }
           @if (item.notes) {
             <p>{{ item.notes }}</p>
           }

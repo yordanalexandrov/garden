@@ -51,7 +51,15 @@ export interface TaskWeatherEventSummary {
   readonly createdAt: string;
 }
 
-export interface TaskDetail extends TaskListItem {
+export interface TaskDetail {
+  readonly id: string;
+  readonly placeId: string | null;
+  readonly type: TaskType;
+  readonly dueDate: string;
+  readonly status: TaskStatus;
+  readonly targetScopeType: TargetScopeType;
+  readonly sourceType: TaskSourceType | null;
+  readonly notes: string | null;
   readonly sourceReferenceId: string | null;
   readonly targets: readonly TargetSummary[];
   readonly reminders: readonly TaskReminder[];
