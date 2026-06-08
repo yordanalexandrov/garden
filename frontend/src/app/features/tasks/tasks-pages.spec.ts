@@ -6,6 +6,7 @@ import { of, throwError } from 'rxjs';
 
 import { ApiError } from '../../core/errors/api-error';
 import { PlacesApiService } from '../places/places-api.service';
+import { WeatherApiService } from '../weather/data-access/weather-api.service';
 import { TasksApiService } from './tasks-api.service';
 import type { TaskDetail, TaskStatus } from './tasks.models';
 import { TaskDetailPage } from './pages/task-detail-page/task-detail-page';
@@ -31,7 +32,7 @@ const taskDetail = (status: TaskStatus = 'suggested'): TaskDetail => ({
       eventType: 'rain_check',
       forecastedRain: true,
       observedRain: null,
-      userConfirmationStatus: null,
+      userConfirmationStatus: 'pending',
       createdAt: '2026-06-11T12:00:00.000Z',
     },
   ],
@@ -50,6 +51,7 @@ describe('Phase 20 task pages', () => {
     skip: vi.fn(),
   };
   const placesApi = { list: vi.fn() };
+  const weatherApi = { confirmRain: vi.fn() };
   const dialog = { open: vi.fn() };
 
   beforeEach(() => {
@@ -76,6 +78,9 @@ describe('Phase 20 task pages', () => {
     placesApi.list.mockReturnValue(
       of({ items: [{ id: 'place-1', name: 'Home Garden' }], page: 1, pageSize: 20, total: 1 }),
     );
+    weatherApi.confirmRain.mockReturnValue(
+      of({ id: 'weather-1', userConfirmationStatus: 'confirmed_no', observedRain: false }),
+    );
     dialog.open.mockReturnValue({ afterClosed: () => of(true) });
 
     TestBed.configureTestingModule({
@@ -88,6 +93,7 @@ describe('Phase 20 task pages', () => {
         },
         { provide: TasksApiService, useValue: tasksApi },
         { provide: PlacesApiService, useValue: placesApi },
+        { provide: WeatherApiService, useValue: weatherApi },
         { provide: MatDialog, useValue: dialog },
       ],
     });
@@ -135,6 +141,7 @@ describe('Phase 20 task pages', () => {
     expect(text).toContain('Confirm');
     expect(text).toContain('Dismiss');
     expect(text).toContain('Weather is advisory');
+    expect(text).toContain('Did you observe rain');
     expect(text).not.toContain('DoneSkip');
   });
 
@@ -159,8 +166,19 @@ describe('Phase 20 task pages', () => {
 
     const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
     expect(text).toContain('Terminal task states are read-only.');
-    expect(text).not.toContain('Confirm');
-    expect(text).not.toContain('Skip');
+    expect((fixture.nativeElement as HTMLElement).querySelector('.task-detail-page__actions')).toBeNull();
+  });
+
+  it('confirms observed rain through the weather API without changing task status', () => {
+    const fixture = TestBed.createComponent(TaskDetailPage);
+    const component = fixture.componentInstance;
+
+    fixture.detectChanges();
+    component.updateWeatherEvent({ id: 'weather-1', userConfirmationStatus: 'confirmed_no', observedRain: false });
+    fixture.detectChanges();
+
+    expect(component.task()?.status).toBe('suggested');
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('confirmed_no');
   });
 
   it('displays mutation errors without changing current task state', () => {

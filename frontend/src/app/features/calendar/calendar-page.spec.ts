@@ -61,7 +61,8 @@ const calendarFeed = () => ({
       type: 'weather' as const,
       date: '2026-06-11',
       eventType: 'rain_check',
-      userConfirmationStatus: null,
+      userConfirmationStatus: 'pending',
+      observedRain: null,
       placeId: 'place-1',
     },
   ],
@@ -146,10 +147,12 @@ describe('Phase 20 calendar page', () => {
     component.openWeather(calendarFeed().weatherEvents[0]);
 
     expect(dialog.open).toHaveBeenCalledTimes(2);
+    expect(dialog.open.mock.calls[1][1].data.lines).toContain('Confirmation status: pending.');
     const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
     expect(text).not.toContain('Confirm');
     expect(text).not.toContain('Skip');
     expect(text).not.toContain('Dismiss');
+    expect(text).toContain('pending');
   });
 
   it('shows API errors while keeping the previous calendar feed visible', () => {

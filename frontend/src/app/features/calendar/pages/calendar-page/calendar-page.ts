@@ -167,11 +167,19 @@ export class CalendarPage {
   }
 
   openWeather(event: CalendarWeatherEventItem): void {
+    const observedRain =
+      event.observedRain === undefined || event.observedRain === null
+        ? 'not recorded'
+        : event.observedRain
+          ? 'yes'
+          : 'no';
+
     this.openReadonlyDialog({
       title: event.eventType,
       lines: [
         `Advisory weather marker for ${event.date}.`,
         `Confirmation status: ${event.userConfirmationStatus || 'not confirmed'}.`,
+        `Observed rain: ${observedRain}.`,
       ],
     });
   }

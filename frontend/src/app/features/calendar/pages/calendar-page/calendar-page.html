@@ -67,6 +67,9 @@
             } @else {
               <button [class]="itemClass(item)" type="button" (click)="openWeather(item)">
                 <span>{{ item.eventType }}</span>
+                @if (item.userConfirmationStatus === 'pending') {
+                  <small>pending</small>
+                }
               </button>
             }
           }
@@ -90,7 +93,12 @@
           } @else if (item.type === 'quarantine') {
             <button type="button" (click)="openQuarantine(item)">{{ item.title }}</button>
           } @else {
-            <button type="button" (click)="openWeather(item)">{{ item.eventType }}</button>
+            <button type="button" (click)="openWeather(item)">
+              {{ item.eventType }}
+              @if (item.userConfirmationStatus) {
+                ({{ item.userConfirmationStatus }})
+              }
+            </button>
           }
         </div>
       }

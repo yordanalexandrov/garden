@@ -19,6 +19,9 @@ const forbiddenFrontendSecretNames = [
   'AI_API_KEY',
   'AI_MODEL',
   'OPEN_METEO_BASE_URL',
+  'OPEN_METEO_API_KEY',
+  'WEATHER_API_KEY',
+  'WEATHER_PROVIDER_SECRET',
   'SUPABASE_STORAGE_URL',
   'SUPABASE_STORAGE_BUCKET_PROBLEM_PHOTOS',
   'SUPABASE_STUDIO_USERNAME',
@@ -62,13 +65,23 @@ const phase20CalendarMutationPatterns = [
   /\.post\s*(?:<[^>\n]+>)?\s*\(\s*['"].*quarantine/,
   /\.patch\s*(?:<[^>\n]+>)?\s*\(\s*['"].*quarantine/,
 ];
+const frontendWeatherProviderPatterns = [
+  /open-meteo/i,
+  /api\.open-meteo/i,
+  /weather\s*provider/i,
+];
+const frontendWeatherConsequencePatterns = [
+  /treatment\s+failed/i,
+  /failed\s+treatment/i,
+  /auto(?:matically)?[\w\s-]*(?:fail|cancel|planned\s+task)/i,
+  /rain\s+consequence/i,
+];
 
 const deferredPhase7FeatureDirectories = [
   'ai',
   'mcp',
   'push',
   'storage',
-  'weather',
 ];
 
 const isAuthInfrastructureFile = (relativePath) => relativePath.startsWith('src/app/core/auth/');
@@ -178,6 +191,29 @@ const findFrontendBoundaryViolations = (relativePath, content) => {
     );
   }
 
+
+  if (
+    relativePath.startsWith('src/app/features/weather/') &&
+    frontendWeatherProviderPatterns.some((pattern) => pattern.test(content))
+  ) {
+    violations.push(
+      'Frontend weather code must consume backend APIs only and must not reference weather providers in ' + relativePath + '.',
+    );
+  }
+
+  if (
+    (relativePath.startsWith('src/app/features/weather/') ||
+      relativePath.startsWith('src/app/features/calendar/') ||
+      relativePath.startsWith('src/app/features/tasks/') ||
+      relativePath.startsWith('src/app/features/activities/')) &&
+    frontendWeatherConsequencePatterns.some((pattern) => pattern.test(content)) &&
+    !relativePath.endsWith('.spec.ts')
+  ) {
+    violations.push(
+      'Frontend weather UI must not automate rain consequences, task cancellation, planned task creation, or treatment failure in ' + relativePath + '.',
+    );
+  }
+
   return violations;
 };
 
@@ -278,6 +314,18 @@ assertBoundarySelfTestRejects(
   "return this.api.patch('/calendar/item-1', body);",
   'read-only',
   'src/app/features/calendar/example.ts',
+);
+assertBoundarySelfTestRejects(
+  'frontend weather provider URLs',
+  "const url = 'https://api.open-meteo.com/v1/forecast';",
+  'weather providers',
+  'src/app/features/weather/example.ts',
+);
+assertBoundarySelfTestRejects(
+  'frontend weather consequence automation',
+  "const message = 'treatment failed';",
+  'must not automate rain consequences',
+  'src/app/features/weather/example.ts',
 );
 
 const angular = readJson('angular.json');

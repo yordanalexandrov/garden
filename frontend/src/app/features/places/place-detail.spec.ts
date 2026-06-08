@@ -7,6 +7,7 @@ import { AppShell } from '../../core/layout/app-shell';
 import { ApiError } from '../../core/errors/api-error';
 import { routes } from '../../app.routes';
 import { PlaceDetail } from './places.models';
+import { WeatherApiService } from '../weather/data-access/weather-api.service';
 import { PlacesApiService } from './places-api.service';
 
 describe('place detail shell and overview', () => {
@@ -34,10 +35,14 @@ describe('place detail shell and overview', () => {
     list: vi.fn(),
     get: vi.fn(),
   };
+  const weatherApi = { getPlaceForecast: vi.fn() };
 
   beforeEach(async () => {
     placesApi.list.mockReturnValue(of({ items: [], page: 1, pageSize: 20, total: 0 }));
     placesApi.get.mockReturnValue(of(placeDetail));
+    weatherApi.getPlaceForecast.mockReturnValue(
+      of({ placeId: 'place-1', enabled: true, locationLabel: 'Ruse', forecast: [] }),
+    );
 
     await TestBed.configureTestingModule({
       imports: [AppShell],
@@ -45,6 +50,7 @@ describe('place detail shell and overview', () => {
         provideNoopAnimations(),
         provideRouter(routes),
         { provide: PlacesApiService, useValue: placesApi },
+        { provide: WeatherApiService, useValue: weatherApi },
       ],
     }).compileComponents();
   });
@@ -97,6 +103,16 @@ describe('place detail shell and overview', () => {
     expect(compiled.textContent).toContain('Add bed');
     expect(compiled.querySelector('router-outlet')).not.toBeNull();
     expect(placesApi.get).toHaveBeenCalledTimes(1);
+
+    fixture.destroy();
+  });
+
+  it('routes /places/:placeId/weather to the weather page', async () => {
+    const { compiled, fixture } = await renderPath('/places/place-1/weather');
+
+    expect(compiled.textContent).toContain('Weather');
+    expect(compiled.textContent).toContain('No forecast returned');
+    expect(weatherApi.getPlaceForecast).toHaveBeenCalledWith('place-1');
 
     fixture.destroy();
   });
