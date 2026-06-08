@@ -1,0 +1,68 @@
+<section class="place-weather-page" aria-labelledby="place-weather-title">
+  <app-page-header
+    title="Weather"
+    titleId="place-weather-title"
+    subtitle="Backend forecast context"
+    icon="partly_cloudy_day"
+  />
+
+  <app-api-error-summary [error]="error()" />
+
+  @if (loading()) {
+    <p>Loading weather forecast...</p>
+  } @else if (forecast(); as weather) {
+    @if (!weather.enabled) {
+      <app-empty-state
+        title="Weather is disabled"
+        message="This place does not have weather context enabled."
+        icon="cloud_off"
+      />
+    } @else {
+      <mat-card class="place-weather-page__summary">
+        <mat-card-header>
+          <mat-icon mat-card-avatar aria-hidden="true" fontIcon="partly_cloudy_day" />
+          <mat-card-title>{{ weather.locationLabel || 'Configured weather location' }}</mat-card-title>
+          <mat-card-subtitle>Forecast is advisory context.</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <p>Confirm observed rain separately when the backend asks for a rain check.</p>
+        </mat-card-content>
+      </mat-card>
+
+      @if (weather.forecast.length === 0) {
+        <app-empty-state
+          title="No forecast returned"
+          message="Weather is enabled, but the backend did not return forecast rows for this place."
+          icon="cloud"
+        />
+      } @else {
+        <div class="place-weather-page__forecast" aria-label="Forecast rows">
+          @for (item of weather.forecast; track item.date) {
+            <mat-card class="forecast-card">
+              <mat-card-header>
+                <mat-card-title>{{ item.date | date: 'mediumDate' }}</mat-card-title>
+                <mat-card-subtitle>{{ item.summary || 'Forecast context' }}</mat-card-subtitle>
+              </mat-card-header>
+              <mat-card-content>
+                <dl>
+                  <div>
+                    <dt>Temperature</dt>
+                    <dd>
+                      {{ item.temperatureMinC === null ? 'n/a' : item.temperatureMinC + ' C' }}
+                      to
+                      {{ item.temperatureMaxC === null ? 'n/a' : item.temperatureMaxC + ' C' }}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Rain probability</dt>
+                    <dd>{{ item.rainProbability === null ? 'n/a' : (item.rainProbability | percent) }}</dd>
+                  </div>
+                </dl>
+              </mat-card-content>
+            </mat-card>
+          }
+        </div>
+      }
+    }
+  }
+</section>

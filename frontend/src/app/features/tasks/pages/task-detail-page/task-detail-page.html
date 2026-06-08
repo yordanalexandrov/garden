@@ -101,12 +101,18 @@
         <mat-card-header><mat-card-title>Weather Context</mat-card-title></mat-card-header>
         <mat-card-content>
           @for (event of item.weatherEvents; track event.id) {
-            <p>
-              {{ event.eventType }} - forecasted rain:
-              {{ event.forecastedRain === null ? 'unknown' : event.forecastedRain }}
-              - observed rain:
-              {{ event.observedRain === null ? 'unconfirmed' : event.observedRain }}
-            </p>
+            @if (event.eventType === 'rain_check' && event.userConfirmationStatus === 'pending') {
+              <app-rain-confirmation-prompt [event]="event" (confirmed)="updateWeatherEvent($event)" />
+            } @else {
+              <p>
+                {{ event.eventType }} - forecasted rain:
+                {{ event.forecastedRain === null ? 'unknown' : event.forecastedRain }}
+                - observed rain:
+                {{ event.observedRain === null ? 'unconfirmed' : event.observedRain }}
+                - confirmation:
+                {{ event.userConfirmationStatus || 'not confirmed' }}
+              </p>
+            }
           } @empty {
             <p>No weather context returned.</p>
           }

@@ -17,6 +17,7 @@ import {
 import { PageHeader } from '../../../../shared/components/page-header/page-header';
 import { StatusChip } from '../../../../shared/components/status-chip/status-chip';
 import { ApiErrorSummary } from '../../../../shared/forms/api-error-summary/api-error-summary';
+import { RainConfirmationPrompt } from '../../../weather/components/rain-confirmation-prompt/rain-confirmation-prompt';
 import { TasksApiService } from '../../tasks-api.service';
 import { ConfirmTaskResult, TaskDetail } from '../../tasks.models';
 
@@ -31,6 +32,7 @@ type TaskAction = 'confirm' | 'dismiss' | 'complete' | 'skip';
     MatCardModule,
     MatIconModule,
     PageHeader,
+    RainConfirmationPrompt,
     RouterLink,
     StatusChip,
   ],
@@ -101,6 +103,27 @@ export class TaskDetailPage {
           this.mutating.set(false);
         },
       });
+  }
+
+  updateWeatherEvent(result: { readonly id: string; readonly userConfirmationStatus: string; readonly observedRain: boolean | null }): void {
+    const task = this.task();
+
+    if (task === null) {
+      return;
+    }
+
+    this.task.set({
+      ...task,
+      weatherEvents: task.weatherEvents.map((event) =>
+        event.id === result.id
+          ? {
+              ...event,
+              userConfirmationStatus: result.userConfirmationStatus,
+              observedRain: result.observedRain,
+            }
+          : event,
+      ),
+    });
   }
 
   private loadTask(): void {

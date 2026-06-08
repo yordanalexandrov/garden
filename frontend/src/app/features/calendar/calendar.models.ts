@@ -45,6 +45,7 @@ export interface CalendarWeatherEventItem {
   readonly date: string;
   readonly eventType: string;
   readonly userConfirmationStatus: string | null;
+  readonly observedRain?: boolean | null;
   readonly placeId: string;
 }
 

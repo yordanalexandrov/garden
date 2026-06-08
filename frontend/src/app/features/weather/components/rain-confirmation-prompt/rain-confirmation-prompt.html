@@ -1,0 +1,37 @@
+@if (event().eventType === 'rain_check') {
+  <mat-card class="rain-confirmation">
+    <mat-card-header>
+      <mat-icon mat-card-avatar aria-hidden="true" fontIcon="rainy" />
+      <mat-card-title>Observed rain check</mat-card-title>
+      <mat-card-subtitle>Confirm what happened in the garden.</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <app-api-error-summary [error]="error()" />
+
+      @if (isPending()) {
+        <p>Did you observe rain for this rain check?</p>
+        <div class="rain-confirmation__actions">
+          <button mat-flat-button color="primary" type="button" [disabled]="mutating()" (click)="confirm('confirmed_yes')">
+            Yes, it rained
+          </button>
+          <button mat-stroked-button type="button" [disabled]="mutating()" (click)="confirm('confirmed_no')">
+            No, it did not
+          </button>
+          <button mat-button type="button" [disabled]="mutating()" (click)="confirm('ignored')">
+            Ignore for now
+          </button>
+        </div>
+      } @else {
+        <p>
+          Confirmation status: {{ currentStatus() || 'not confirmed' }}.
+          Observed rain:
+          {{ observedRain() === null ? 'not recorded' : observedRain() ? 'yes' : 'no' }}.
+        </p>
+      }
+
+      <p class="rain-confirmation__advisory">
+        This records observed rain only. Weather context does not change task or activity state here.
+      </p>
+    </mat-card-content>
+  </mat-card>
+}
