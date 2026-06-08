@@ -42,7 +42,7 @@ describe("business route dependency wiring", () => {
     expect(db.transactionCalls).toBe(0);
   });
 
-  it("registers places, plants, products, inventory, tasks, calendar, and dashboard as protected business routes", async () => {
+  it("registers places, plants, products, inventory, tasks, weather, calendar, and dashboard as protected business routes", async () => {
     app = await createTestApp({ db: new RecordingDbClient() });
 
     const placesResponse = await app.inject({ method: "GET", url: "/api/v1/places" });
@@ -50,6 +50,15 @@ describe("business route dependency wiring", () => {
     const productsResponse = await app.inject({ method: "GET", url: "/api/v1/products" });
     const inventoryResponse = await app.inject({ method: "GET", url: "/api/v1/inventory" });
     const tasksResponse = await app.inject({ method: "GET", url: "/api/v1/tasks" });
+    const forecastResponse = await app.inject({
+      method: "GET",
+      url: "/api/v1/places/11111111-1111-4111-8111-111111111111/weather/forecast"
+    });
+    const confirmRainResponse = await app.inject({
+      method: "POST",
+      url: "/api/v1/weather/events/22222222-2222-4222-8222-222222222222/confirm-rain",
+      payload: { response: "confirmed_yes" }
+    });
     const calendarResponse = await app.inject({ method: "GET", url: "/api/v1/calendar?from=2026-05-01&to=2026-05-31" });
     const dashboardResponse = await app.inject({ method: "GET", url: "/api/v1/dashboard" });
 
@@ -58,6 +67,8 @@ describe("business route dependency wiring", () => {
     expect(productsResponse.statusCode).toBe(401);
     expect(inventoryResponse.statusCode).toBe(401);
     expect(tasksResponse.statusCode).toBe(401);
+    expect(forecastResponse.statusCode).toBe(401);
+    expect(confirmRainResponse.statusCode).toBe(401);
     expect(calendarResponse.statusCode).toBe(401);
     expect(dashboardResponse.statusCode).toBe(401);
   });

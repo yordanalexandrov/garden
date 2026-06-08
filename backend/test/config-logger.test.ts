@@ -62,6 +62,19 @@ describe("backend config loading", () => {
   it("rejects invalid numeric config values", () => {
     expect(() => loadConfig({ NODE_ENV: "test", PORT: "not-a-port" })).toThrow(ConfigError);
   });
+
+  it("loads backend weather provider settings without exposing them as frontend-safe config", () => {
+    const config = loadConfig({
+      NODE_ENV: "test",
+      WEATHER_PROVIDER: "open-meteo",
+      OPEN_METEO_BASE_URL: "https://api.open-meteo.com/v1/forecast"
+    });
+
+    expect(config.integrations.weatherProvider).toBe("open-meteo");
+    expect(config.integrations.openMeteoBaseUrl).toBe("https://api.open-meteo.com/v1/forecast");
+    expect(JSON.stringify(config.frontendSafe)).not.toContain("open-meteo");
+    expect(JSON.stringify(config.frontendSafe)).not.toContain("api.open-meteo.com");
+  });
 });
 
 describe("backend logger secret redaction", () => {

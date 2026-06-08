@@ -3,6 +3,7 @@ import Fastify, { type FastifyInstance } from "fastify";
 import { loadConfig, type AppConfig } from "../config/config.js";
 import { createLoggerOptions, type AppLoggerOptions } from "../config/logger.js";
 import type { DbClient } from "../db/transaction.js";
+import type { WeatherPort } from "../integrations/weather/weather.port.js";
 import type { StoragePort } from "../modules/files/storage.port.js";
 import { registerErrorHandling } from "../shared/errors/fastify-error-handler.js";
 import type { AuthPluginOptions } from "../shared/plugins/auth.js";
@@ -15,6 +16,7 @@ export type CreateAppOptions = {
   auth?: AuthPluginOptions;
   db?: DbClient;
   storage?: StoragePort;
+  weather?: WeatherPort;
 };
 
 export async function createApp(options: CreateAppOptions = {}): Promise<FastifyInstance> {
@@ -43,7 +45,8 @@ export async function createApp(options: CreateAppOptions = {}): Promise<Fastify
     ...(options.auth === undefined ? {} : { auth: options.auth }),
     ...(db === undefined ? {} : { db }),
     config,
-    ...(options.storage === undefined ? {} : { storage: options.storage })
+    ...(options.storage === undefined ? {} : { storage: options.storage }),
+    ...(options.weather === undefined ? {} : { weather: options.weather })
   };
 
   await app.register(registerApiRoutes, routeOptions);

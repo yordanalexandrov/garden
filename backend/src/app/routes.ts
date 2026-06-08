@@ -2,6 +2,7 @@ import type { FastifyPluginAsync } from "fastify";
 
 import type { AppConfig } from "../config/config.js";
 import type { DbClient } from "../db/transaction.js";
+import type { WeatherPort } from "../integrations/weather/weather.port.js";
 import type { StoragePort } from "../modules/files/storage.port.js";
 import { registerActivitiesRoutes } from "../modules/activities/activities.routes.js";
 import { registerBedsRoutes, registerPlaceBedsRoutes } from "../modules/beds/beds.routes.js";
@@ -17,6 +18,7 @@ import { registerPlantsRoutes } from "../modules/plants/plants.routes.js";
 import { registerProblemsRoutes } from "../modules/problems/problems.routes.js";
 import { registerProductUsageRuleRoutes, registerProductsRoutes } from "../modules/products/products.routes.js";
 import { registerTasksRoutes } from "../modules/tasks/tasks.routes.js";
+import { registerPlaceWeatherRoutes, registerWeatherRoutes } from "../modules/weather/weather.routes.js";
 import { installAuth, type AuthPluginOptions } from "../shared/plugins/auth.js";
 import { registerTestRoutes } from "./test-routes.js";
 
@@ -26,6 +28,7 @@ export type ApiRouteOptions = {
   db?: DbClient;
   config?: AppConfig;
   storage?: StoragePort;
+  weather?: WeatherPort;
 };
 
 export const API_PREFIX = "/api/v1";
@@ -40,7 +43,8 @@ export const registerApiRoutes: FastifyPluginAsync<ApiRouteOptions> = async (app
   const businessRouteOptions = {
     ...(options.db === undefined ? {} : { db: options.db }),
     ...(options.config === undefined ? {} : { config: options.config }),
-    ...(options.storage === undefined ? {} : { storage: options.storage })
+    ...(options.storage === undefined ? {} : { storage: options.storage }),
+    ...(options.weather === undefined ? {} : { weather: options.weather })
   };
   await app.register(registerPlacesRoutes, { prefix: "/places", ...businessRouteOptions });
   await app.register(registerPlantsRoutes, { prefix: "/plants", ...businessRouteOptions });
@@ -59,6 +63,8 @@ export const registerApiRoutes: FastifyPluginAsync<ApiRouteOptions> = async (app
   await app.register(registerActivitiesRoutes, { prefix: "/activities", ...businessRouteOptions });
   await app.register(registerProblemsRoutes, { prefix: "/problems", ...businessRouteOptions });
   await app.register(registerTasksRoutes, { prefix: "/tasks", ...businessRouteOptions });
+  await app.register(registerPlaceWeatherRoutes, { prefix: "/places/:placeId/weather", ...businessRouteOptions });
+  await app.register(registerWeatherRoutes, { prefix: "/weather", ...businessRouteOptions });
   await app.register(registerCalendarRoutes, { prefix: "/calendar", ...businessRouteOptions });
   await app.register(registerDashboardRoutes, { prefix: "/dashboard", ...businessRouteOptions });
 

@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 const repoRoot = new URL("../../../", import.meta.url).pathname;
 
 describe("Phase 9 scope regression", () => {
-  it("does not add MCP/weather/push provider behavior", () => {
+  it("does not add MCP or push provider behavior outside later phases", () => {
     expect(listFiles("backend/src").filter((path) => path.includes("mcp"))).toEqual([]);
 
     const backendSource = listFiles("backend/src")
@@ -13,7 +13,6 @@ describe("Phase 9 scope regression", () => {
       .map((path) => readFileSync(join(repoRoot, path), "utf8"))
       .join("\n");
 
-    expect(backendSource).not.toContain("WeatherPort");
     expect(backendSource).not.toContain("PushPort");
   });
 
