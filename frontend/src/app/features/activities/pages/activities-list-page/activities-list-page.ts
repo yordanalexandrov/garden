@@ -8,7 +8,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatOptionModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 
 import { ApiError } from '../../../../core/errors/api-error';
 import { mapApiError } from '../../../../core/errors/api-error.mapper';
@@ -55,9 +55,14 @@ export class ActivitiesListPage {
 
   private readonly activitiesApi = inject(ActivitiesApiService);
   private readonly placesApi = inject(PlacesApiService);
+  private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
 
   constructor() {
+    const routePlaceId = this.route.parent?.snapshot.paramMap.get('placeId') ?? null;
+    if (routePlaceId !== null) {
+      this.filters.patchValue({ placeId: routePlaceId });
+    }
     this.placesApi
       .list({ page: 1, pageSize: 100 })
       .pipe(takeUntilDestroyed())
