@@ -18,6 +18,7 @@ Implementation agents must update this file in the same branch/PR whenever phase
 - Phase 23 implemented: AiPort interface, TestAiAdapter, KyselyAiRepository, AiService (product ingestion / bed planning / problem assist generation + accept/reject workflows), 5 Fastify routes, DB migrations for ai_sessions/ai_suggestions, Zod validation schemas, canonical DTOs, and full test suite (26 unit + 23 DB integration tests).
 - Phase 24 executable task docs are ready for Frontend AI Assistant Pages planning; Phase 24 is not implemented.
 - Phase 25 executable task docs are ready for Backend Push Notifications and Worker Scheduler planning; Phase 25 is not implemented.
+- Phase 26 executable task docs are ready for Frontend Notifications and PWA Registration planning; Phase 26 is not implemented.
 - Phase 20 completed frontend dashboard widgets, task list/detail/actions, calendar month/agenda views, typed API services, route wiring, and focused frontend/boundary tests.
 - Phase 21 completed backend WeatherPort/adapters, account-scoped place forecast endpoint, rain confirmation endpoint and persistence, canonical DTOs, provider error mapping, and focused regression/static tests.
 - Phase 22 completed frontend Weather UX using the Phase 21 backend weather endpoints.
@@ -58,7 +59,7 @@ Note: Phase 6 completed the backend growing-structure API for perennials, beds, 
 - [x] Phase 23 - Backend AI Suggestion Workflows - implemented.
 - [ ] Phase 24 - Frontend AI Assistant Pages - not implemented; task docs ready.
 - [ ] Phase 25 - Backend Push Notifications and Worker Scheduler - not implemented; task docs ready.
-- [ ] Phase 26 - Frontend Notifications and PWA Registration - not implemented; top-level spec only.
+- [ ] Phase 26 - Frontend Notifications and PWA Registration - not implemented; task docs ready.
 - [ ] Phase 27 - Deployment and Operations Readiness - not implemented; top-level spec only.
 - [ ] Phase 28 - Final Hardening and Acceptance - not implemented; top-level spec only.
 
@@ -346,6 +347,19 @@ Not implemented; task docs ready in `docs/implementation-phases/phase-25/`.
 - [ ] Step 5 - Push Worker Regression, Security, and Boundary Tests.
 - [ ] Step 6 - Worker Ownership Docs and Operational Hooks.
 - [ ] Step 7 - Phase 25 Verification and PR Readiness.
+
+
+### Phase 26 - Frontend Notifications and PWA Registration
+
+Not implemented; task docs ready in `docs/implementation-phases/phase-26/`.
+
+- [ ] Step 1 - Notifications API Services, Config, and Feature Scaffold.
+- [ ] Step 2 - Browser Service Worker Push Subscription Support.
+- [ ] Step 3 - Notification Settings Page and Permission States.
+- [ ] Step 4 - Subscription Register, Deactivate, and Re-register Flow.
+- [ ] Step 5 - App Shell PWA Status and Graceful Degradation.
+- [ ] Step 6 - Phase 26 Frontend Regression, Boundary, and Error Tests.
+- [ ] Step 7 - Phase 26 Verification and PR Readiness.
 
 
 ## Next Phase Step Checklist
