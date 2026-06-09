@@ -1,6 +1,6 @@
 # Gardening Helper - Implementation Status Handoff
 
-Last updated: 2026-06-09 (Phase 26 task docs ready; Phase 23 next)
+Last updated: 2026-06-09 (Phase 26 task docs ready; Phase 23 implementation next)
 
 This file tracks implementation progress only. It does not replace the source-of-truth specs, domain rules, canonical API contract, or task documents. If this file conflicts with a higher-priority document, follow the source-of-truth priority in `AGENTS.md`.
 
@@ -13,8 +13,11 @@ Implementation agents must update this file in the same branch/PR whenever phase
 - Last implemented step file: `docs/implementation-phases/phase-22/06-phase-22-verification-and-pr-readiness.md`.
 - Last implementation commit observed: Phase 22 frontend weather UX implementation on `feature/frontend-weather`.
 - Next implementation phase: Phase 23 - Backend AI Suggestion Workflows.
-- Next implementation step: Phase 23 planning/task breakdown.
-- Next implementation step file: top-level spec only; executable task docs are not present yet.
+- Next implementation step: Phase 23 Step 1 - AI Module Contracts, Validation, and Route Wiring.
+- Next implementation step file: `docs/implementation-phases/phase-23/01-ai-module-contracts-validation-and-route-wiring.md`.
+- Phase 23 executable task docs are ready for Backend AI Suggestion Workflows planning; Phase 23 is not implemented.
+- Phase 24 executable task docs are ready for Frontend AI Assistant Pages planning; Phase 24 is not implemented.
+- Phase 25 executable task docs are ready for Backend Push Notifications and Worker Scheduler planning; Phase 25 is not implemented.
 - Phase 26 executable task docs are ready for Frontend Notifications and PWA Registration planning; Phase 26 is not implemented.
 - Phase 20 completed frontend dashboard widgets, task list/detail/actions, calendar month/agenda views, typed API services, route wiring, and focused frontend/boundary tests.
 - Phase 21 completed backend WeatherPort/adapters, account-scoped place forecast endpoint, rain confirmation endpoint and persistence, canonical DTOs, provider error mapping, and focused regression/static tests.
@@ -53,9 +56,9 @@ Note: Phase 6 completed the backend growing-structure API for perennials, beds, 
 - [x] Phase 20 - Frontend Tasks, Calendar, and Dashboard - implemented.
 - [x] Phase 21 - Backend Weather and Rain Confirmation - implemented.
 - [x] Phase 22 - Frontend Weather UX - implemented.
-- [ ] Phase 23 - Backend AI Suggestion Workflows - not implemented; top-level spec only.
-- [ ] Phase 24 - Frontend AI Assistant Pages - not implemented; top-level spec only.
-- [ ] Phase 25 - Backend Push Notifications and Worker Scheduler - not implemented; top-level spec only.
+- [ ] Phase 23 - Backend AI Suggestion Workflows - not implemented; task docs ready.
+- [ ] Phase 24 - Frontend AI Assistant Pages - not implemented; task docs ready.
+- [ ] Phase 25 - Backend Push Notifications and Worker Scheduler - not implemented; task docs ready.
 - [ ] Phase 26 - Frontend Notifications and PWA Registration - not implemented; task docs ready.
 - [ ] Phase 27 - Deployment and Operations Readiness - not implemented; top-level spec only.
 - [ ] Phase 28 - Final Hardening and Acceptance - not implemented; top-level spec only.
@@ -307,6 +310,44 @@ Implemented in `feature/frontend-weather`.
 - [x] Step 5 - Frontend Regression, Boundary, and Error Tests.
 - [x] Step 6 - Phase 22 Verification and PR Readiness.
 
+### Phase 23 - Backend AI Suggestion Workflows
+
+Task docs ready in `docs/implementation-phases/phase-23/`. Not implemented.
+
+- [ ] Step 1 - AI Module Contracts, Validation, and Route Wiring.
+- [ ] Step 2 - AI Port, Config, and Deterministic Adapter.
+- [ ] Step 3 - AI Session/Suggestion Repository and Persistence.
+- [ ] Step 4 - AI Suggestion Generation Services and Routes.
+- [ ] Step 5 - AI Suggestion Accept/Reject Workflows.
+- [ ] Step 6 - AI Account, Audit, Rollback, and Contract Tests.
+- [ ] Step 7 - Phase 23 Verification and PR Readiness.
+
+
+### Phase 24 - Frontend AI Assistant Pages
+
+Not implemented; task docs ready in `docs/implementation-phases/phase-24/`.
+
+- [ ] Step 1 - AI API Services and Feature Scaffold.
+- [ ] Step 2 - Shared AI Suggestion Card and Review State.
+- [ ] Step 3 - Product Ingestion Page.
+- [ ] Step 4 - Bed Planning Page.
+- [ ] Step 5 - Problem Assist Page.
+- [ ] Step 6 - Phase 24 Frontend Regression, Boundary, and Error Tests.
+- [ ] Step 7 - Phase 24 Verification and PR Readiness.
+
+
+### Phase 25 - Backend Push Notifications and Worker Scheduler
+
+Not implemented; task docs ready in `docs/implementation-phases/phase-25/`.
+
+- [ ] Step 1 - Notifications Module Contracts, Validation, and Route Wiring.
+- [ ] Step 2 - Push Subscriptions Repository and Service.
+- [ ] Step 3 - Push Port, Config, and Adapters.
+- [ ] Step 4 - Reminder Delivery Worker and Status Workflows.
+- [ ] Step 5 - Push Worker Regression, Security, and Boundary Tests.
+- [ ] Step 6 - Worker Ownership Docs and Operational Hooks.
+- [ ] Step 7 - Phase 25 Verification and PR Readiness.
+
 
 ### Phase 26 - Frontend Notifications and PWA Registration
 
@@ -325,9 +366,15 @@ Not implemented; task docs ready in `docs/implementation-phases/phase-26/`.
 
 ### Phase 23 - Backend AI Suggestion Workflows
 
-Not implemented; top-level spec only.
+Not implemented; task docs ready.
 
-- [ ] Create executable Phase 23 task docs or select the first backend AI suggestion workflow task.
+- [ ] Step 1 - AI Module Contracts, Validation, and Route Wiring (`docs/implementation-phases/phase-23/01-ai-module-contracts-validation-and-route-wiring.md`).
+- [ ] Step 2 - AI Port, Config, and Deterministic Adapter (`docs/implementation-phases/phase-23/02-ai-port-config-and-deterministic-adapter.md`).
+- [ ] Step 3 - AI Session/Suggestion Repository and Persistence (`docs/implementation-phases/phase-23/03-ai-session-suggestion-repository-and-persistence.md`).
+- [ ] Step 4 - AI Suggestion Generation Services and Routes (`docs/implementation-phases/phase-23/04-ai-suggestion-generation-services-and-routes.md`).
+- [ ] Step 5 - AI Suggestion Accept/Reject Workflows (`docs/implementation-phases/phase-23/05-ai-suggestion-accept-reject-workflows.md`).
+- [ ] Step 6 - AI Account, Audit, Rollback, and Contract Tests (`docs/implementation-phases/phase-23/06-ai-account-audit-rollback-and-contract-tests.md`).
+- [ ] Step 7 - Phase 23 Verification and PR Readiness (`docs/implementation-phases/phase-23/07-phase-23-verification-and-pr-readiness.md`).
 
 ## Update Rules
 
