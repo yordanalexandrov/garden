@@ -1,6 +1,6 @@
 # Gardening Helper - Implementation Status Handoff
 
-Last updated: 2026-06-08 (Phase 22 implemented; Phase 23 next)
+Last updated: 2026-06-09 (Phase 25 task docs ready; Phase 22 implemented; Phase 23 next)
 
 This file tracks implementation progress only. It does not replace the source-of-truth specs, domain rules, canonical API contract, or task documents. If this file conflicts with a higher-priority document, follow the source-of-truth priority in `AGENTS.md`.
 
@@ -15,6 +15,7 @@ Implementation agents must update this file in the same branch/PR whenever phase
 - Next implementation phase: Phase 23 - Backend AI Suggestion Workflows.
 - Next implementation step: Phase 23 planning/task breakdown.
 - Next implementation step file: top-level spec only; executable task docs are not present yet.
+- Phase 25 executable task docs are ready for Backend Push Notifications and Worker Scheduler planning; Phase 25 is not implemented.
 - Phase 20 completed frontend dashboard widgets, task list/detail/actions, calendar month/agenda views, typed API services, route wiring, and focused frontend/boundary tests.
 - Phase 21 completed backend WeatherPort/adapters, account-scoped place forecast endpoint, rain confirmation endpoint and persistence, canonical DTOs, provider error mapping, and focused regression/static tests.
 - Phase 22 completed frontend Weather UX using the Phase 21 backend weather endpoints.
@@ -54,7 +55,7 @@ Note: Phase 6 completed the backend growing-structure API for perennials, beds, 
 - [x] Phase 22 - Frontend Weather UX - implemented.
 - [ ] Phase 23 - Backend AI Suggestion Workflows - not implemented; top-level spec only.
 - [ ] Phase 24 - Frontend AI Assistant Pages - not implemented; top-level spec only.
-- [ ] Phase 25 - Backend Push Notifications and Worker Scheduler - not implemented; top-level spec only.
+- [ ] Phase 25 - Backend Push Notifications and Worker Scheduler - not implemented; task docs ready.
 - [ ] Phase 26 - Frontend Notifications and PWA Registration - not implemented; top-level spec only.
 - [ ] Phase 27 - Deployment and Operations Readiness - not implemented; top-level spec only.
 - [ ] Phase 28 - Final Hardening and Acceptance - not implemented; top-level spec only.
@@ -305,6 +306,19 @@ Implemented in `feature/frontend-weather`.
 - [x] Step 4 - Calendar Weather Markers.
 - [x] Step 5 - Frontend Regression, Boundary, and Error Tests.
 - [x] Step 6 - Phase 22 Verification and PR Readiness.
+
+
+### Phase 25 - Backend Push Notifications and Worker Scheduler
+
+Not implemented; task docs ready in `docs/implementation-phases/phase-25/`.
+
+- [ ] Step 1 - Notifications Module Contracts, Validation, and Route Wiring.
+- [ ] Step 2 - Push Subscriptions Repository and Service.
+- [ ] Step 3 - Push Port, Config, and Adapters.
+- [ ] Step 4 - Reminder Delivery Worker and Status Workflows.
+- [ ] Step 5 - Push Worker Regression, Security, and Boundary Tests.
+- [ ] Step 6 - Worker Ownership Docs and Operational Hooks.
+- [ ] Step 7 - Phase 25 Verification and PR Readiness.
 
 
 ## Next Phase Step Checklist
