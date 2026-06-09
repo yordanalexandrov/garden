@@ -104,6 +104,6 @@ SELECT
     we.user_confirmation_status AS status
 FROM weather_events we
 LEFT JOIN tasks t ON we.related_entity_type = 'task' AND t.id = we.related_entity_id
-LEFT JOIN activities a ON we.related_entity_type = 'activity' AND a.id = we.related_entity_id;
+LEFT JOIN activities a ON we.related_entity_type = 'activity' AND a.id = we.related_entity_id AND a.is_archived = FALSE;
 
 COMMIT;

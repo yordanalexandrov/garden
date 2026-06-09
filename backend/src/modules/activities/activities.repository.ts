@@ -25,6 +25,7 @@ import type {
   CreateActivityTargetInput,
   CreateQuarantinePeriodInput,
   CreateSuggestedTaskInput,
+  InventoryMovementForReversal,
   InventoryMovementSummary,
   ListActivitiesFilters,
   PaginatedActivities,
@@ -200,8 +201,30 @@ export class KyselyActivitiesRepository implements ActivitiesRepository {
       .execute();
   }
 
-  async deleteQuarantinePeriodsByActivity(activityId: UUID, db: DbHandle = this.dbHandle): Promise<void> {
-    await db.db.deleteFrom("quarantine_periods").where("activity_id", "=", activityId).execute();
+  async deleteQuarantinePeriodsByActivity(accountId: UUID, activityId: UUID, db: DbHandle = this.dbHandle): Promise<void> {
+    await db.db
+      .deleteFrom("quarantine_periods")
+      .where("account_id", "=", accountId)
+      .where("activity_id", "=", activityId)
+      .execute();
+  }
+
+  async listMovementsForReversal(activityId: UUID, db: DbHandle = this.dbHandle): Promise<InventoryMovementForReversal[]> {
+    const rows = await db.db
+      .selectFrom("inventory_movements")
+      .select(["product_id", "inventory_lot_id", "movement_type", "quantity", "unit", "notes"])
+      .where("activity_id", "=", activityId)
+      .where("movement_type", "in", ["consumption", "correction"])
+      .execute();
+
+    return rows.map((row) => ({
+      productId: row.product_id,
+      inventoryLotId: row.inventory_lot_id,
+      movementType: row.movement_type,
+      quantity: Number(row.quantity),
+      unit: row.unit as SimpleUnit,
+      notes: row.notes
+    }));
   }
 
   async deleteSuggestedTasksByActivity(accountId: UUID, activityId: UUID, db: DbHandle = this.dbHandle): Promise<void> {

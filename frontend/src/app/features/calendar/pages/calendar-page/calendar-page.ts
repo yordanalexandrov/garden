@@ -2,6 +2,7 @@ import { DatePipe, NgClass, PercentPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { EMPTY, Subject, catchError, map, switchMap } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialog } from '@angular/material/dialog';
@@ -82,6 +83,7 @@ export class CalendarPage {
   private readonly route = inject(ActivatedRoute);
   private readonly dialog = inject(MatDialog);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly forecastRequest$ = new Subject<string | null>();
 
   constructor() {
     const routePlaceId = this.route.parent?.snapshot.paramMap.get('placeId') ?? null;
@@ -90,12 +92,36 @@ export class CalendarPage {
       .list({ page: 1, pageSize: 100 })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((result) => this.places.set(result.items));
+
+    this.forecastRequest$
+      .pipe(
+        switchMap((placeId) => {
+          if (!placeId) {
+            this.forecast.set(null);
+            this.forecastLoading.set(false);
+            return EMPTY;
+          }
+          this.forecastLoading.set(true);
+          return this.weatherApi.getPlaceForecast(placeId).pipe(
+            map((result) => (result.enabled ? result : null) as PlaceWeatherForecast | null),
+            catchError(() => [null] as (PlaceWeatherForecast | null)[]),
+          );
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((result) => {
+        this.forecast.set(result);
+        this.forecastLoading.set(false);
+      });
+
     this.placeId.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((placeId) => this.loadForecast(placeId));
+      .subscribe((placeId) => this.forecastRequest$.next(placeId));
+
     if (routePlaceId) {
-      this.loadForecast(routePlaceId);
+      this.forecastRequest$.next(routePlaceId);
     }
+
     this.load();
   }
 
@@ -178,27 +204,6 @@ export class CalendarPage {
     });
   }
 
-  private loadForecast(placeId: string | null): void {
-    if (!placeId) {
-      this.forecast.set(null);
-      return;
-    }
-
-    this.forecastLoading.set(true);
-    this.weatherApi
-      .getPlaceForecast(placeId)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (result) => {
-          this.forecast.set(result.enabled ? result : null);
-          this.forecastLoading.set(false);
-        },
-        error: () => {
-          this.forecast.set(null);
-          this.forecastLoading.set(false);
-        },
-      });
-  }
 
   openWeather(event: CalendarWeatherEventItem): void {
     const observedRain =

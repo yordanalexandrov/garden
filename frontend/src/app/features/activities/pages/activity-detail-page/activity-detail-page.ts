@@ -63,7 +63,11 @@ export class ActivityDetailPage {
           .subscribe({
             next: () => {
               this.snackbar.showMessage('Activity archived and inventory reversed.');
-              void this.router.navigate(['/activities']);
+              void this.router.navigate(['/activities']).then((navigated) => {
+                if (!navigated) {
+                  this.archiving.set(false);
+                }
+              });
             },
             error: (err: unknown) => {
               this.error.set(mapApiError(err));
