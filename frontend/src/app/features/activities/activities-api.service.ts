@@ -28,5 +28,9 @@ export class ActivitiesApiService {
   create(request: CreateActivityRequest): Observable<CreateActivityResult> {
     return this.api.post<CreateActivityResult>('/activities', request);
   }
+
+  archive(activityId: string): Observable<void> {
+    return this.api.delete<void>(`/activities/${encodeURIComponent(activityId)}`);
+  }
 }
 

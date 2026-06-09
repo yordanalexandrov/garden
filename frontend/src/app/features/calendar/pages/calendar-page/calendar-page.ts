@@ -1,7 +1,8 @@
-import { DatePipe, NgClass } from '@angular/common';
+import { DatePipe, NgClass, PercentPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { EMPTY, Subject, catchError, map, switchMap } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialog } from '@angular/material/dialog';
@@ -18,6 +19,8 @@ import { PageHeader } from '../../../../shared/components/page-header/page-heade
 import { ApiErrorSummary } from '../../../../shared/forms/api-error-summary/api-error-summary';
 import { PlacesApiService } from '../../../places/places-api.service';
 import { PlaceListItem } from '../../../places/places.models';
+import { WeatherApiService } from '../../../weather/data-access/weather-api.service';
+import { PlaceWeatherForecast } from '../../../weather/weather.models';
 import { CalendarApiService } from '../../calendar-api.service';
 import {
   CalendarDay,
@@ -54,6 +57,7 @@ const emptyFeed = (): CalendarFeed => ({
     MatOptionModule,
     MatSelectModule,
     PageHeader,
+    PercentPipe,
     ReactiveFormsModule,
     RouterLink,
   ],
@@ -68,14 +72,18 @@ export class CalendarPage {
   readonly places = signal<readonly PlaceListItem[]>([]);
   readonly loading = signal(false);
   readonly error = signal<ApiError | null>(null);
+  readonly forecast = signal<PlaceWeatherForecast | null>(null);
+  readonly forecastLoading = signal(false);
   readonly placeId = new FormControl<string | null>(null);
   readonly visibleMonth = signal(startOfMonth(new Date()));
 
   private readonly calendarApi = inject(CalendarApiService);
   private readonly placesApi = inject(PlacesApiService);
+  private readonly weatherApi = inject(WeatherApiService);
   private readonly route = inject(ActivatedRoute);
   private readonly dialog = inject(MatDialog);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly forecastRequest$ = new Subject<string | null>();
 
   constructor() {
     const routePlaceId = this.route.parent?.snapshot.paramMap.get('placeId') ?? null;
@@ -84,6 +92,36 @@ export class CalendarPage {
       .list({ page: 1, pageSize: 100 })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((result) => this.places.set(result.items));
+
+    this.forecastRequest$
+      .pipe(
+        switchMap((placeId) => {
+          if (!placeId) {
+            this.forecast.set(null);
+            this.forecastLoading.set(false);
+            return EMPTY;
+          }
+          this.forecastLoading.set(true);
+          return this.weatherApi.getPlaceForecast(placeId).pipe(
+            map((result) => (result.enabled ? result : null) as PlaceWeatherForecast | null),
+            catchError(() => [null] as (PlaceWeatherForecast | null)[]),
+          );
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((result) => {
+        this.forecast.set(result);
+        this.forecastLoading.set(false);
+      });
+
+    this.placeId.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((placeId) => this.forecastRequest$.next(placeId));
+
+    if (routePlaceId) {
+      this.forecastRequest$.next(routePlaceId);
+    }
+
     this.load();
   }
 
@@ -165,6 +203,7 @@ export class CalendarPage {
       ],
     });
   }
+
 
   openWeather(event: CalendarWeatherEventItem): void {
     const observedRain =

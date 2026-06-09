@@ -52,6 +52,14 @@ export class PlantDetailPage {
     });
   }
 
+  cancelEdit(): void {
+    const plant = this.plant();
+
+    if (plant !== null) {
+      this.loadPlant(plant.id);
+    }
+  }
+
   savePlant(request: CreatePlantRequest): void {
     const plant = this.plant();
 

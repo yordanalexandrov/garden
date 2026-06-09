@@ -19,6 +19,7 @@ import type {
   CorrectActivityResult,
   CreateActivityRequest,
   CreateActivityResult,
+  InventoryMovementForReversal,
   InventoryMovementSummary,
   ListActivitiesFilters,
   PaginatedActivities,
@@ -329,6 +330,104 @@ export class ActivitiesService {
     });
   }
 
+  async archiveActivity(actor: AuthenticatedActor, activityId: UUID): Promise<void> {
+    if (this.auditService === undefined) {
+      throw new AppError("INTERNAL_ERROR", "Activity archive requires audit service");
+    }
+
+    const auditService = this.auditService;
+
+    return this.dbClient.transaction(async (trx) => {
+      const activity = await this.activitiesRepository.getDetail(actor.accountId, activityId, trx);
+
+      if (activity === null) {
+        throw new AppError("NOT_FOUND", "Activity not found");
+      }
+
+      // Load all movements (consumption + correction) to compute net restoration per lot,
+      // correctly accounting for any prior correctActivity adjustments.
+      const allMovements = await this.activitiesRepository.listMovementsForReversal(activityId, trx);
+
+      // Net correction delta per lot: positive = already restored by correctActivity (reduce what we restore).
+      const correctionNetByLot = computeCorrectionNetByLot(allMovements);
+
+      const reversedLotIds: UUID[] = [];
+
+      for (const movement of activity.inventoryMovements) {
+        if (movement.inventoryLotId === null) {
+          // Non-lot-bound consumption: no lot quantity was tracked, nothing to restore.
+          continue;
+        }
+
+        const correctionNet = correctionNetByLot.get(movement.inventoryLotId) ?? 0;
+        const netToRestore = movement.quantity - correctionNet;
+
+        if (netToRestore <= 0) {
+          // Prior corrections already fully restored this lot's stock.
+          continue;
+        }
+
+        await this.inventoryRepository.createMovement(
+          {
+            accountId: actor.accountId,
+            productId: movement.productId,
+            inventoryLotId: movement.inventoryLotId,
+            movementType: "correction",
+            quantity: netToRestore,
+            unit: movement.unit,
+            activityId: activity.id,
+            occurredAt: new Date(),
+            notes: `Archive reversal for activity ${activity.id}`
+          },
+          trx
+        );
+
+        const updatedLot = await this.inventoryRepository.incrementLotRemainingQuantity(
+          actor.accountId,
+          movement.inventoryLotId,
+          netToRestore,
+          trx
+        );
+
+        if (updatedLot === null) {
+          throw new AppError("NOT_FOUND", "Inventory lot not found or archived; cannot complete activity archive");
+        }
+
+        reversedLotIds.push(movement.inventoryLotId);
+      }
+
+      await this.activitiesRepository.deleteQuarantinePeriodsByActivity(actor.accountId, activityId, trx);
+      await this.activitiesRepository.deleteSuggestedTasksByActivity(actor.accountId, activityId, trx);
+      await this.activitiesRepository.archiveActivity(actor.accountId, activityId, trx);
+
+      await auditService.logActorEvent(
+        {
+          actor,
+          entityType: "activity",
+          entityId: activity.id,
+          action: "activity.archived",
+          beforeJson: {
+            activityId: activity.id,
+            inventoryMovements: activity.inventoryMovements.map((m) => ({
+              movementId: m.id,
+              productId: m.productId,
+              inventoryLotId: m.inventoryLotId,
+              quantity: m.quantity,
+              unit: m.unit
+            })),
+            quarantinePeriodsCount: activity.quarantinePeriods.length,
+            suggestedTasksCount: activity.suggestedTasks.length
+          },
+          afterJson: {
+            isArchived: true,
+            reversedLotIds
+          }
+        },
+        trx
+      );
+    });
+  }
+
   private async validateProductUsages(
     accountId: UUID,
     inputs: ActivityProductUsageInput[],
@@ -556,6 +655,25 @@ function addDays(date: string, days: number): string {
   const value = new Date(`${date}T00:00:00.000Z`);
   value.setUTCDate(value.getUTCDate() + days);
   return dateOnly(value);
+}
+
+// Returns per-lot net quantity already restored by prior correctActivity calls.
+// Positive value = stock was put back (reduce archive restoration by this amount).
+// Negative value = more stock was taken (increase archive restoration by this amount).
+function computeCorrectionNetByLot(movements: InventoryMovementForReversal[]): Map<string, number> {
+  const net = new Map<string, number>();
+  for (const mv of movements) {
+    if (mv.movementType !== "correction" || mv.inventoryLotId === null) {
+      continue;
+    }
+    const current = net.get(mv.inventoryLotId) ?? 0;
+    if (mv.notes?.includes("correction_direction=increase_lot")) {
+      net.set(mv.inventoryLotId, current + mv.quantity);
+    } else if (mv.notes?.includes("correction_direction=decrease_lot")) {
+      net.set(mv.inventoryLotId, current - mv.quantity);
+    }
+  }
+  return net;
 }
 
 function formatCorrectionMovementNotes(direction: ActivityCorrectionDirection, notes: string): string {

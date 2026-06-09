@@ -34,6 +34,12 @@ export const BASELINE_MIGRATIONS = [
     label: "database guard triggers",
     filePath: resolve(docsDir, "004_guards_and_triggers_gardening_helper.sql"),
     containsSeedData: false
+  },
+  {
+    id: "005",
+    label: "archive activities",
+    filePath: resolve(docsDir, "005_archive_activities.sql"),
+    containsSeedData: false
   }
 ] as const satisfies readonly BaselineMigration[];
 

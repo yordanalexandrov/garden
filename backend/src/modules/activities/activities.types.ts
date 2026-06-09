@@ -184,6 +184,15 @@ export type InventoryMovementSummary = {
   createdAt: Date;
 };
 
+export type InventoryMovementForReversal = {
+  productId: UUID;
+  inventoryLotId: UUID | null;
+  movementType: string;
+  quantity: number;
+  unit: SimpleUnit;
+  notes: string | null;
+};
+
 export type CreateActivityResult = {
   activity: ActivityDetail;
   inventoryEffects: InventoryMovementSummary[];
@@ -285,4 +294,8 @@ export interface ActivitiesRepository {
   createQuarantinePeriod(input: CreateQuarantinePeriodInput, db?: DbHandle): Promise<QuarantinePeriod>;
   createSuggestedTask(input: CreateSuggestedTaskInput, db?: DbHandle): Promise<SuggestedTask>;
   addTaskTargets(taskId: UUID, targets: TargetRef[], db?: DbHandle): Promise<void>;
+  archiveActivity(accountId: UUID, activityId: UUID, db?: DbHandle): Promise<void>;
+  deleteQuarantinePeriodsByActivity(accountId: UUID, activityId: UUID, db?: DbHandle): Promise<void>;
+  deleteSuggestedTasksByActivity(accountId: UUID, activityId: UUID, db?: DbHandle): Promise<void>;
+  listMovementsForReversal(activityId: UUID, db?: DbHandle): Promise<InventoryMovementForReversal[]>;
 }
