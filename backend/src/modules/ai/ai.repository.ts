@@ -1,6 +1,6 @@
 import type { Selectable } from "kysely";
 
-import type { AiSessionsTable, AiSuggestionsTable } from "../../db/database.types.js";
+import type { AiSessionsTable, AiSuggestionsTable, JsonValue } from "../../db/database.types.js";
 import type { DbHandle } from "../../db/transaction.js";
 import type { UUID } from "../auth/auth.types.js";
 import type {
@@ -82,7 +82,7 @@ export class KyselyAiRepository implements AiRepository {
         suggestions.map((s) => ({
           ai_session_id: sessionId,
           suggestion_type: s.suggestionType,
-          payload: JSON.stringify(s.payload)
+          payload: s.payload as JsonValue
         }))
       )
       .returning(AI_SUGGESTION_COLUMNS)
@@ -127,6 +127,7 @@ export class KyselyAiRepository implements AiRepository {
       .updateTable("ai_suggestions")
       .set({ accepted: true, accepted_at: new Date() })
       .where("id", "=", suggestionId)
+      .where("accepted", "is", null)
       .returning(AI_SUGGESTION_COLUMNS)
       .executeTakeFirst();
 

@@ -193,7 +193,7 @@ export class AiService {
     const session = await this.aiRepository.createSession({
       accountId: actor.accountId,
       kind: "problem_assist",
-      inputMode: input.problemId !== undefined ? "text" : "text",
+      inputMode: "text",
       status: "completed",
       rawInputText: input.text ?? null,
       relatedEntityType: input.problemId !== undefined ? "problem" : null,
@@ -235,7 +235,11 @@ export class AiService {
     return this.dbClient.transaction(async (trx) => {
       const result = await this.createBusinessRecordsForSuggestion(actor, suggestion.suggestionType, finalPayload, trx);
 
-      await this.aiRepository.markAccepted(suggestionId, trx);
+      const marked = await this.aiRepository.markAccepted(suggestionId, trx);
+
+      if (marked === null) {
+        throw new AppError("CONFLICT", "Suggestion was concurrently accepted or rejected");
+      }
 
       await this.auditService?.logActorEvent(
         {

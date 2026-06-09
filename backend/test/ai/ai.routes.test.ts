@@ -345,6 +345,68 @@ describeDatabase("AI routes with database", () => {
       expect(response.statusCode).toBe(404);
     });
 
+    it("accepts product_rule suggestion with editedPayload providing productId and plantId", async () => {
+      const { productSuggestionId, productRuleSuggestionId } = await createProductAndRuleSuggestions(app!);
+
+      const acceptProductResponse = await app!.inject({
+        method: "POST",
+        url: `/api/v1/ai/suggestions/${productSuggestionId}/accept`,
+        headers: accountAAuthHeaders(),
+        payload: {}
+      });
+
+      expect(acceptProductResponse.statusCode).toBe(200);
+      const acceptProductBody = parseJsonResponse<AcceptResponse>(acceptProductResponse);
+      const productId = acceptProductBody.data.createdEntities[0]?.entityId;
+
+      const response = await app!.inject({
+        method: "POST",
+        url: `/api/v1/ai/suggestions/${productRuleSuggestionId}/accept`,
+        headers: accountAAuthHeaders(),
+        payload: {
+          editedPayload: { productId, plantId: Ids.plantA }
+        }
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const body = parseJsonResponse<AcceptResponse>(response);
+
+      expect(body.data.createdEntities).toHaveLength(1);
+      expect(body.data.createdEntities[0]?.entityType).toBe("product_rule");
+
+      const ruleCount = await pool.query<{ count: string }>(
+        "select count(*) from product_usage_rules where id = $1",
+        [body.data.createdEntities[0]?.entityId]
+      );
+
+      expect(Number(ruleCount.rows[0]?.count)).toBe(1);
+    });
+
+    it("accept with write failure rolls back and leaves suggestion unaccepted", async () => {
+      const { productRuleSuggestionId } = await createProductAndRuleSuggestions(app!);
+
+      const nonExistentProductId = "99999999-9999-4999-8999-999999999999";
+
+      const response = await app!.inject({
+        method: "POST",
+        url: `/api/v1/ai/suggestions/${productRuleSuggestionId}/accept`,
+        headers: accountAAuthHeaders(),
+        payload: {
+          editedPayload: { productId: nonExistentProductId, plantId: Ids.plantA }
+        }
+      });
+
+      expect(response.statusCode).not.toBe(200);
+
+      const suggestionRow = await pool.query<{ accepted: boolean | null }>(
+        "select accepted from ai_suggestions where id = $1",
+        [productRuleSuggestionId]
+      );
+
+      expect(suggestionRow.rows[0]?.accepted).toBeNull();
+    });
+
     it("accepts edited payload and validates it through backend rules", async () => {
       const { suggestionId } = await createProductSuggestion(app!);
 
@@ -558,6 +620,25 @@ async function insertAiFixtures(pool: Pool): Promise<void> {
      ($4, $5, $6, 'observation', 'Problem B', 'open')`,
     [Ids.problemA, accountA, Ids.placeA, Ids.problemB, accountB, Ids.placeB]
   );
+}
+
+async function createProductAndRuleSuggestions(app: FastifyInstance): Promise<{ productSuggestionId: string; productRuleSuggestionId: string }> {
+  const ingestResponse = await app.inject({
+    method: "POST",
+    url: "/api/v1/ai/product-ingestion",
+    headers: accountAAuthHeaders(),
+    payload: { productName: "Test Fungicide" }
+  });
+
+  const body = parseJsonResponse<GenerationResponse>(ingestResponse);
+  const productSuggestion = body.data.suggestions.find((s) => s.suggestionType === "product");
+  const productRuleSuggestion = body.data.suggestions.find((s) => s.suggestionType === "product_rule");
+
+  if (productSuggestion === undefined || productRuleSuggestion === undefined) {
+    throw new Error("Missing product or product_rule suggestion in response");
+  }
+
+  return { productSuggestionId: productSuggestion.id, productRuleSuggestionId: productRuleSuggestion.id };
 }
 
 async function createProductSuggestion(app: FastifyInstance): Promise<{ suggestionId: string }> {
