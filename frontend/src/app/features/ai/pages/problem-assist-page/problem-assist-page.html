@@ -1,0 +1,114 @@
+<section class="problem-assist-page" aria-labelledby="problem-assist-title">
+<app-page-header
+  title="AI Problem Assist"
+  titleId="problem-assist-title"
+  icon="search"
+  subtitle="Get possible category suggestions for a problem — not a diagnosis"
+/>
+
+<p class="ai-page__advisory" role="note">
+  AI output presents possible categories and follow-up questions for your review. This is not a diagnosis.
+  AI suggestions are not saved until you explicitly accept them.
+</p>
+
+<form [formGroup]="form" (ngSubmit)="submit()" class="ai-page__form" novalidate>
+  <mat-radio-group formControlName="inputMode" class="ai-page__radio-group" aria-label="Input mode">
+    <mat-radio-button value="text">Describe the problem</mat-radio-button>
+    <mat-radio-button value="problem">Select an existing problem</mat-radio-button>
+  </mat-radio-group>
+
+  @if (form.controls.inputMode.value === 'problem') {
+    <mat-form-field appearance="outline" class="ai-page__field">
+      <mat-label>Problem ID</mat-label>
+      <input matInput formControlName="problemId" autocomplete="off" placeholder="e.g. problem-uuid" />
+    </mat-form-field>
+  } @else {
+    <mat-form-field appearance="outline" class="ai-page__field">
+      <mat-label>Describe the problem</mat-label>
+      <textarea matInput formControlName="text" rows="5" autocomplete="off"
+        placeholder="e.g. Leaves are yellow with brown spots, especially on lower leaves…"></textarea>
+    </mat-form-field>
+  }
+
+  @if (form.invalid && (form.controls.problemId.touched || form.controls.text.touched)) {
+    @if (form.errors?.['requireProblemIdOrText']) {
+      <mat-error class="ai-page__form-error">
+        Please enter a description or select an existing problem.
+      </mat-error>
+    }
+  }
+
+  <div class="ai-page__actions">
+    <button mat-flat-button type="submit" color="primary" [disabled]="submitting()">
+      @if (submitting()) {
+        <mat-spinner diameter="18" />
+        Getting suggestions…
+      } @else {
+        Get suggestions
+      }
+    </button>
+  </div>
+</form>
+
+<app-api-error-summary [error]="sessionError()" />
+
+@if (warnings.length > 0) {
+  <div class="ai-page__warnings" role="note">
+    <mat-icon fontIcon="warning" aria-hidden="true" />
+    <ul>
+      @for (warning of warnings; track warning) {
+        <li>{{ warning }}</li>
+      }
+    </ul>
+  </div>
+}
+
+@for (state of suggestionStates(); track state.suggestion.id) {
+  @let summary = problemSummaryPayload(state);
+  @if (summary) {
+    <section class="ai-problem-summary" role="region" aria-label="AI problem assistance">
+      <p class="ai-problem-summary__advisory">
+        <mat-icon fontIcon="info" aria-hidden="true" /> These are possible suggestions for your review. They are not a diagnosis.
+      </p>
+
+      @if (summary.summary) {
+        <div class="ai-problem-summary__section">
+          <h3>Summary</h3>
+          <p>{{ summary.summary }}</p>
+        </div>
+      }
+
+      @if (summary.possibleCategories && summary.possibleCategories.length > 0) {
+        <div class="ai-problem-summary__section">
+          <h3>Possible categories for review</h3>
+          <ul>
+            @for (cat of summary.possibleCategories; track cat) {
+              <li>{{ cat }}</li>
+            }
+          </ul>
+        </div>
+      }
+
+      @if (summary.followUpQuestions && summary.followUpQuestions.length > 0) {
+        <div class="ai-problem-summary__section">
+          <h3>Follow-up questions</h3>
+          <ul>
+            @for (q of summary.followUpQuestions; track q) {
+              <li>{{ q }}</li>
+            }
+          </ul>
+        </div>
+      }
+    </section>
+  } @else {
+    <app-ai-suggestion-card
+      [suggestion]="state.suggestion"
+      [status]="state.status"
+      [error]="state.error"
+      [acceptResult]="state.acceptResult"
+      (accept)="onAccept($event)"
+      (reject)="onReject($event)"
+    />
+  }
+}
+</section>

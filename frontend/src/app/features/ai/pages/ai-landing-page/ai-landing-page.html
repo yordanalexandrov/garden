@@ -1,0 +1,47 @@
+<section class="ai-landing-page" aria-labelledby="ai-assistant-title">
+  <app-page-header title="AI Assistant" titleId="ai-assistant-title" icon="auto_awesome" subtitle="AI-powered suggestions for your garden" />
+
+  <div class="ai-landing__grid">
+    <mat-card>
+      <mat-card-header>
+        <mat-icon mat-card-avatar aria-hidden="true" fontIcon="inventory_2" />
+        <mat-card-title>Product Ingestion</mat-card-title>
+        <mat-card-subtitle>Let AI help you add products and usage rules</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <p>Enter a product name or label text and get AI-suggested product details and usage rules for review.</p>
+      </mat-card-content>
+      <mat-card-actions>
+        <a mat-flat-button color="primary" routerLink="product-ingestion">Get suggestions</a>
+      </mat-card-actions>
+    </mat-card>
+
+    <mat-card>
+      <mat-card-header>
+        <mat-icon mat-card-avatar aria-hidden="true" fontIcon="grid_view" />
+        <mat-card-title>Bed Planning</mat-card-title>
+        <mat-card-subtitle>Get advisory guidance for bed layout</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <p>Select a bed, year, and candidate plants to get spacing, coexistence, and quantity guidance. Output is advisory only.</p>
+      </mat-card-content>
+      <mat-card-actions>
+        <a mat-flat-button color="primary" routerLink="bed-planning">Plan a bed</a>
+      </mat-card-actions>
+    </mat-card>
+
+    <mat-card>
+      <mat-card-header>
+        <mat-icon mat-card-avatar aria-hidden="true" fontIcon="search" />
+        <mat-card-title>Problem Assist</mat-card-title>
+        <mat-card-subtitle>Get possible category suggestions for a problem</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <p>Describe or select a problem to get possible category suggestions and follow-up questions. Not a diagnosis.</p>
+      </mat-card-content>
+      <mat-card-actions>
+        <a mat-flat-button color="primary" routerLink="problem-assist">Get assistance</a>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+</section>

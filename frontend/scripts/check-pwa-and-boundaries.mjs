@@ -77,8 +77,20 @@ const frontendWeatherConsequencePatterns = [
   /rain\s+consequence/i,
 ];
 
+const aiProviderSdkImportPattern = /from\s+['"](?:@anthropic-ai\/sdk|openai|@google\/generative-ai|anthropic)['"]/;
+const aiProviderUrlPattern = /https?:\/\/(?:api\.anthropic\.com|api\.openai\.com|generativelanguage\.googleapis\.com|api\.mistral\.ai|api\.cohere\.ai)/i;
+const aiFeatureMutationPatterns = [
+  /\bplantingsApi\b/,
+  /\byearlyBedPlantingsApi\b/,
+  /\.post\s*(?:<[^>\n]+>)?\s*\(\s*['"].*plantings/,
+  /\.patch\s*(?:<[^>\n]+>)?\s*\(\s*['"].*plantings/,
+  /\.post\s*(?:<[^>\n]+>)?\s*\(\s*['"].*tasks/,
+  /\.patch\s*(?:<[^>\n]+>)?\s*\(\s*['"].*tasks/,
+  /\.post\s*(?:<[^>\n]+>)?\s*\(\s*['"].*activities/,
+  /\.post\s*(?:<[^>\n]+>)?\s*\(\s*['"].*problems(?!\/.*\/photos).*[^/photos]/,
+];
+
 const deferredPhase7FeatureDirectories = [
-  'ai',
   'mcp',
   'push',
   'storage',
@@ -214,6 +226,34 @@ const findFrontendBoundaryViolations = (relativePath, content) => {
     );
   }
 
+  if (
+    isFrontendSourceFile(relativePath) &&
+    aiProviderSdkImportPattern.test(content)
+  ) {
+    violations.push(
+      `Frontend code must not import AI provider SDKs directly in ${relativePath}. AI provider access is backend-only through AiPort.`,
+    );
+  }
+
+  if (
+    isFrontendSourceFile(relativePath) &&
+    aiProviderUrlPattern.test(content)
+  ) {
+    violations.push(
+      `Frontend code must not reference AI provider URLs directly in ${relativePath}. AI provider access is backend-only.`,
+    );
+  }
+
+  if (
+    relativePath.startsWith('src/app/features/ai/') &&
+    aiFeatureMutationPatterns.some((pattern) => pattern.test(content)) &&
+    !relativePath.endsWith('.spec.ts')
+  ) {
+    violations.push(
+      'AI feature code must not call planting, task, activity, or problem mutation APIs directly in ' + relativePath + '.',
+    );
+  }
+
   return violations;
 };
 
@@ -326,6 +366,27 @@ assertBoundarySelfTestRejects(
   "const message = 'treatment failed';",
   'must not automate rain consequences',
   'src/app/features/weather/example.ts',
+);
+assertBoundarySelfTestRejects(
+  'AI provider SDK imports in frontend code',
+  "import Anthropic from '@anthropic-ai/sdk';",
+  'AI provider SDKs directly',
+);
+assertBoundarySelfTestRejects(
+  'OpenAI SDK imports in frontend code',
+  "import OpenAI from 'openai';",
+  'AI provider SDKs directly',
+);
+assertBoundarySelfTestRejects(
+  'AI provider URL references in frontend code',
+  "const url = 'https://api.anthropic.com/v1/messages';",
+  'AI provider URLs directly',
+);
+assertBoundarySelfTestRejects(
+  'AI feature code calling planting mutation APIs',
+  "return this.api.post('/plantings', body);",
+  'must not call planting',
+  'src/app/features/ai/pages/example-page.ts',
 );
 
 const angular = readJson('angular.json');

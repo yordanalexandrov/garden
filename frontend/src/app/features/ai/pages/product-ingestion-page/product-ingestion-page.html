@@ -1,0 +1,68 @@
+<section class="product-ingestion-page" aria-labelledby="product-ingestion-title">
+<app-page-header
+  title="AI Product Ingestion"
+  titleId="product-ingestion-title"
+  icon="inventory_2"
+  subtitle="Get AI-suggested product details and usage rules for review"
+/>
+
+<p class="ai-page__advisory" role="note">
+  AI suggestions are not saved until you explicitly accept them. Review all fields before accepting.
+</p>
+
+<form [formGroup]="form" (ngSubmit)="submit()" class="ai-page__form" novalidate>
+  <mat-form-field appearance="outline" class="ai-page__field">
+    <mat-label>Product name</mat-label>
+    <input matInput formControlName="productName" autocomplete="off" />
+    @if (form.controls.productName.invalid && form.controls.productName.touched) {
+      <mat-error>Product name is required.</mat-error>
+    }
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="ai-page__field">
+    <mat-label>Label text (optional)</mat-label>
+    <textarea matInput formControlName="labelText" rows="4" autocomplete="off"></textarea>
+    <mat-hint>Paste the product label text to improve suggestions.</mat-hint>
+  </mat-form-field>
+
+  <div class="ai-page__actions">
+    <button
+      mat-flat-button
+      type="submit"
+      color="primary"
+      [disabled]="submitting()"
+    >
+      @if (submitting()) {
+        <mat-spinner diameter="18" />
+        Getting suggestions…
+      } @else {
+        Get suggestions
+      }
+    </button>
+  </div>
+</form>
+
+<app-api-error-summary [error]="sessionError()" />
+
+@if (warnings.length > 0) {
+  <div class="ai-page__warnings" role="note">
+    <mat-icon fontIcon="warning" aria-hidden="true" />
+    <ul>
+      @for (warning of warnings; track warning) {
+        <li>{{ warning }}</li>
+      }
+    </ul>
+  </div>
+}
+
+@for (state of suggestionStates(); track state.suggestion.id) {
+  <app-ai-suggestion-card
+    [suggestion]="state.suggestion"
+    [status]="state.status"
+    [error]="state.error"
+    [acceptResult]="state.acceptResult"
+    (accept)="onAccept($event)"
+    (reject)="onReject($event)"
+  />
+}
+</section>

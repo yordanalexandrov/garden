@@ -53,12 +53,7 @@ export const routes: Routes = [
   },
   {
     path: 'ai',
-    children: [
-      placeholderRoute('', 'AI Assistant', 'full'),
-      placeholderRoute('product-ingestion', 'AI Product Ingestion'),
-      placeholderRoute('bed-planning', 'AI Bed Planning'),
-      placeholderRoute('problem-assist', 'AI Problem Assist'),
-    ],
+    loadChildren: () => import('./features/ai/ai.routes').then((module) => module.aiRoutes),
   },
   {
     path: 'settings',
