@@ -3,7 +3,9 @@ import type { FastifyPluginAsync } from "fastify";
 import type { AppConfig } from "../config/config.js";
 import type { DbClient } from "../db/transaction.js";
 import type { WeatherPort } from "../integrations/weather/weather.port.js";
+import type { AiPort } from "../integrations/ai/ai.port.js";
 import type { StoragePort } from "../modules/files/storage.port.js";
+import { registerAiRoutes } from "../modules/ai/ai.routes.js";
 import { registerActivitiesRoutes } from "../modules/activities/activities.routes.js";
 import { registerBedsRoutes, registerPlaceBedsRoutes } from "../modules/beds/beds.routes.js";
 import { registerCalendarRoutes } from "../modules/calendar/calendar.routes.js";
@@ -29,6 +31,7 @@ export type ApiRouteOptions = {
   config?: AppConfig;
   storage?: StoragePort;
   weather?: WeatherPort;
+  ai?: AiPort;
 };
 
 export const API_PREFIX = "/api/v1";
@@ -44,7 +47,8 @@ export const registerApiRoutes: FastifyPluginAsync<ApiRouteOptions> = async (app
     ...(options.db === undefined ? {} : { db: options.db }),
     ...(options.config === undefined ? {} : { config: options.config }),
     ...(options.storage === undefined ? {} : { storage: options.storage }),
-    ...(options.weather === undefined ? {} : { weather: options.weather })
+    ...(options.weather === undefined ? {} : { weather: options.weather }),
+    ...(options.ai === undefined ? {} : { ai: options.ai })
   };
   await app.register(registerPlacesRoutes, { prefix: "/places", ...businessRouteOptions });
   await app.register(registerPlantsRoutes, { prefix: "/plants", ...businessRouteOptions });
@@ -67,6 +71,7 @@ export const registerApiRoutes: FastifyPluginAsync<ApiRouteOptions> = async (app
   await app.register(registerWeatherRoutes, { prefix: "/weather", ...businessRouteOptions });
   await app.register(registerCalendarRoutes, { prefix: "/calendar", ...businessRouteOptions });
   await app.register(registerDashboardRoutes, { prefix: "/dashboard", ...businessRouteOptions });
+  await app.register(registerAiRoutes, { prefix: "/ai", ...businessRouteOptions });
 
   if (options.enableTestRoutes === true) {
     await app.register(registerTestRoutes, { prefix: "/__test" });
