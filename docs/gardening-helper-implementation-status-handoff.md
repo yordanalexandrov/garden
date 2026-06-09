@@ -1,6 +1,6 @@
 # Gardening Helper - Implementation Status Handoff
 
-Last updated: 2026-06-09 (Phase 23 task docs ready; Phase 23 implementation next)
+Last updated: 2026-06-09 (Phase 24 task docs ready; Phase 23 implementation next)
 
 This file tracks implementation progress only. It does not replace the source-of-truth specs, domain rules, canonical API contract, or task documents. If this file conflicts with a higher-priority document, follow the source-of-truth priority in `AGENTS.md`.
 
@@ -16,6 +16,7 @@ Implementation agents must update this file in the same branch/PR whenever phase
 - Next implementation step: Phase 23 Step 1 - AI Module Contracts, Validation, and Route Wiring.
 - Next implementation step file: `docs/implementation-phases/phase-23/01-ai-module-contracts-validation-and-route-wiring.md`.
 - Phase 23 executable task docs are ready for Backend AI Suggestion Workflows planning; Phase 23 is not implemented.
+- Phase 24 executable task docs are ready for Frontend AI Assistant Pages planning; Phase 24 is not implemented.
 - Phase 20 completed frontend dashboard widgets, task list/detail/actions, calendar month/agenda views, typed API services, route wiring, and focused frontend/boundary tests.
 - Phase 21 completed backend WeatherPort/adapters, account-scoped place forecast endpoint, rain confirmation endpoint and persistence, canonical DTOs, provider error mapping, and focused regression/static tests.
 - Phase 22 completed frontend Weather UX using the Phase 21 backend weather endpoints.
@@ -54,7 +55,7 @@ Note: Phase 6 completed the backend growing-structure API for perennials, beds, 
 - [x] Phase 21 - Backend Weather and Rain Confirmation - implemented.
 - [x] Phase 22 - Frontend Weather UX - implemented.
 - [ ] Phase 23 - Backend AI Suggestion Workflows - not implemented; task docs ready.
-- [ ] Phase 24 - Frontend AI Assistant Pages - not implemented; top-level spec only.
+- [ ] Phase 24 - Frontend AI Assistant Pages - not implemented; task docs ready.
 - [ ] Phase 25 - Backend Push Notifications and Worker Scheduler - not implemented; top-level spec only.
 - [ ] Phase 26 - Frontend Notifications and PWA Registration - not implemented; top-level spec only.
 - [ ] Phase 27 - Deployment and Operations Readiness - not implemented; top-level spec only.
@@ -318,6 +319,19 @@ Task docs ready in `docs/implementation-phases/phase-23/`. Not implemented.
 - [ ] Step 5 - AI Suggestion Accept/Reject Workflows.
 - [ ] Step 6 - AI Account, Audit, Rollback, and Contract Tests.
 - [ ] Step 7 - Phase 23 Verification and PR Readiness.
+
+
+### Phase 24 - Frontend AI Assistant Pages
+
+Not implemented; task docs ready in `docs/implementation-phases/phase-24/`.
+
+- [ ] Step 1 - AI API Services and Feature Scaffold.
+- [ ] Step 2 - Shared AI Suggestion Card and Review State.
+- [ ] Step 3 - Product Ingestion Page.
+- [ ] Step 4 - Bed Planning Page.
+- [ ] Step 5 - Problem Assist Page.
+- [ ] Step 6 - Phase 24 Frontend Regression, Boundary, and Error Tests.
+- [ ] Step 7 - Phase 24 Verification and PR Readiness.
 
 
 ## Next Phase Step Checklist
