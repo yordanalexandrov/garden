@@ -4,7 +4,19 @@
     titleId="activity-detail-title"
     subtitle="Backend activity record and side effects"
     icon="assignment"
-  />
+  >
+    <button
+      mat-button
+      type="button"
+      color="warn"
+      page-actions
+      [disabled]="archiving()"
+      (click)="archiveActivity()"
+    >
+      <mat-icon aria-hidden="true" fontIcon="delete_forever" />
+      {{ archiving() ? 'Archiving...' : 'Archive' }}
+    </button>
+  </app-page-header>
 
   <app-api-error-summary [error]="error()" />
 

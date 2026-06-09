@@ -35,6 +35,26 @@
   <app-calendar-legend />
   <app-api-error-summary [error]="error()" />
 
+  @if (forecastLoading()) {
+    <p>Loading forecast...</p>
+  } @else if (forecast(); as weather) {
+    <div class="calendar-page__forecast" aria-label="Weather forecast">
+      @for (day of weather.forecast; track day.date) {
+        <div class="forecast-day">
+          <span class="forecast-day__date">{{ day.date | date: 'EEE d' }}</span>
+          <span class="forecast-day__summary">{{ day.summary }}</span>
+          <span class="forecast-day__temp">
+            {{ day.temperatureMinC !== null ? day.temperatureMinC : '–' }}°
+            / {{ day.temperatureMaxC !== null ? day.temperatureMaxC : '–' }}°
+          </span>
+          @if (day.rainProbability !== null) {
+            <span class="forecast-day__rain">{{ day.rainProbability | percent }}</span>
+          }
+        </div>
+      }
+    </div>
+  }
+
   @if (loading()) {
     <p>Loading calendar...</p>
   }

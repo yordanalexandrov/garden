@@ -191,12 +191,36 @@ export class KyselyActivitiesRepository implements ActivitiesRepository {
       .execute();
   }
 
+  async archiveActivity(accountId: UUID, activityId: UUID, db: DbHandle = this.dbHandle): Promise<void> {
+    await db.db
+      .updateTable("activities")
+      .set({ is_archived: true })
+      .where("account_id", "=", accountId)
+      .where("id", "=", activityId)
+      .execute();
+  }
+
+  async deleteQuarantinePeriodsByActivity(activityId: UUID, db: DbHandle = this.dbHandle): Promise<void> {
+    await db.db.deleteFrom("quarantine_periods").where("activity_id", "=", activityId).execute();
+  }
+
+  async deleteSuggestedTasksByActivity(accountId: UUID, activityId: UUID, db: DbHandle = this.dbHandle): Promise<void> {
+    await db.db
+      .deleteFrom("tasks")
+      .where("account_id", "=", accountId)
+      .where("source_type", "=", "activity")
+      .where("source_reference_id", "=", activityId)
+      .where("status", "=", "suggested")
+      .execute();
+  }
+
   async findById(accountId: UUID, activityId: UUID, db: DbHandle = this.dbHandle): Promise<Activity | null> {
     const row = await db.db
       .selectFrom("activities")
       .select(ACTIVITY_COLUMNS)
       .where("account_id", "=", accountId)
       .where("id", "=", activityId)
+      .where("is_archived", "=", false)
       .executeTakeFirst();
 
     return row === undefined ? null : toActivity(row);

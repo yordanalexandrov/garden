@@ -172,6 +172,7 @@ export interface ActivitiesTable {
   performed_at: ColumnType<Timestamp, Timestamp | string, Timestamp | string>;
   target_scope_type: string;
   notes: NullableColumn<string>;
+  is_archived: ColumnType<boolean, boolean | undefined, boolean>;
   created_at: GeneratedTimestamp;
   updated_at: GeneratedTimestamp;
 }
@@ -406,6 +407,7 @@ export interface ActivityDetailView {
   notes: ReadonlyColumn<string | null>;
   created_at: ReadonlyColumn<Timestamp>;
   updated_at: ReadonlyColumn<Timestamp>;
+  is_archived: ReadonlyColumn<boolean>;
   target_count: ReadonlyColumn<string>;
   product_usage_count: ReadonlyColumn<string>;
   inventory_movement_count: ReadonlyColumn<string>;

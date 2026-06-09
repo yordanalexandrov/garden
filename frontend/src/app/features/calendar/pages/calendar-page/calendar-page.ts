@@ -1,4 +1,4 @@
-import { DatePipe, NgClass } from '@angular/common';
+import { DatePipe, NgClass, PercentPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
@@ -18,6 +18,8 @@ import { PageHeader } from '../../../../shared/components/page-header/page-heade
 import { ApiErrorSummary } from '../../../../shared/forms/api-error-summary/api-error-summary';
 import { PlacesApiService } from '../../../places/places-api.service';
 import { PlaceListItem } from '../../../places/places.models';
+import { WeatherApiService } from '../../../weather/data-access/weather-api.service';
+import { PlaceWeatherForecast } from '../../../weather/weather.models';
 import { CalendarApiService } from '../../calendar-api.service';
 import {
   CalendarDay,
@@ -54,6 +56,7 @@ const emptyFeed = (): CalendarFeed => ({
     MatOptionModule,
     MatSelectModule,
     PageHeader,
+    PercentPipe,
     ReactiveFormsModule,
     RouterLink,
   ],
@@ -68,11 +71,14 @@ export class CalendarPage {
   readonly places = signal<readonly PlaceListItem[]>([]);
   readonly loading = signal(false);
   readonly error = signal<ApiError | null>(null);
+  readonly forecast = signal<PlaceWeatherForecast | null>(null);
+  readonly forecastLoading = signal(false);
   readonly placeId = new FormControl<string | null>(null);
   readonly visibleMonth = signal(startOfMonth(new Date()));
 
   private readonly calendarApi = inject(CalendarApiService);
   private readonly placesApi = inject(PlacesApiService);
+  private readonly weatherApi = inject(WeatherApiService);
   private readonly route = inject(ActivatedRoute);
   private readonly dialog = inject(MatDialog);
   private readonly destroyRef = inject(DestroyRef);
@@ -84,6 +90,12 @@ export class CalendarPage {
       .list({ page: 1, pageSize: 100 })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((result) => this.places.set(result.items));
+    this.placeId.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((placeId) => this.loadForecast(placeId));
+    if (routePlaceId) {
+      this.loadForecast(routePlaceId);
+    }
     this.load();
   }
 
@@ -164,6 +176,28 @@ export class CalendarPage {
         `Product: ${period.productId}.`,
       ],
     });
+  }
+
+  private loadForecast(placeId: string | null): void {
+    if (!placeId) {
+      this.forecast.set(null);
+      return;
+    }
+
+    this.forecastLoading.set(true);
+    this.weatherApi
+      .getPlaceForecast(placeId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (result) => {
+          this.forecast.set(result.enabled ? result : null);
+          this.forecastLoading.set(false);
+        },
+        error: () => {
+          this.forecast.set(null);
+          this.forecastLoading.set(false);
+        },
+      });
   }
 
   openWeather(event: CalendarWeatherEventItem): void {

@@ -329,6 +329,72 @@ export class ActivitiesService {
     });
   }
 
+  async archiveActivity(actor: AuthenticatedActor, activityId: UUID): Promise<void> {
+    if (this.auditService === undefined) {
+      throw new AppError("INTERNAL_ERROR", "Activity archive requires audit service");
+    }
+
+    const auditService = this.auditService;
+
+    return this.dbClient.transaction(async (trx) => {
+      const activity = await this.activitiesRepository.getDetail(actor.accountId, activityId, trx);
+
+      if (activity === null) {
+        throw new AppError("NOT_FOUND", "Activity not found");
+      }
+
+      for (const movement of activity.inventoryMovements) {
+        await this.inventoryRepository.createMovement(
+          {
+            accountId: actor.accountId,
+            productId: movement.productId,
+            inventoryLotId: movement.inventoryLotId,
+            movementType: "correction",
+            quantity: movement.quantity,
+            unit: movement.unit,
+            activityId: activity.id,
+            occurredAt: new Date(),
+            notes: `Archive reversal for activity ${activity.id}`
+          },
+          trx
+        );
+
+        if (movement.inventoryLotId !== null) {
+          await this.inventoryRepository.incrementLotRemainingQuantity(
+            actor.accountId,
+            movement.inventoryLotId,
+            movement.quantity,
+            trx
+          );
+        }
+      }
+
+      await this.activitiesRepository.deleteQuarantinePeriodsByActivity(activityId, trx);
+      await this.activitiesRepository.deleteSuggestedTasksByActivity(actor.accountId, activityId, trx);
+      await this.activitiesRepository.archiveActivity(actor.accountId, activityId, trx);
+
+      await auditService.logActorEvent(
+        {
+          actor,
+          entityType: "activity",
+          entityId: activity.id,
+          action: "activity.archived",
+          beforeJson: {
+            activityId: activity.id,
+            inventoryMovementsCount: activity.inventoryMovements.length,
+            quarantinePeriodsCount: activity.quarantinePeriods.length,
+            suggestedTasksCount: activity.suggestedTasks.length
+          },
+          afterJson: {
+            isArchived: true,
+            reversedMovementsCount: activity.inventoryMovements.length
+          }
+        },
+        trx
+      );
+    });
+  }
+
   private async validateProductUsages(
     accountId: UUID,
     inputs: ActivityProductUsageInput[],

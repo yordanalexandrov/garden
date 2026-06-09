@@ -285,4 +285,7 @@ export interface ActivitiesRepository {
   createQuarantinePeriod(input: CreateQuarantinePeriodInput, db?: DbHandle): Promise<QuarantinePeriod>;
   createSuggestedTask(input: CreateSuggestedTaskInput, db?: DbHandle): Promise<SuggestedTask>;
   addTaskTargets(taskId: UUID, targets: TargetRef[], db?: DbHandle): Promise<void>;
+  archiveActivity(accountId: UUID, activityId: UUID, db?: DbHandle): Promise<void>;
+  deleteQuarantinePeriodsByActivity(activityId: UUID, db?: DbHandle): Promise<void>;
+  deleteSuggestedTasksByActivity(accountId: UUID, activityId: UUID, db?: DbHandle): Promise<void>;
 }
