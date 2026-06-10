@@ -1,6 +1,7 @@
 import type { AppConfig } from "../../config/config.js";
 import { AppError } from "../../shared/errors/app-error.js";
 import type { AiPort } from "./ai.port.js";
+import { OpenAiAdapter } from "./openai-ai.adapter.js";
 import { TestAiAdapter } from "./test-ai.adapter.js";
 
 export function createAiAdapter(config: AppConfig): AiPort {
@@ -8,11 +9,15 @@ export function createAiAdapter(config: AppConfig): AiPort {
     return new TestAiAdapter();
   }
 
-  // No production AI provider is implemented in this phase.
-  // When a concrete provider (e.g. "anthropic") is selected, add its adapter here.
-  // Until then, fail closed to prevent silent misconfigurations.
+  if (config.integrations.aiProvider === "openai") {
+    if (!config.backendOnly.aiApiKey) {
+      throw new AppError("INTERNAL_ERROR", "AI_API_KEY is required when AI_PROVIDER=openai");
+    }
+    return new OpenAiAdapter(config.backendOnly.aiApiKey, config.integrations.aiModel);
+  }
+
   throw new AppError(
     "INTERNAL_ERROR",
-    `AI provider "${config.integrations.aiProvider}" is not configured. No production adapter is available in this phase.`
+    `AI provider "${config.integrations.aiProvider}" is not supported. Supported providers: openai.`
   );
 }

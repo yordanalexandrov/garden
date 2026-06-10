@@ -1,6 +1,6 @@
 # Gardening Helper - Implementation Status Handoff
 
-Last updated: 2026-06-09 (Phase 24 Frontend AI Assistant Pages implemented)
+Last updated: 2026-06-10 (Phase 24.5 OpenAI Production AI Provider Adapter implemented)
 
 This file tracks implementation progress only. It does not replace the source-of-truth specs, domain rules, canonical API contract, or task documents. If this file conflicts with a higher-priority document, follow the source-of-truth priority in `AGENTS.md`.
 
@@ -8,13 +8,14 @@ Implementation agents must update this file in the same branch/PR whenever phase
 
 ## Current Position
 
-- Last implemented phase: Phase 24 - Frontend AI Assistant Pages.
-- Last implemented step: Phase 24 Step 7 - Phase 24 Verification and PR Readiness.
-- Last implemented step file: `docs/implementation-phases/phase-24/07-phase-24-verification-and-pr-readiness.md`.
-- Last implementation commit observed: Phase 24 Frontend AI Assistant Pages on `worktree-backend-ai-suggestions`.
+- Last implemented phase: Phase 24.5 - OpenAI Production AI Provider Adapter.
+- Last implemented step: Phase 24.5 Step 3 - Verification and PR Readiness.
+- Last implemented step file: `docs/implementation-phases/phase-24.5/03-phase-24.5-verification-and-pr-readiness.md`.
+- Last implementation commit observed: Phase 24.5 OpenAI Production AI Provider Adapter on `feature/openai-ai-adapter`.
 - Next implementation phase: Phase 25 - Backend Push Notifications and Worker Scheduler.
 - Next implementation step: Phase 25 Step 1 - Notifications Module Contracts, Validation, and Route Wiring.
 - Next implementation step file: `docs/implementation-phases/phase-25/01-notifications-module-contracts.md`.
+- Phase 24.5 implemented: installed `openai` npm package (v6.42.0), OpenAiAdapter behind AiPort (ingestProduct/suggestBedPlan/assistProblem using Chat Completions json_object mode), type-safe normalization of OpenAI JSON responses into NormalizedSuggestion[], APIError/AuthenticationError/RateLimitError/APIConnectionError mapping to AiProviderError without key leakage, factory registration for AI_PROVIDER=openai, env.example documentation with supported model examples, 9 unit tests with mocked OpenAI SDK. 280 backend tests pass.
 - Phase 24 implemented: AiApiService (productIngestion/bedPlanning/problemAssist/acceptSuggestion/rejectSuggestion), shared AiSuggestionCard component (OnPush, accept/reject/edit payload, status badge, entity links), AI landing page with three feature cards, ProductIngestionPage (reactive form, suggestion state management), BedPlanningPage (bed/year/candidates form, bed_plan payload renderer), ProblemAssistPage (radio input mode, problem_summary payload renderer, not-a-diagnosis advisory copy), lazy ai.routes.ts, global AI CSS classes, angular.json budget update, and boundary check script extension with AI-specific violation patterns. 206 frontend tests pass.
 - Phase 25 executable task docs are ready for Backend Push Notifications and Worker Scheduler planning; Phase 25 is not implemented.
 - Phase 25 executable task docs are ready for Backend Push Notifications and Worker Scheduler planning; Phase 25 is not implemented.
@@ -58,6 +59,7 @@ Note: Phase 6 completed the backend growing-structure API for perennials, beds, 
 - [x] Phase 22 - Frontend Weather UX - implemented.
 - [x] Phase 23 - Backend AI Suggestion Workflows - implemented.
 - [x] Phase 24 - Frontend AI Assistant Pages - implemented.
+- [x] Phase 24.5 - OpenAI Production AI Provider Adapter - implemented.
 - [ ] Phase 25 - Backend Push Notifications and Worker Scheduler - not implemented; task docs ready.
 - [ ] Phase 26 - Frontend Notifications and PWA Registration - not implemented; task docs ready.
 - [ ] Phase 27 - Deployment and Operations Readiness - not implemented; top-level spec only.
