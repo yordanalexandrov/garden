@@ -1,0 +1,132 @@
+<section class="bed-planning-page" aria-labelledby="bed-planning-title">
+<app-page-header
+  title="AI Bed Planning"
+  titleId="bed-planning-title"
+  icon="grid_view"
+  subtitle="Advisory guidance for bed layout — output is not applied to your garden records"
+/>
+
+<p class="ai-page__advisory" role="note">
+  AI bed planning output is advisory only. Spacing, coexistence notes, and quantity guidance are suggestions for
+  your review. Accepting a suggestion does not automatically create plantings, tasks, or other records in your garden.
+</p>
+
+<form [formGroup]="form" (ngSubmit)="submit()" class="ai-page__form" novalidate>
+  <mat-form-field appearance="outline" class="ai-page__field">
+    <mat-label>Bed ID</mat-label>
+    <input matInput formControlName="bedId" autocomplete="off" placeholder="e.g. bed-uuid" />
+    @if (form.controls.bedId.invalid && form.controls.bedId.touched) {
+      <mat-error>Bed ID is required.</mat-error>
+    }
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="ai-page__field">
+    <mat-label>Year</mat-label>
+    <input matInput type="number" formControlName="year" min="2000" max="2100" />
+    @if (form.controls.year.invalid && form.controls.year.touched) {
+      <mat-error>A valid year between 2000 and 2100 is required.</mat-error>
+    }
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="ai-page__field">
+    <mat-label>Candidate plant IDs (comma-separated, optional)</mat-label>
+    <input matInput formControlName="candidatePlantIds" autocomplete="off" placeholder="plant-uuid-1, plant-uuid-2" />
+    <mat-hint>Comma-separated plant IDs to consider for this bed.</mat-hint>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="ai-page__field">
+    <mat-label>Notes (optional)</mat-label>
+    <textarea matInput formControlName="notes" rows="3" autocomplete="off" placeholder="e.g. I want tomatoes and basil"></textarea>
+  </mat-form-field>
+
+  <div class="ai-page__actions">
+    <button mat-flat-button type="submit" color="primary" [disabled]="submitting()">
+      @if (submitting()) {
+        <mat-spinner diameter="18" />
+        Getting guidance…
+      } @else {
+        Get guidance
+      }
+    </button>
+  </div>
+</form>
+
+<app-api-error-summary [error]="sessionError()" />
+
+@if (warnings.length > 0) {
+  <div class="ai-page__warnings" role="note">
+    <mat-icon fontIcon="warning" aria-hidden="true" />
+    <ul>
+      @for (warning of warnings; track warning) {
+        <li>{{ warning }}</li>
+      }
+    </ul>
+  </div>
+}
+
+@for (state of suggestionStates(); track state.suggestion.id) {
+  @let bedPlan = bedPlanPayload(state);
+  @if (bedPlan) {
+    <section class="ai-bed-plan" role="region" aria-label="Bed planning guidance">
+      <p class="ai-bed-plan__advisory">
+        <mat-icon fontIcon="info" aria-hidden="true" /> This output is advisory guidance only. It is not applied to your garden records.
+      </p>
+
+      @if (bedPlan.spacingSuggestions.length > 0) {
+        <h3>Spacing suggestions</h3>
+        <ul>
+          @for (item of bedPlan.spacingSuggestions; track item.plantName) {
+            <li>
+              <strong>{{ item.plantName }}</strong>
+              @if (item.spacingCm) { — {{ item.spacingCm }} cm spacing }
+              @if (item.notes) { — {{ item.notes }} }
+            </li>
+          }
+        </ul>
+      }
+
+      @if (bedPlan.coexistenceNotes.length > 0) {
+        <h3>Coexistence notes</h3>
+        <ul>
+          @for (note of bedPlan.coexistenceNotes; track note.note) {
+            <li>{{ note.plants.join(', ') }}: {{ note.note }}</li>
+          }
+        </ul>
+      }
+
+      @if (bedPlan.roughQuantityGuidance.length > 0) {
+        <h3>Rough quantity guidance</h3>
+        <ul>
+          @for (item of bedPlan.roughQuantityGuidance; track item.plantName) {
+            <li>
+              <strong>{{ item.plantName }}</strong>
+              @if (item.estimatedCount) { — approx. {{ item.estimatedCount }} plants }
+              @if (item.notes) { — {{ item.notes }} }
+            </li>
+          }
+        </ul>
+      }
+
+      @if (bedPlan.warnings.length > 0) {
+        <div class="ai-page__warnings" role="note">
+          <mat-icon fontIcon="warning" aria-hidden="true" />
+          <ul>
+            @for (warning of bedPlan.warnings; track warning) {
+              <li>{{ warning }}</li>
+            }
+          </ul>
+        </div>
+      }
+    </section>
+  } @else {
+    <app-ai-suggestion-card
+      [suggestion]="state.suggestion"
+      [status]="state.status"
+      [error]="state.error"
+      [acceptResult]="state.acceptResult"
+      (accept)="onAccept($event)"
+      (reject)="onReject($event)"
+    />
+  }
+}
+</section>

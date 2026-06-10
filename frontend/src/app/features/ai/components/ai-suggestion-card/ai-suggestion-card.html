@@ -1,0 +1,120 @@
+<mat-card class="ai-suggestion-card">
+  <mat-card-header>
+    <mat-icon mat-card-avatar aria-hidden="true" fontIcon="auto_awesome" />
+    <mat-card-title>
+      AI Suggestion
+      <mat-chip-set aria-label="Suggestion type">
+        <mat-chip [highlighted]="true" color="accent">{{ suggestion.suggestionType }}</mat-chip>
+      </mat-chip-set>
+    </mat-card-title>
+    <mat-card-subtitle>
+      @if (isAccepted) {
+        <span class="ai-suggestion-card__status ai-suggestion-card__status--accepted">
+          <mat-icon fontIcon="check_circle" aria-hidden="true" /> Accepted
+        </span>
+      } @else if (isRejected) {
+        <span class="ai-suggestion-card__status ai-suggestion-card__status--rejected">
+          <mat-icon fontIcon="cancel" aria-hidden="true" /> Rejected
+        </span>
+      } @else {
+        <span class="ai-suggestion-card__status ai-suggestion-card__status--unaccepted">
+          <mat-icon fontIcon="pending" aria-hidden="true" /> Suggestion — not saved
+        </span>
+      }
+    </mat-card-subtitle>
+  </mat-card-header>
+
+  <mat-card-content>
+    <app-api-error-summary [error]="mappedError()" />
+
+    @if (warnings.length > 0) {
+      <div class="ai-suggestion-card__warnings" role="note">
+        <mat-icon fontIcon="warning" aria-hidden="true" />
+        <ul>
+          @for (warning of warnings; track warning) {
+            <li>{{ warning }}</li>
+          }
+        </ul>
+      </div>
+    }
+
+    @if (!isAccepted && !isRejected) {
+      <div class="ai-suggestion-card__payload">
+        @for (entry of payloadEntries; track entry.key) {
+          <div class="ai-suggestion-card__field">
+            <span class="ai-suggestion-card__field-key">{{ entry.key }}</span>
+            <span class="ai-suggestion-card__field-value">{{ formatValue(entry.value) }}</span>
+          </div>
+        }
+      </div>
+
+      <mat-form-field class="ai-suggestion-card__edit-field" appearance="outline">
+        <mat-label>Edit payload (JSON)</mat-label>
+        <textarea
+          matInput
+          [formControl]="editPayloadControl"
+          rows="6"
+          autocomplete="off"
+          aria-label="Edit suggestion payload as JSON"
+        ></textarea>
+        <mat-hint>Optional: edit the JSON payload before accepting.</mat-hint>
+      </mat-form-field>
+    }
+
+    @if (isAccepted) {
+      @if (createdEntities.length > 0) {
+        <div class="ai-suggestion-card__entities">
+          <p class="ai-suggestion-card__entities-label">Created records:</p>
+          <ul>
+            @for (entity of createdEntities; track entity.entityId) {
+              <li>{{ entity.entityType }}: {{ entity.entityId }}</li>
+            }
+          </ul>
+        </div>
+      }
+      @if (updatedEntities.length > 0) {
+        <div class="ai-suggestion-card__entities">
+          <p class="ai-suggestion-card__entities-label">Updated records:</p>
+          <ul>
+            @for (entity of updatedEntities; track entity.entityId) {
+              <li>{{ entity.entityType }}: {{ entity.entityId }}</li>
+            }
+          </ul>
+        </div>
+      }
+    }
+  </mat-card-content>
+
+  @if (!isAccepted && !isRejected) {
+    <mat-card-actions align="end">
+      <button
+        mat-stroked-button
+        type="button"
+        color="warn"
+        [disabled]="isActing"
+        (click)="onReject()"
+        aria-label="Reject suggestion"
+      >
+        @if (status === 'rejecting') {
+          Rejecting…
+        } @else {
+          Reject
+        }
+      </button>
+      <button
+        mat-flat-button
+        type="button"
+        color="primary"
+        [disabled]="isActing"
+        (click)="onAccept()"
+        aria-label="Accept suggestion"
+      >
+        @if (status === 'accepting') {
+          Accepting…
+        } @else {
+          Accept
+        }
+      </button>
+    </mat-card-actions>
+  }
+</mat-card>
