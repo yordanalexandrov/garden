@@ -50,6 +50,32 @@
   grid-template-rows: auto 1fr;
 }
 
+.calendar-day header {
+  align-items: baseline;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.calendar-day__weather {
+  align-items: baseline;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  line-height: 1.2;
+  opacity: 0.8;
+}
+
+.calendar-day__weather-temp {
+  font-size: 0.65rem;
+}
+
+.calendar-day__weather-rain {
+  color: var(--mat-sys-primary);
+  font-size: 0.65rem;
+}
+
 .calendar-day--outside {
   opacity: 0.55;
 }
@@ -104,39 +130,6 @@
   background: color-mix(in srgb, var(--mat-sys-secondary-container) 72%, transparent);
 }
 
-.calendar-page__forecast {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.forecast-day {
-  background: color-mix(in srgb, var(--mat-sys-secondary-container) 50%, transparent);
-  border-radius: 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 80px;
-  padding: 8px 10px;
-}
-
-.forecast-day__date {
-  font-weight: 600;
-}
-
-.forecast-day__summary {
-  font-size: 0.78rem;
-  opacity: 0.8;
-}
-
-.forecast-day__temp {
-  font-size: 0.85rem;
-}
-
-.forecast-day__rain {
-  color: var(--mat-sys-primary);
-  font-size: 0.78rem;
-}
 
 .calendar-page__agenda {
   display: none;

@@ -1,5 +1,5 @@
 import { DatePipe, NgClass, PercentPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { EMPTY, Subject, catchError, map, switchMap } from 'rxjs';
@@ -20,7 +20,7 @@ import { ApiErrorSummary } from '../../../../shared/forms/api-error-summary/api-
 import { PlacesApiService } from '../../../places/places-api.service';
 import { PlaceListItem } from '../../../places/places.models';
 import { WeatherApiService } from '../../../weather/data-access/weather-api.service';
-import { PlaceWeatherForecast } from '../../../weather/weather.models';
+import { PlaceWeatherForecast, WeatherForecastItem } from '../../../weather/weather.models';
 import { CalendarApiService } from '../../calendar-api.service';
 import {
   CalendarDay,
@@ -74,6 +74,11 @@ export class CalendarPage {
   readonly error = signal<ApiError | null>(null);
   readonly forecast = signal<PlaceWeatherForecast | null>(null);
   readonly forecastLoading = signal(false);
+  readonly forecastByDate = computed(() => {
+    const weather = this.forecast();
+    if (!weather) return new Map<string, WeatherForecastItem>();
+    return new Map(weather.forecast.map((day) => [day.date, day]));
+  });
   readonly placeId = new FormControl<string | null>(null);
   readonly visibleMonth = signal(startOfMonth(new Date()));
 
