@@ -35,26 +35,6 @@
   <app-calendar-legend />
   <app-api-error-summary [error]="error()" />
 
-  @if (forecastLoading()) {
-    <p>Loading forecast...</p>
-  } @else if (forecast(); as weather) {
-    <div class="calendar-page__forecast" aria-label="Weather forecast">
-      @for (day of weather.forecast; track day.date) {
-        <div class="forecast-day">
-          <span class="forecast-day__date">{{ day.date | date: 'EEE d' }}</span>
-          <span class="forecast-day__summary">{{ day.summary }}</span>
-          <span class="forecast-day__temp">
-            {{ day.temperatureMinC !== null ? day.temperatureMinC : '–' }}°
-            / {{ day.temperatureMaxC !== null ? day.temperatureMaxC : '–' }}°
-          </span>
-          @if (day.rainProbability !== null) {
-            <span class="forecast-day__rain">{{ day.rainProbability | percent }}</span>
-          }
-        </div>
-      }
-    </div>
-  }
-
   @if (loading()) {
     <p>Loading calendar...</p>
   }
@@ -69,7 +49,19 @@
     }
     @for (day of days(); track day.date) {
       <article class="calendar-day" [class.calendar-day--outside]="!day.inMonth">
-        <header>{{ day.dayNumber }}</header>
+        <header>
+          {{ day.dayNumber }}
+          @if (forecastByDate().get(day.date); as wx) {
+            <span class="calendar-day__weather">
+              <span class="calendar-day__weather-temp">
+                {{ wx.temperatureMinC !== null ? wx.temperatureMinC : '–' }}° / {{ wx.temperatureMaxC !== null ? wx.temperatureMaxC : '–' }}°
+              </span>
+              @if (wx.rainProbability !== null && wx.rainProbability > 0) {
+                <span class="calendar-day__weather-rain">{{ wx.rainProbability | percent }}</span>
+              }
+            </span>
+          }
+        </header>
         <div class="calendar-day__items">
           @for (item of day.items; track item.type + item.id) {
             @if (item.type === 'activity') {
