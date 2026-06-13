@@ -2,7 +2,7 @@
   <h2 id="place-overview-title">Overview</h2>
 
   @if (loading()) {
-    <p class="place-overview__muted">Loading overview...</p>
+    <app-loading-indicator message="Loading overview..." />
   }
 
   <app-api-error-summary [error]="error()" />

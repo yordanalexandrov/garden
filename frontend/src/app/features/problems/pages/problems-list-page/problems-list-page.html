@@ -64,7 +64,7 @@
   <app-api-error-summary [error]="error()" />
 
   @if (loading()) {
-    <p>Loading problems...</p>
+    <app-loading-indicator message="Loading problems..." />
   } @else if (problems().length === 0) {
     <app-empty-state
       title="No problems"

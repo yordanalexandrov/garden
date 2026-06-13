@@ -14,10 +14,12 @@ import { ApiErrorSummary } from '../../../../shared/forms/api-error-summary/api-
 import { PlantForm } from '../../components/plant-form/plant-form';
 import { CreatePlantRequest, PlantDetail } from '../../plants.models';
 import { PlantsApiService } from '../../plants-api.service';
+import { LoadingIndicator } from '../../../../shared/components/loading-indicator/loading-indicator';
 
 @Component({
   selector: 'app-plant-detail-page',
   imports: [
+    LoadingIndicator,
     ApiErrorSummary,
     MatButtonModule,
     MatCardModule,

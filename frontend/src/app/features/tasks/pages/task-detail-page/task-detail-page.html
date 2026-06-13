@@ -9,7 +9,7 @@
   <app-api-error-summary [error]="error()" />
 
   @if (loading()) {
-    <p>Loading task...</p>
+    <app-loading-indicator message="Loading task..." />
   } @else if (task(); as item) {
     <div class="task-detail-page__grid">
       <mat-card

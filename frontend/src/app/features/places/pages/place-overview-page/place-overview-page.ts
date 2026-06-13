@@ -6,10 +6,11 @@ import { RouterLink } from '@angular/router';
 
 import { ApiErrorSummary } from '../../../../shared/forms/api-error-summary/api-error-summary';
 import { PlaceDetailStore } from '../../place-detail-store';
+import { LoadingIndicator } from '../../../../shared/components/loading-indicator/loading-indicator';
 
 @Component({
   selector: 'app-place-overview-page',
-  imports: [ApiErrorSummary, MatButtonModule, MatCardModule, MatIconModule, RouterLink],
+  imports: [LoadingIndicator, ApiErrorSummary, MatButtonModule, MatCardModule, MatIconModule, RouterLink],
   templateUrl: './place-overview-page.html',
   styleUrl: './place-overview-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

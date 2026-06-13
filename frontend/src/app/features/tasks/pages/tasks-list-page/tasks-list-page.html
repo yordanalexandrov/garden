@@ -53,7 +53,7 @@
   <app-api-error-summary [error]="error()" />
 
   @if (loading()) {
-    <p>Loading tasks...</p>
+    <app-loading-indicator message="Loading tasks..." />
   } @else if (tasks().length === 0) {
     <app-empty-state title="No tasks" message="Planned and suggested tasks appear here." />
   } @else {

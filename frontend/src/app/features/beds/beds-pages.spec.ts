@@ -159,6 +159,70 @@ describe('beds Phase 7 pages', () => {
     expect(fixture.componentInstance.form.controls.lengthM.hasError('positiveNumber')).toBe(true);
   });
 
+  it('auto-calculates bed area from width and length', () => {
+    const fixture = TestBed.createComponent(BedForm);
+    const form = fixture.componentInstance.form;
+
+    form.controls.widthM.setValue(2);
+    form.controls.lengthM.setValue(3);
+
+    expect(form.controls.areaM2.value).toBe(6);
+    expect(fixture.componentInstance.areaOverridden()).toBe(false);
+  });
+
+  it('keeps a manual bed area when width or length changes', () => {
+    const fixture = TestBed.createComponent(BedForm);
+    const form = fixture.componentInstance.form;
+
+    form.controls.widthM.setValue(2);
+    form.controls.lengthM.setValue(3);
+    form.controls.areaM2.setValue(10);
+    expect(fixture.componentInstance.areaOverridden()).toBe(true);
+
+    form.controls.widthM.setValue(5);
+
+    expect(form.controls.areaM2.value).toBe(10);
+  });
+
+  it('resumes auto area calculation when the manual value is cleared', () => {
+    const fixture = TestBed.createComponent(BedForm);
+    const form = fixture.componentInstance.form;
+
+    form.controls.widthM.setValue(2);
+    form.controls.lengthM.setValue(3);
+    form.controls.areaM2.setValue(10);
+    expect(fixture.componentInstance.areaOverridden()).toBe(true);
+
+    form.controls.areaM2.setValue(null);
+
+    expect(fixture.componentInstance.areaOverridden()).toBe(false);
+    expect(form.controls.areaM2.value).toBe(6);
+  });
+
+  it('recalculates the area on demand after a manual override', () => {
+    const fixture = TestBed.createComponent(BedForm);
+    const form = fixture.componentInstance.form;
+
+    form.controls.widthM.setValue(2);
+    form.controls.lengthM.setValue(4);
+    form.controls.areaM2.setValue(99);
+    expect(fixture.componentInstance.areaOverridden()).toBe(true);
+
+    fixture.componentInstance.resetAreaToAuto();
+
+    expect(fixture.componentInstance.areaOverridden()).toBe(false);
+    expect(form.controls.areaM2.value).toBe(8);
+  });
+
+  it('treats a stored area that differs from width × length as overridden', () => {
+    const fixture = TestBed.createComponent(BedForm);
+
+    fixture.componentRef.setInput('bed', { ...bedListItem, widthM: 2, lengthM: 3, areaM2: 10 });
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.areaOverridden()).toBe(true);
+  });
+
   it('changes year view without calling mutation endpoints', () => {
     const fixture = TestBed.createComponent(PlaceBedsPage);
 

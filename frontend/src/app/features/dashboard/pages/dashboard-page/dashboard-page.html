@@ -22,7 +22,7 @@
   <app-api-error-summary [error]="error()" />
 
   @if (loading()) {
-    <p>Loading dashboard...</p>
+    <app-loading-indicator message="Loading dashboard..." />
   }
 
   <div class="dashboard-page__grid">

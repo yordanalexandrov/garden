@@ -30,6 +30,7 @@ import {
   CalendarWeatherEventItem,
 } from '../../calendar.models';
 import { CalendarLegend } from '../../components/calendar-legend/calendar-legend';
+import { LoadingIndicator } from '../../../../shared/components/loading-indicator/loading-indicator';
 import {
   CalendarReadonlyDialog,
   CalendarReadonlyDialogData,
@@ -45,6 +46,7 @@ const emptyFeed = (): CalendarFeed => ({
 @Component({
   selector: 'app-calendar-page',
   imports: [
+    LoadingIndicator,
     ApiErrorSummary,
     CalendarLegend,
     DatePipe,

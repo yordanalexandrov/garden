@@ -15,10 +15,11 @@ import { InventoryLot, InventoryMovement } from '../../../inventory/inventory.mo
 import { InventoryApiService } from '../../../inventory/inventory-api.service';
 import { ProductDetail, ProductUsageRule } from '../../products.models';
 import { ProductRulesApiService, ProductsApiService } from '../../products-api.service';
+import { LoadingIndicator } from '../../../../shared/components/loading-indicator/loading-indicator';
 
 @Component({
   selector: 'app-product-detail-page',
-  imports: [ApiErrorSummary, MatButtonModule, MatCardModule, MatIconModule, PageHeader, RouterLink],
+  imports: [LoadingIndicator, ApiErrorSummary, MatButtonModule, MatCardModule, MatIconModule, PageHeader, RouterLink],
   templateUrl: './product-detail-page.html',
   styleUrl: './product-detail-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

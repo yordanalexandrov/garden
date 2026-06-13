@@ -20,12 +20,14 @@ import { ApiErrorSummary } from '../../../../shared/forms/api-error-summary/api-
 import { RainConfirmationPrompt } from '../../../weather/components/rain-confirmation-prompt/rain-confirmation-prompt';
 import { TasksApiService } from '../../tasks-api.service';
 import { ConfirmTaskResult, TaskDetail } from '../../tasks.models';
+import { LoadingIndicator } from '../../../../shared/components/loading-indicator/loading-indicator';
 
 type TaskAction = 'confirm' | 'dismiss' | 'complete' | 'skip';
 
 @Component({
   selector: 'app-task-detail-page',
   imports: [
+    LoadingIndicator,
     ApiErrorSummary,
     DatePipe,
     MatButtonModule,

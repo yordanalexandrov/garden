@@ -20,10 +20,12 @@ import { BedCurrentContentsComponent } from '../../components/bed-current-conten
 import { BedForm } from '../../components/bed-form/bed-form';
 import { BedDetail, BedListItem, UpdateBedRequest } from '../../beds.models';
 import { BedsApiService } from '../../beds-api.service';
+import { LoadingIndicator } from '../../../../shared/components/loading-indicator/loading-indicator';
 
 @Component({
   selector: 'app-place-beds-page',
   imports: [
+    LoadingIndicator,
     ApiErrorSummary,
     BedCurrentContentsComponent,
     BedForm,

@@ -23,6 +23,7 @@ import {
   PlantListItem,
 } from '../../plants.models';
 import { PlantsApiService } from '../../plants-api.service';
+import { LoadingIndicator } from '../../../../shared/components/loading-indicator/loading-indicator';
 
 type PlantFilterForm = FormGroup<{
   q: FormControl<string>;
@@ -34,6 +35,7 @@ type PlantFilterForm = FormGroup<{
 @Component({
   selector: 'app-plants-list-page',
   imports: [
+    LoadingIndicator,
     ApiErrorSummary,
     EmptyState,
     MatButtonModule,

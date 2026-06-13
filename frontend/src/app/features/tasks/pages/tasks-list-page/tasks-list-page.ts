@@ -20,10 +20,12 @@ import { PlacesApiService } from '../../../places/places-api.service';
 import { PlaceListItem } from '../../../places/places.models';
 import { TasksApiService } from '../../tasks-api.service';
 import { TASK_STATUSES, TASK_TYPES, TaskListItem, TaskStatus, TaskType } from '../../tasks.models';
+import { LoadingIndicator } from '../../../../shared/components/loading-indicator/loading-indicator';
 
 @Component({
   selector: 'app-tasks-list-page',
   imports: [
+    LoadingIndicator,
     ApiErrorSummary,
     DatePipe,
     EmptyState,

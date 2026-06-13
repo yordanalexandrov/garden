@@ -10,10 +10,11 @@ import { PageHeader } from '../../../../shared/components/page-header/page-heade
 import { ApiErrorSummary } from '../../../../shared/forms/api-error-summary/api-error-summary';
 import { ProblemsApiService } from '../../problems-api.service';
 import { ProblemDetail } from '../../problems.models';
+import { LoadingIndicator } from '../../../../shared/components/loading-indicator/loading-indicator';
 
 @Component({
   selector: 'app-problem-detail-page',
-  imports: [ApiErrorSummary, DatePipe, MatCardModule, PageHeader, RouterLink],
+  imports: [LoadingIndicator, ApiErrorSummary, DatePipe, MatCardModule, PageHeader, RouterLink],
   templateUrl: './problem-detail-page.html',
   styleUrl: './problem-detail-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

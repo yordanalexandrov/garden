@@ -21,7 +21,7 @@
   <app-api-error-summary [error]="error()" />
 
   @if (loading()) {
-    <p>Loading activity...</p>
+    <app-loading-indicator message="Loading activity..." />
   } @else if (activity(); as item) {
     <div class="detail-grid">
       <mat-card>

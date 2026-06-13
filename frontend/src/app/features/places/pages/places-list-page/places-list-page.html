@@ -31,7 +31,7 @@
   }
 
   @if (loading()) {
-    <p class="places-page__loading">Loading places...</p>
+    <app-loading-indicator message="Loading places..." />
   } @else if (places().length === 0) {
     <app-empty-state
       title="No places yet"

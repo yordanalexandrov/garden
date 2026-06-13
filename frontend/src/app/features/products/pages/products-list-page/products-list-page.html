@@ -33,7 +33,7 @@
   <app-api-error-summary [error]="error()" />
 
   @if (loading()) {
-    <p class="products-page__muted">Loading products...</p>
+    <app-loading-indicator message="Loading products..." />
   } @else if (products().length === 0) {
     <app-empty-state title="No products found" message="Add products before inventory or treatment workflows." icon="science" />
   } @else {

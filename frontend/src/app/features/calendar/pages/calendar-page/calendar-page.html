@@ -36,7 +36,7 @@
   <app-api-error-summary [error]="error()" />
 
   @if (loading()) {
-    <p>Loading calendar...</p>
+    <app-loading-indicator message="Loading calendar..." />
   }
 
   @if (!loading() && agenda().length === 0) {

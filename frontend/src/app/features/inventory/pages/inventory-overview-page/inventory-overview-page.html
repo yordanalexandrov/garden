@@ -38,7 +38,7 @@
   <app-api-error-summary [error]="error()" />
 
   @if (loading()) {
-    <p class="inventory-page__muted">Loading inventory...</p>
+    <app-loading-indicator message="Loading inventory..." />
   } @else if (items().length === 0) {
     <app-empty-state title="No inventory rows" message="Add product lots to build stock history." icon="inventory_2" />
   } @else {
