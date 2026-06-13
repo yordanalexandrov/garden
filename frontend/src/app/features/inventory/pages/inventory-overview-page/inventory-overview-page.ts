@@ -18,6 +18,7 @@ import { ApiErrorSummary } from '../../../../shared/forms/api-error-summary/api-
 import { PRODUCT_CATEGORIES, ProductCategory } from '../../../products/products.models';
 import { InventoryOverviewItem } from '../../inventory.models';
 import { InventoryApiService } from '../../inventory-api.service';
+import { LoadingIndicator } from '../../../../shared/components/loading-indicator/loading-indicator';
 
 type InventoryFilterForm = FormGroup<{
   q: FormControl<string>;
@@ -29,6 +30,7 @@ type InventoryFilterForm = FormGroup<{
 @Component({
   selector: 'app-inventory-overview-page',
   imports: [
+    LoadingIndicator,
     ApiErrorSummary,
     EmptyState,
     MatButtonModule,

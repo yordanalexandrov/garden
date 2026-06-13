@@ -44,7 +44,7 @@
   }
 
   @if (loading()) {
-    <p class="beds-page__muted">Loading beds...</p>
+    <app-loading-indicator message="Loading beds..." />
   } @else if (beds().length === 0) {
     <app-empty-state title="No beds yet" message="Add a physical growing area." icon="grid_view" />
   } @else {

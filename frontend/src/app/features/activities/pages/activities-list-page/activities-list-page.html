@@ -44,7 +44,7 @@
   <app-api-error-summary [error]="error()" />
 
   @if (loading()) {
-    <p>Loading activities...</p>
+    <app-loading-indicator message="Loading activities..." />
   } @else if (activities().length === 0) {
     <app-empty-state title="No activities" message="Log an activity to start building history." />
   } @else {

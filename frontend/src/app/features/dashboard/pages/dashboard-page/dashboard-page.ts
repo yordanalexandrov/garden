@@ -18,6 +18,7 @@ import { StatusChip } from '../../../../shared/components/status-chip/status-chi
 import { ApiErrorSummary } from '../../../../shared/forms/api-error-summary/api-error-summary';
 import { DashboardApiService } from '../../dashboard-api.service';
 import { DashboardSummary } from '../../dashboard.models';
+import { LoadingIndicator } from '../../../../shared/components/loading-indicator/loading-indicator';
 
 const emptyDashboard = (): DashboardSummary => ({
   upcomingTasks: [],
@@ -32,6 +33,7 @@ const emptyDashboard = (): DashboardSummary => ({
 @Component({
   selector: 'app-dashboard-page',
   imports: [
+    LoadingIndicator,
     ApiErrorSummary,
     DatePipe,
     EmptyState,

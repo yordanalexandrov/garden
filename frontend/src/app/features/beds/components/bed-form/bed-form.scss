@@ -22,3 +22,13 @@
 mat-form-field {
   width: 100%;
 }
+
+.bed-form__area-reset {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--mat-sys-primary);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}

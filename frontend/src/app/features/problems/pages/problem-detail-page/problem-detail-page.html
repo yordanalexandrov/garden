@@ -9,7 +9,7 @@
   <app-api-error-summary [error]="error()" />
 
   @if (loading()) {
-    <p>Loading problem...</p>
+    <app-loading-indicator message="Loading problem..." />
   } @else if (problem(); as item) {
     <div class="detail-grid">
       <mat-card>

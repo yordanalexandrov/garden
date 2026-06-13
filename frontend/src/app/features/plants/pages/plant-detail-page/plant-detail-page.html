@@ -12,7 +12,7 @@
   </app-page-header>
 
   @if (loading()) {
-    <p class="plant-detail-page__muted">Loading plant...</p>
+    <app-loading-indicator message="Loading plant..." />
   }
 
   <app-api-error-summary [error]="apiError()" />

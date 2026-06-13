@@ -24,6 +24,7 @@ import {
   UpdatePerennialRequest,
 } from '../../perennials.models';
 import { PerennialsApiService } from '../../perennials-api.service';
+import { LoadingIndicator } from '../../../../shared/components/loading-indicator/loading-indicator';
 
 type PerennialFilterForm = FormGroup<{
   q: FormControl<string>;
@@ -33,6 +34,7 @@ type PerennialFilterForm = FormGroup<{
 @Component({
   selector: 'app-place-perennials-page',
   imports: [
+    LoadingIndicator,
     ApiErrorSummary,
     EmptyState,
     MatButtonModule,

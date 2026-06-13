@@ -14,10 +14,11 @@ import { PageHeader } from '../../../../shared/components/page-header/page-heade
 import { ApiErrorSummary } from '../../../../shared/forms/api-error-summary/api-error-summary';
 import { ActivitiesApiService } from '../../activities-api.service';
 import { ActivityDetail } from '../../activities.models';
+import { LoadingIndicator } from '../../../../shared/components/loading-indicator/loading-indicator';
 
 @Component({
   selector: 'app-activity-detail-page',
-  imports: [ApiErrorSummary, DatePipe, MatButtonModule, MatCardModule, MatIconModule, PageHeader, RouterLink],
+  imports: [LoadingIndicator, ApiErrorSummary, DatePipe, MatButtonModule, MatCardModule, MatIconModule, PageHeader, RouterLink],
   templateUrl: './activity-detail-page.html',
   styleUrl: './activity-detail-page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

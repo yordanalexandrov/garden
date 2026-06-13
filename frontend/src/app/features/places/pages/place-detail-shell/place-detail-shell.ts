@@ -6,6 +6,7 @@ import { ActivatedRoute, RouterLink, RouterLinkActive, RouterOutlet } from '@ang
 import { PageHeader } from '../../../../shared/components/page-header/page-header';
 import { ApiErrorSummary } from '../../../../shared/forms/api-error-summary/api-error-summary';
 import { PlaceDetailStore } from '../../place-detail-store';
+import { LoadingIndicator } from '../../../../shared/components/loading-indicator/loading-indicator';
 
 interface PlaceNavigationItem {
   readonly label: string;
@@ -24,7 +25,7 @@ const placeNavigationItems: readonly PlaceNavigationItem[] = [
 
 @Component({
   selector: 'app-place-detail-shell',
-  imports: [ApiErrorSummary, MatTabsModule, PageHeader, RouterLink, RouterLinkActive, RouterOutlet],
+  imports: [LoadingIndicator, ApiErrorSummary, MatTabsModule, PageHeader, RouterLink, RouterLinkActive, RouterOutlet],
   templateUrl: './place-detail-shell.html',
   styleUrl: './place-detail-shell.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

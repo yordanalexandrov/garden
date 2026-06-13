@@ -12,10 +12,12 @@ import { PageHeader } from '../../../../shared/components/page-header/page-heade
 import { ApiErrorSummary } from '../../../../shared/forms/api-error-summary/api-error-summary';
 import { WeatherApiService } from '../../data-access/weather-api.service';
 import { PlaceWeatherForecast } from '../../weather.models';
+import { LoadingIndicator } from '../../../../shared/components/loading-indicator/loading-indicator';
 
 @Component({
   selector: 'app-place-weather-page',
   imports: [
+    LoadingIndicator,
     ApiErrorSummary,
     DatePipe,
     EmptyState,

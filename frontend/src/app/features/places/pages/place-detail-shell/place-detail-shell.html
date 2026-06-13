@@ -11,7 +11,7 @@
   }
 
   @if (loading()) {
-    <p class="place-shell__loading">Loading place...</p>
+    <app-loading-indicator message="Loading place..." />
   }
 
   <app-api-error-summary [error]="error()" />

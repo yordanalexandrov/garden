@@ -62,7 +62,7 @@
 } @else {
   <app-api-error-summary [error]="error()" />
   @if (loading()) {
-    <p>Loading inventory...</p>
+    <app-loading-indicator message="Loading inventory..." />
   }
 }
 

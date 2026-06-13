@@ -18,6 +18,7 @@ import { ApiErrorSummary } from '../../../../shared/forms/api-error-summary/api-
 import { PlacesApiService } from '../../../places/places-api.service';
 import { PlaceListItem } from '../../../places/places.models';
 import { ProblemsApiService } from '../../problems-api.service';
+import { LoadingIndicator } from '../../../../shared/components/loading-indicator/loading-indicator';
 import {
   PROBLEM_CATEGORIES,
   PROBLEM_STATUSES,
@@ -31,6 +32,7 @@ import {
 @Component({
   selector: 'app-problems-list-page',
   imports: [
+    LoadingIndicator,
     ApiErrorSummary,
     DatePipe,
     EmptyState,

@@ -19,10 +19,12 @@ import { PlacesApiService } from '../../../places/places-api.service';
 import { PlaceListItem } from '../../../places/places.models';
 import { ActivitiesApiService } from '../../activities-api.service';
 import { ACTIVITY_TYPES, ActivityListItem, ActivityType } from '../../activities.models';
+import { LoadingIndicator } from '../../../../shared/components/loading-indicator/loading-indicator';
 
 @Component({
   selector: 'app-activities-list-page',
   imports: [
+    LoadingIndicator,
     ApiErrorSummary,
     DatePipe,
     EmptyState,

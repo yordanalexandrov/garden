@@ -23,7 +23,7 @@
   </div>
 
   @if (loading()) {
-    <p class="bed-detail-page__muted">Loading bed...</p>
+    <app-loading-indicator message="Loading bed..." />
   }
 
   <app-api-error-summary [error]="apiError()" />

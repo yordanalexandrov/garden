@@ -48,7 +48,7 @@
   <app-api-error-summary [error]="error()" />
 
   @if (loading()) {
-    <p class="plants-page__muted">Loading plants...</p>
+    <app-loading-indicator message="Loading plants..." />
   } @else if (plants().length === 0) {
     <app-empty-state
       title="No plants found"

@@ -9,7 +9,7 @@
   <app-api-error-summary [error]="error()" />
 
   @if (loading()) {
-    <p>Loading weather forecast...</p>
+    <app-loading-indicator message="Loading weather forecast..." />
   } @else if (forecast(); as weather) {
     @if (!weather.enabled) {
       <app-empty-state

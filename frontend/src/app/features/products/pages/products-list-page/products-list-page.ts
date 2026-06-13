@@ -17,6 +17,7 @@ import { PageHeader } from '../../../../shared/components/page-header/page-heade
 import { ApiErrorSummary } from '../../../../shared/forms/api-error-summary/api-error-summary';
 import { PRODUCT_CATEGORIES, ProductCategory, ProductListItem } from '../../products.models';
 import { ProductsApiService } from '../../products-api.service';
+import { LoadingIndicator } from '../../../../shared/components/loading-indicator/loading-indicator';
 
 type ProductFilterForm = FormGroup<{
   q: FormControl<string>;
@@ -27,6 +28,7 @@ type ProductFilterForm = FormGroup<{
 @Component({
   selector: 'app-products-list-page',
   imports: [
+    LoadingIndicator,
     ApiErrorSummary,
     EmptyState,
     MatButtonModule,

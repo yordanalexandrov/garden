@@ -15,10 +15,12 @@ import { ApiErrorSummary } from '../../../../shared/forms/api-error-summary/api-
 import { PlaceForm } from '../../components/place-form/place-form';
 import { CreatePlaceRequest, PlaceDetail, PlaceListItem } from '../../places.models';
 import { PlacesApiService } from '../../places-api.service';
+import { LoadingIndicator } from '../../../../shared/components/loading-indicator/loading-indicator';
 
 @Component({
   selector: 'app-places-list-page',
   imports: [
+    LoadingIndicator,
     ApiErrorSummary,
     EmptyState,
     MatButtonModule,
