@@ -7,6 +7,7 @@ import { OpenAiAdapter } from "../../src/integrations/ai/openai-ai.adapter.js";
 type AnyConstructor = new (...args: any[]) => Error;
 
 const mockCreate = vi.fn();
+const mockResponsesCreate = vi.fn();
 
 vi.mock("openai", () => {
   const APIError = class extends Error {
@@ -38,6 +39,7 @@ vi.mock("openai", () => {
 
   class MockOpenAI {
     chat = { completions: { create: mockCreate } };
+    responses = { create: mockResponsesCreate };
   }
 
   return {
@@ -55,11 +57,16 @@ function makeCompletionResponse(content: string) {
   };
 }
 
+// Responses API returns an aggregated `output_text` convenience field.
+function makeResponse(content: string) {
+  return { output_text: content };
+}
+
 describe("OpenAiAdapter", () => {
   let adapter: OpenAiAdapter;
 
   beforeEach(() => {
-    adapter = new OpenAiAdapter("test-api-key", "gpt-4o-mini");
+    adapter = new OpenAiAdapter("test-api-key", "gpt-4o-mini", { webSearch: true });
   });
 
   afterEach(() => {
@@ -89,7 +96,7 @@ describe("OpenAiAdapter", () => {
         warnings: ["Review label before saving."],
       };
 
-      mockCreate.mockResolvedValue(makeCompletionResponse(JSON.stringify(payload)));
+      mockResponsesCreate.mockResolvedValue(makeResponse(JSON.stringify(payload)));
 
       const result = await adapter.ingestProduct({ productName: "Copper Fungicide" });
 
@@ -120,21 +127,51 @@ describe("OpenAiAdapter", () => {
         },
         warnings: [],
       };
-      mockCreate.mockResolvedValue(makeCompletionResponse(JSON.stringify(payload)));
+      mockResponsesCreate.mockResolvedValue(makeResponse(JSON.stringify(payload)));
 
       await adapter.ingestProduct({ productName: "X" });
 
-      const request = mockCreate.mock.calls[0]![0] as {
+      const request = mockResponsesCreate.mock.calls[0]![0] as {
         temperature: number;
-        response_format: {
-          type: string;
-          json_schema: { strict: boolean; name: string };
-        };
+        tools?: Array<{ type: string }>;
+        text: { format: { type: string; strict: boolean; name: string } };
       };
       expect(request.temperature).toBe(0);
-      expect(request.response_format.type).toBe("json_schema");
-      expect(request.response_format.json_schema.strict).toBe(true);
-      expect(request.response_format.json_schema.name).toBe("product_ingestion");
+      expect(request.text.format.type).toBe("json_schema");
+      expect(request.text.format.strict).toBe(true);
+      expect(request.text.format.name).toBe("product_ingestion");
+      // web_search enabled for this adapter (constructed with webSearch: true)
+      expect(request.tools).toEqual([{ type: "web_search" }]);
+    });
+
+    it("omits the web_search tool when web search is disabled", async () => {
+      const offAdapter = new OpenAiAdapter("test-api-key", "gpt-4o-mini", { webSearch: false });
+      const payload = {
+        product: {
+          name: "X",
+          category: "fungicide",
+          activeSubstance: null,
+          manufacturer: null,
+          formulation: null,
+          defaultUnit: "ml",
+          notes: null,
+        },
+        product_rule: {
+          plantName: null,
+          doseValue: null,
+          doseUnit: null,
+          dilutionText: null,
+          reapplicationIntervalDays: null,
+          quarantinePeriodDays: null,
+        },
+        warnings: [],
+      };
+      mockResponsesCreate.mockResolvedValue(makeResponse(JSON.stringify(payload)));
+
+      await offAdapter.ingestProduct({ productName: "X" });
+
+      const request = mockResponsesCreate.mock.calls[0]![0] as { tools?: unknown };
+      expect(request.tools).toBeUndefined();
     });
 
     it("drops an all-null product_rule (non-sprayable product)", async () => {
@@ -158,7 +195,7 @@ describe("OpenAiAdapter", () => {
         },
         warnings: [],
       };
-      mockCreate.mockResolvedValue(makeCompletionResponse(JSON.stringify(payload)));
+      mockResponsesCreate.mockResolvedValue(makeResponse(JSON.stringify(payload)));
 
       const result = await adapter.ingestProduct({ productName: "Granular Fertilizer" });
 
@@ -187,7 +224,7 @@ describe("OpenAiAdapter", () => {
         },
         warnings: ["Dose not confirmed from label."],
       };
-      mockCreate.mockResolvedValue(makeCompletionResponse(JSON.stringify(payload)));
+      mockResponsesCreate.mockResolvedValue(makeResponse(JSON.stringify(payload)));
 
       const result = await adapter.ingestProduct({ productName: "Spray Fungicide" });
 
@@ -213,7 +250,7 @@ describe("OpenAiAdapter", () => {
         warnings: [],
       };
 
-      mockCreate.mockResolvedValue(makeCompletionResponse(JSON.stringify(payload)));
+      mockResponsesCreate.mockResolvedValue(makeResponse(JSON.stringify(payload)));
 
       const result = await adapter.ingestProduct({ labelText: "Herbicide label text" });
 
@@ -273,7 +310,7 @@ describe("OpenAiAdapter", () => {
   describe("error mapping", () => {
     it("maps AuthenticationError to AiProviderError", async () => {
       const { AuthenticationError } = await import("openai") as unknown as { AuthenticationError: AnyConstructor };
-      mockCreate.mockRejectedValue(new AuthenticationError());
+      mockResponsesCreate.mockRejectedValue(new AuthenticationError());
 
       await expect(adapter.ingestProduct({ productName: "test" })).rejects.toBeInstanceOf(AiProviderError);
     });
@@ -294,14 +331,14 @@ describe("OpenAiAdapter", () => {
 
     it("maps generic APIError to AiProviderError", async () => {
       const { APIError } = await import("openai") as unknown as { APIError: AnyConstructor };
-      mockCreate.mockRejectedValue(new APIError(500, "internal error"));
+      mockResponsesCreate.mockRejectedValue(new APIError(500, "internal error"));
 
       await expect(adapter.ingestProduct({ productName: "test" })).rejects.toBeInstanceOf(AiProviderError);
     });
 
     it("does not expose api key in error message", async () => {
       const { APIError } = await import("openai") as unknown as { APIError: AnyConstructor };
-      mockCreate.mockRejectedValue(new APIError(401, "Invalid API key sk-test-secret-key"));
+      mockResponsesCreate.mockRejectedValue(new APIError(401, "Invalid API key sk-test-secret-key"));
 
       let thrownError: unknown;
       try {

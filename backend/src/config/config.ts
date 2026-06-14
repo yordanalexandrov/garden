@@ -64,6 +64,13 @@ const envSchema = z.object({
   AI_PROVIDER: optionalString,
   AI_API_KEY: optionalString,
   AI_MODEL: optionalString,
+  AI_WEB_SEARCH: z.preprocess(
+    emptyStringToUndefined,
+    z
+      .enum(["true", "false"])
+      .transform((value) => value === "true")
+      .optional()
+  ),
   WORKER_ENABLED: z.preprocess(
     emptyStringToUndefined,
     z
@@ -123,6 +130,7 @@ export type IntegrationConfig = {
   vapidSubject: string | undefined;
   aiProvider: string | undefined;
   aiModel: string | undefined;
+  aiWebSearch: boolean | undefined;
   workerEnabled: boolean | undefined;
   reminderJobIntervalSeconds: number | undefined;
   weatherJobIntervalSeconds: number | undefined;
@@ -192,6 +200,7 @@ function toAppConfig(env: ParsedEnv): AppConfig {
       vapidSubject: env.VAPID_SUBJECT,
       aiProvider: env.AI_PROVIDER,
       aiModel: env.AI_MODEL,
+      aiWebSearch: env.AI_WEB_SEARCH,
       workerEnabled: env.WORKER_ENABLED,
       reminderJobIntervalSeconds: env.REMINDER_JOB_INTERVAL_SECONDS,
       weatherJobIntervalSeconds: env.WEATHER_JOB_INTERVAL_SECONDS

@@ -111,13 +111,21 @@ function hasSprayingRule(rule: Record<string, unknown>): boolean {
   );
 }
 
+export type OpenAiAdapterOptions = {
+  // When true, product ingestion may use OpenAI's hosted web_search tool to look
+  // up products it does not already know. The search runs on OpenAI's side.
+  webSearch?: boolean;
+};
+
 export class OpenAiAdapter implements AiPort {
   private readonly client: OpenAI;
   private readonly model: string;
+  private readonly webSearch: boolean;
 
-  constructor(apiKey: string, model?: string) {
+  constructor(apiKey: string, model?: string, options?: OpenAiAdapterOptions) {
     this.client = new OpenAI({ apiKey });
     this.model = model ?? DEFAULT_MODEL;
+    this.webSearch = options?.webSearch ?? false;
   }
 
   async ingestProduct(input: IngestProductInput): Promise<IngestProductResult> {
@@ -128,7 +136,7 @@ export class OpenAiAdapter implements AiPort {
       .filter(Boolean)
       .join("\n");
 
-    const raw = await this.callJson(
+    const raw = await this.callStructuredJson(
       `You are an expert assistant for a gardening app that catalogs plant-protection
 products (fungicides, herbicides, insecticides, growth regulators) and fertilizers.
 
@@ -140,10 +148,16 @@ Given a product name and/or the text of its label, do TWO things:
    for sprayable products.
 
 Source-of-truth and honesty rules:
-- The label text is the primary source of truth. If only a product name is given,
-  you may rely on well-known manufacturer label information, but you MUST add a
-  warning that the values are not confirmed from a label, and leave a field null
-  rather than inventing a precise dose, interval, or quarantine you are unsure of.
+- The label text is the primary source of truth.
+- If the product is unknown to you or the label text is missing/incomplete, use the
+  web_search tool to look up the official manufacturer label, product page, or
+  safety data sheet, and extract the values from there. Prefer official/manufacturer
+  and regulatory sources over forums or retailers.
+- Never invent a precise dose, interval, or quarantine. If you cannot confirm a
+  value from your knowledge or from web search, leave that field null and add a
+  warning explaining what is missing.
+- When you use web search, add a warning naming the source(s) you relied on so the
+  user can verify before saving.
 - Detect the language of the input and write free-text fields (notes, dilutionText,
   warnings) in that same language. Keep enum values (category, units) exactly as
   the English tokens listed below.
@@ -284,18 +298,46 @@ Return only valid JSON. Do not include markdown fences.`,
     return { suggestions };
   }
 
-  private async callJson(
+  // Structured extraction via the Responses API. Enables the hosted web_search
+  // tool (when configured) so the model can look up products it does not know,
+  // and enforces the strict JSON schema on the final message.
+  private async callStructuredJson(
     systemPrompt: string,
     userContent: string,
-    schema?: typeof PRODUCT_INGESTION_SCHEMA,
+    schema: typeof PRODUCT_INGESTION_SCHEMA,
   ): Promise<Record<string, unknown>> {
+    try {
+      const response = await this.client.responses.create({
+        model: this.model,
+        temperature: EXTRACTION_TEMPERATURE,
+        ...(this.webSearch ? { tools: [{ type: "web_search" }] } : {}),
+        input: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userContent },
+        ],
+        text: {
+          format: {
+            type: "json_schema",
+            name: schema.name,
+            strict: schema.strict,
+            schema: schema.schema,
+          },
+        },
+      });
+
+      const content = response.output_text.length > 0 ? response.output_text : "{}";
+      return JSON.parse(content) as Record<string, unknown>;
+    } catch (error) {
+      throw this.mapError(error);
+    }
+  }
+
+  private async callJson(systemPrompt: string, userContent: string): Promise<Record<string, unknown>> {
     try {
       const response = await this.client.chat.completions.create({
         model: this.model,
         temperature: EXTRACTION_TEMPERATURE,
-        response_format: schema
-          ? { type: "json_schema", json_schema: schema }
-          : { type: "json_object" },
+        response_format: { type: "json_object" },
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userContent },
@@ -305,15 +347,19 @@ Return only valid JSON. Do not include markdown fences.`,
       const content = response.choices[0]?.message?.content ?? "{}";
       return JSON.parse(content) as Record<string, unknown>;
     } catch (error) {
-      if (
-        error instanceof AuthenticationError ||
-        error instanceof RateLimitError ||
-        error instanceof APIConnectionError ||
-        error instanceof APIError
-      ) {
-        throw new AiProviderError("AI provider request failed");
-      }
-      throw error;
+      throw this.mapError(error);
     }
+  }
+
+  private mapError(error: unknown): unknown {
+    if (
+      error instanceof AuthenticationError ||
+      error instanceof RateLimitError ||
+      error instanceof APIConnectionError ||
+      error instanceof APIError
+    ) {
+      return new AiProviderError("AI provider request failed");
+    }
+    return error;
   }
 }
