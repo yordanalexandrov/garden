@@ -99,6 +99,106 @@ describe("OpenAiAdapter", () => {
       expect(result.warnings).toEqual(["Review label before saving."]);
     });
 
+    it("uses deterministic temperature and strict json_schema for extraction", async () => {
+      const payload = {
+        product: {
+          name: "X",
+          category: "fungicide",
+          activeSubstance: null,
+          manufacturer: null,
+          formulation: null,
+          defaultUnit: "ml",
+          notes: null,
+        },
+        product_rule: {
+          plantName: null,
+          doseValue: null,
+          doseUnit: null,
+          dilutionText: null,
+          reapplicationIntervalDays: null,
+          quarantinePeriodDays: null,
+        },
+        warnings: [],
+      };
+      mockCreate.mockResolvedValue(makeCompletionResponse(JSON.stringify(payload)));
+
+      await adapter.ingestProduct({ productName: "X" });
+
+      const request = mockCreate.mock.calls[0]![0] as {
+        temperature: number;
+        response_format: {
+          type: string;
+          json_schema: { strict: boolean; name: string };
+        };
+      };
+      expect(request.temperature).toBe(0);
+      expect(request.response_format.type).toBe("json_schema");
+      expect(request.response_format.json_schema.strict).toBe(true);
+      expect(request.response_format.json_schema.name).toBe("product_ingestion");
+    });
+
+    it("drops an all-null product_rule (non-sprayable product)", async () => {
+      const payload = {
+        product: {
+          name: "Granular Fertilizer",
+          category: "fertilizer",
+          activeSubstance: null,
+          manufacturer: null,
+          formulation: null,
+          defaultUnit: "kg",
+          notes: null,
+        },
+        product_rule: {
+          plantName: null,
+          doseValue: null,
+          doseUnit: null,
+          dilutionText: null,
+          reapplicationIntervalDays: null,
+          quarantinePeriodDays: null,
+        },
+        warnings: [],
+      };
+      mockCreate.mockResolvedValue(makeCompletionResponse(JSON.stringify(payload)));
+
+      const result = await adapter.ingestProduct({ productName: "Granular Fertilizer" });
+
+      expect(result.suggestions).toHaveLength(1);
+      expect(result.suggestions[0]!.type).toBe("product");
+    });
+
+    it("keeps a product_rule when only dilutionText is present", async () => {
+      const payload = {
+        product: {
+          name: "Spray Fungicide",
+          category: "fungicide",
+          activeSubstance: null,
+          manufacturer: null,
+          formulation: null,
+          defaultUnit: "ml",
+          notes: null,
+        },
+        product_rule: {
+          plantName: null,
+          doseValue: null,
+          doseUnit: null,
+          dilutionText: "10 ml / 5 L water",
+          reapplicationIntervalDays: 7,
+          quarantinePeriodDays: null,
+        },
+        warnings: ["Dose not confirmed from label."],
+      };
+      mockCreate.mockResolvedValue(makeCompletionResponse(JSON.stringify(payload)));
+
+      const result = await adapter.ingestProduct({ productName: "Spray Fungicide" });
+
+      expect(result.suggestions).toHaveLength(2);
+      expect(result.suggestions[1]!.type).toBe("product_rule");
+      const rule = result.suggestions[1]!.payload as Record<string, unknown>;
+      expect(rule.doseValue).toBe(0);
+      expect(rule.dilutionText).toBe("10 ml / 5 L water");
+      expect(rule.reapplicationIntervalDays).toBe(7);
+    });
+
     it("returns only product suggestion when product_rule is absent", async () => {
       const payload = {
         product: {
