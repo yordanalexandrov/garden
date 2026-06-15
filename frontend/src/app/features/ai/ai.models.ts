@@ -60,6 +60,20 @@ export interface ProblemAssistRequest {
   readonly text?: string;
 }
 
+export interface PlantIngestionRequest {
+  readonly plantName: string;
+  readonly notes?: string;
+}
+
+export interface PlantSuggestionPayload {
+  readonly commonName?: string;
+  readonly variety?: string | null;
+  readonly plantCategory?: string | null;
+  readonly lifecycleType?: string;
+  readonly growingStyle?: string;
+  readonly notes?: string | null;
+}
+
 export interface AcceptSuggestionRequest {
   readonly editedPayload?: unknown;
 }

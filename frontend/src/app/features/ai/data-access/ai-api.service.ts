@@ -7,6 +7,7 @@ import {
   AcceptSuggestionResult,
   AiGenerationResult,
   BedPlanningRequest,
+  PlantIngestionRequest,
   ProblemAssistRequest,
   ProductIngestionRequest,
   RejectSuggestionResult,
@@ -18,6 +19,10 @@ export class AiApiService {
 
   productIngestion(request: ProductIngestionRequest): Observable<AiGenerationResult> {
     return this.api.post<AiGenerationResult>('/ai/product-ingestion', request);
+  }
+
+  plantIngestion(request: PlantIngestionRequest): Observable<AiGenerationResult> {
+    return this.api.post<AiGenerationResult>('/ai/plant-ingestion', request);
   }
 
   bedPlanning(request: BedPlanningRequest): Observable<AiGenerationResult> {
