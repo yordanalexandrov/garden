@@ -25,8 +25,7 @@
   letter-spacing: 0;
 }
 
-.perennials-page__header p,
-.perennials-page__muted {
+.perennials-page__header p {
   color: var(--mat-sys-on-surface-variant);
 }
 
@@ -35,11 +34,6 @@
   grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
   align-items: center;
   gap: 0.75rem;
-}
-
-.perennials-page__form-card {
-  max-width: 52rem;
-  border-radius: 0.5rem;
 }
 
 .perennials-page__grid {

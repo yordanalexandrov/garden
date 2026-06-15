@@ -7,24 +7,18 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 
 import { ApiError } from '../../../../core/errors/api-error';
 import { mapApiError } from '../../../../core/errors/api-error.mapper';
 import { SnackbarService } from '../../../../core/notifications/snackbar.service';
 import { ArchiveConfirmationService } from '../../../../shared/components/confirm-dialog/confirm-dialog';
 import { EmptyState } from '../../../../shared/components/empty-state/empty-state';
+import { LoadingIndicator } from '../../../../shared/components/loading-indicator/loading-indicator';
 import { StatusChip } from '../../../../shared/components/status-chip/status-chip';
 import { ApiErrorSummary } from '../../../../shared/forms/api-error-summary/api-error-summary';
-import { PerennialForm } from '../../components/perennial-form/perennial-form';
-import {
-  PERENNIAL_STATUSES,
-  PerennialListItem,
-  PerennialStatus,
-  UpdatePerennialRequest,
-} from '../../perennials.models';
+import { PERENNIAL_STATUSES, PerennialListItem, PerennialStatus } from '../../perennials.models';
 import { PerennialsApiService } from '../../perennials-api.service';
-import { LoadingIndicator } from '../../../../shared/components/loading-indicator/loading-indicator';
 
 type PerennialFilterForm = FormGroup<{
   q: FormControl<string>;
@@ -34,17 +28,17 @@ type PerennialFilterForm = FormGroup<{
 @Component({
   selector: 'app-place-perennials-page',
   imports: [
-    LoadingIndicator,
     ApiErrorSummary,
     EmptyState,
+    LoadingIndicator,
     MatButtonModule,
     MatCardModule,
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
     MatSelectModule,
-    PerennialForm,
     ReactiveFormsModule,
+    RouterLink,
     StatusChip,
   ],
   templateUrl: './place-perennials-page.html',
@@ -55,11 +49,7 @@ export class PlacePerennialsPage {
   readonly statuses = PERENNIAL_STATUSES;
   readonly perennials = signal<readonly PerennialListItem[]>([]);
   readonly loading = signal(false);
-  readonly saving = signal(false);
-  readonly formOpen = signal(false);
-  readonly editingPerennial = signal<PerennialListItem | null>(null);
   readonly listError = signal<ApiError | null>(null);
-  readonly formError = signal<ApiError | null>(null);
   readonly placeId = signal<string | null>(null);
 
   readonly filters: PerennialFilterForm = new FormGroup({
@@ -113,58 +103,6 @@ export class PlacePerennialsPage {
           this.loading.set(false);
         },
       });
-  }
-
-  openCreateForm(): void {
-    this.editingPerennial.set(null);
-    this.formError.set(null);
-    this.formOpen.set(true);
-  }
-
-  openEditForm(perennial: PerennialListItem): void {
-    this.editingPerennial.set(perennial);
-    this.formError.set(null);
-    this.formOpen.set(true);
-  }
-
-  closeForm(): void {
-    this.formOpen.set(false);
-    this.editingPerennial.set(null);
-    this.formError.set(null);
-  }
-
-  savePerennial(request: UpdatePerennialRequest): void {
-    const placeId = this.placeId();
-
-    if (placeId === null || request.plantId === undefined) {
-      return;
-    }
-
-    const editing = this.editingPerennial();
-    this.saving.set(true);
-    this.formError.set(null);
-    const saveRequest =
-      editing === null
-        ? this.perennialsApi.create(placeId, {
-            plantId: request.plantId,
-            label: request.label,
-            plantedYear: request.plantedYear,
-            notes: request.notes,
-          })
-        : this.perennialsApi.update(editing.id, request);
-
-    saveRequest.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: () => {
-        this.saving.set(false);
-        this.snackbar.showMessage(editing === null ? 'Perennial created.' : 'Perennial updated.');
-        this.closeForm();
-        this.loadPerennials();
-      },
-      error: (error: unknown) => {
-        this.saving.set(false);
-        this.formError.set(mapApiError(error));
-      },
-    });
   }
 
   archivePerennial(perennial: PerennialListItem): void {

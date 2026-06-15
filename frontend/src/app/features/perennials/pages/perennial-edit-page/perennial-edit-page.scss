@@ -1,0 +1,13 @@
+:host {
+  display: block;
+}
+
+.perennial-edit-page {
+  display: grid;
+  gap: 1rem;
+}
+
+.perennial-edit-page__card {
+  max-width: 52rem;
+  border-radius: 0.5rem;
+}

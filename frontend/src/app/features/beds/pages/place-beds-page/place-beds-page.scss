@@ -26,8 +26,7 @@
   letter-spacing: 0;
 }
 
-.beds-page__header p,
-.beds-page__muted {
+.beds-page__header p {
   color: var(--mat-sys-on-surface-variant);
 }
 
@@ -36,11 +35,6 @@
   grid-template-columns: minmax(12rem, 1fr) auto;
   align-items: center;
   gap: 0.75rem;
-}
-
-.beds-page__form-card {
-  max-width: 52rem;
-  border-radius: 0.5rem;
 }
 
 .beds-page__grid {

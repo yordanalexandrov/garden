@@ -9,7 +9,9 @@ import { PersistentBedPlantsApiService } from '../plantings/persistent-bed-plant
 import { YearlyBedPlantingsApiService } from '../plantings/yearly-bed-plantings-api.service';
 import { BedForm } from './components/bed-form/bed-form';
 import { BedCurrentContentsComponent } from './components/bed-current-contents/bed-current-contents';
+import { BedCreatePage } from './pages/bed-create-page/bed-create-page';
 import { BedDetailPage } from './pages/bed-detail-page/bed-detail-page';
+import { BedEditPage } from './pages/bed-edit-page/bed-edit-page';
 import { PlaceBedsPage } from './pages/place-beds-page/place-beds-page';
 import { BedDetail, BedListItem } from './beds.models';
 import { BedsApiService } from './beds-api.service';
@@ -238,9 +240,10 @@ describe('beds Phase 7 pages', () => {
     expect(bedsApi.archive).not.toHaveBeenCalled();
   });
 
-  it('does not send trusted scope fields in create requests', () => {
+  it('does not send trusted scope fields when creating a bed', () => {
     const forbiddenKey = ['account', 'Id'].join('');
-    const fixture = TestBed.createComponent(PlaceBedsPage);
+    const fixture = TestBed.createComponent(BedCreatePage);
+    fixture.detectChanges();
 
     fixture.componentInstance.saveBed({ name: 'Bed B', widthM: 1, lengthM: 2 });
 
@@ -253,17 +256,24 @@ describe('beds Phase 7 pages', () => {
       areaM2: undefined,
     });
     expect(bedsApi.create.mock.calls[0][1]).not.toHaveProperty(forbiddenKey);
+    expect(router.navigate).toHaveBeenCalledWith(['/beds', 'bed-2']);
   });
 
-  it('loads full bed detail before opening the edit form from the place beds list', () => {
-    const fixture = TestBed.createComponent(PlaceBedsPage);
+  it('loads the bed before editing and updates through the API', () => {
+    const fixture = TestBed.createComponent(BedEditPage);
+    fixture.detectChanges();
 
-    fixture.componentInstance.selectedYear.set(2026);
-    fixture.componentInstance.openEditForm(bedListItem);
+    expect(bedsApi.get).toHaveBeenCalledWith('bed-1');
+    expect(fixture.componentInstance.bed()).toEqual(bedDetail);
 
-    expect(bedsApi.get).toHaveBeenCalledWith('bed-1', 2026);
-    expect(fixture.componentInstance.editingBed()).toEqual(bedDetail);
-    expect(fixture.componentInstance.formOpen()).toBe(true);
+    fixture.componentInstance.saveBed({ name: 'Bed A', widthM: 1.2, lengthM: 4 });
+
+    expect(bedsApi.update).toHaveBeenCalledWith('bed-1', {
+      name: 'Bed A',
+      widthM: 1.2,
+      lengthM: 4,
+    });
+    expect(router.navigate).toHaveBeenCalledWith(['/beds', 'bed-1']);
   });
 
   it('requires confirmation before archive calls', () => {

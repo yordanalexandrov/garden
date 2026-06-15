@@ -1,0 +1,32 @@
+<section class="perennial-edit-page" aria-labelledby="perennial-edit-title">
+  <app-page-header
+    title="Edit perennial"
+    titleId="perennial-edit-title"
+    [subtitle]="perennial()?.plantName ?? null"
+    icon="park"
+  >
+    @if (placeId(); as currentPlaceId) {
+      <a mat-button page-actions [routerLink]="['/places', currentPlaceId, 'perennials']">Cancel</a>
+    }
+  </app-page-header>
+
+  @if (loading()) {
+    <app-loading-indicator message="Loading perennial..." />
+  }
+
+  <app-api-error-summary [error]="apiError()" />
+
+  @if (perennial(); as currentPerennial) {
+    <mat-card class="perennial-edit-page__card">
+      <mat-card-content>
+        <app-perennial-form
+          [perennial]="currentPerennial"
+          [apiError]="apiError()"
+          [saving]="saving()"
+          (submitted)="savePerennial($event)"
+          (cancelled)="cancel()"
+        />
+      </mat-card-content>
+    </mat-card>
+  }
+</section>

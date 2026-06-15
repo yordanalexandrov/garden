@@ -13,23 +13,21 @@ import { mapApiError } from '../../../../core/errors/api-error.mapper';
 import { SnackbarService } from '../../../../core/notifications/snackbar.service';
 import { ArchiveConfirmationService } from '../../../../shared/components/confirm-dialog/confirm-dialog';
 import { EmptyState } from '../../../../shared/components/empty-state/empty-state';
+import { LoadingIndicator } from '../../../../shared/components/loading-indicator/loading-indicator';
 import { StatusChip } from '../../../../shared/components/status-chip/status-chip';
 import { YearSelector } from '../../../../shared/components/year-selector/year-selector';
 import { ApiErrorSummary } from '../../../../shared/forms/api-error-summary/api-error-summary';
 import { BedCurrentContentsComponent } from '../../components/bed-current-contents/bed-current-contents';
-import { BedForm } from '../../components/bed-form/bed-form';
-import { BedDetail, BedListItem, UpdateBedRequest } from '../../beds.models';
+import { BedListItem } from '../../beds.models';
 import { BedsApiService } from '../../beds-api.service';
-import { LoadingIndicator } from '../../../../shared/components/loading-indicator/loading-indicator';
 
 @Component({
   selector: 'app-place-beds-page',
   imports: [
-    LoadingIndicator,
     ApiErrorSummary,
     BedCurrentContentsComponent,
-    BedForm,
     EmptyState,
+    LoadingIndicator,
     MatButtonModule,
     MatCardModule,
     MatFormFieldModule,
@@ -47,11 +45,7 @@ import { LoadingIndicator } from '../../../../shared/components/loading-indicato
 export class PlaceBedsPage {
   readonly beds = signal<readonly BedListItem[]>([]);
   readonly loading = signal(false);
-  readonly saving = signal(false);
-  readonly formOpen = signal(false);
-  readonly editingBed = signal<BedDetail | null>(null);
   readonly listError = signal<ApiError | null>(null);
-  readonly formError = signal<ApiError | null>(null);
   readonly placeId = signal<string | null>(null);
   readonly selectedYear = signal(new Date().getFullYear());
 
@@ -109,77 +103,6 @@ export class PlaceBedsPage {
           this.loading.set(false);
         },
       });
-  }
-
-  openCreateForm(): void {
-    this.editingBed.set(null);
-    this.formError.set(null);
-    this.formOpen.set(true);
-  }
-
-  openEditForm(bed: BedListItem): void {
-    this.loading.set(true);
-    this.listError.set(null);
-    this.formError.set(null);
-    this.formOpen.set(false);
-    this.editingBed.set(null);
-
-    this.bedsApi
-      .get(bed.id, this.selectedYear())
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (bedDetail) => {
-          this.editingBed.set(bedDetail);
-          this.formOpen.set(true);
-          this.loading.set(false);
-        },
-        error: (error: unknown) => {
-          this.listError.set(mapApiError(error));
-          this.loading.set(false);
-        },
-      });
-  }
-
-  closeForm(): void {
-    this.formOpen.set(false);
-    this.editingBed.set(null);
-    this.formError.set(null);
-  }
-
-  saveBed(request: UpdateBedRequest): void {
-    const placeId = this.placeId();
-
-    if (placeId === null || request.name === undefined) {
-      return;
-    }
-
-    const editing = this.editingBed();
-    this.saving.set(true);
-    this.formError.set(null);
-    const saveRequest =
-      editing === null
-        ? this.bedsApi.create(placeId, {
-            name: request.name,
-            description: request.description,
-            notes: request.notes,
-            widthM: request.widthM,
-            lengthM: request.lengthM,
-            areaM2: request.areaM2,
-          })
-        : this.bedsApi.update(editing.id, request);
-
-    saveRequest.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: () => {
-        this.saving.set(false);
-        this.snackbar.showMessage(editing === null ? 'Bed created.' : 'Bed updated.');
-        this.closeForm();
-        this.loadBeds();
-      },
-      error: (error: unknown) => {
-        this.saving.set(false);
-        this.formError.set(mapApiError(error));
-      },
-    });
   }
 
   archiveBed(bed: BedListItem): void {

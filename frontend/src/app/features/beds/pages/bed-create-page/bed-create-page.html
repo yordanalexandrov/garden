@@ -1,0 +1,19 @@
+<section class="bed-create-page" aria-labelledby="bed-create-title">
+  <app-page-header
+    title="New bed"
+    titleId="bed-create-title"
+    subtitle="Add a physical growing area"
+    icon="grid_view"
+  />
+
+  <mat-card class="bed-create-page__card">
+    <mat-card-content>
+      <app-bed-form
+        [apiError]="apiError()"
+        [saving]="saving()"
+        (submitted)="saveBed($event)"
+        (cancelled)="cancel()"
+      />
+    </mat-card-content>
+  </mat-card>
+</section>

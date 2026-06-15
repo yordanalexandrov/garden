@@ -25,8 +25,7 @@ import {
 } from '../../../plantings/plantings.models';
 import { YearlyBedPlantingsApiService } from '../../../plantings/yearly-bed-plantings-api.service';
 import { BedCurrentContentsComponent } from '../../components/bed-current-contents/bed-current-contents';
-import { BedForm } from '../../components/bed-form/bed-form';
-import { BedDetail, UpdateBedRequest } from '../../beds.models';
+import { BedDetail } from '../../beds.models';
 import { BedsApiService } from '../../beds-api.service';
 import { LoadingIndicator } from '../../../../shared/components/loading-indicator/loading-indicator';
 
@@ -36,7 +35,6 @@ import { LoadingIndicator } from '../../../../shared/components/loading-indicato
     LoadingIndicator,
     ApiErrorSummary,
     BedCurrentContentsComponent,
-    BedForm,
     MatButtonModule,
     MatCardModule,
     MatIconModule,
@@ -56,9 +54,7 @@ export class BedDetailPage {
   readonly bedId = signal<string | null>(null);
   readonly selectedYear = signal(new Date().getFullYear());
   readonly loading = signal(false);
-  readonly saving = signal(false);
   readonly plantingSaving = signal(false);
-  readonly formOpen = signal(false);
   readonly activePlantingForm = signal<'persistent' | 'yearly' | null>(null);
   readonly editingPersistentPlant = signal<PersistentBedPlantListItem | null>(null);
   readonly editingYearlyPlanting = signal<YearlyBedPlantingListItem | null>(null);
@@ -96,16 +92,6 @@ export class BedDetailPage {
     });
   }
 
-  openForm(): void {
-    this.apiError.set(null);
-    this.formOpen.set(true);
-  }
-
-  closeForm(): void {
-    this.formOpen.set(false);
-    this.apiError.set(null);
-  }
-
   openPersistentForm(row: PersistentBedPlantListItem | null = null): void {
     this.editingPersistentPlant.set(row);
     this.editingYearlyPlanting.set(null);
@@ -125,33 +111,6 @@ export class BedDetailPage {
     this.editingPersistentPlant.set(null);
     this.editingYearlyPlanting.set(null);
     this.plantingError.set(null);
-  }
-
-  saveBed(request: UpdateBedRequest): void {
-    const bedId = this.bedId();
-
-    if (bedId === null) {
-      return;
-    }
-
-    this.saving.set(true);
-    this.apiError.set(null);
-
-    this.bedsApi
-      .update(bedId, request)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: () => {
-          this.saving.set(false);
-          this.snackbar.showMessage('Bed updated.');
-          this.closeForm();
-          this.loadBed();
-        },
-        error: (error: unknown) => {
-          this.saving.set(false);
-          this.apiError.set(mapApiError(error));
-        },
-      });
   }
 
   archiveBed(): void {

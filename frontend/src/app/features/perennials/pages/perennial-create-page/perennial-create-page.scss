@@ -1,0 +1,13 @@
+:host {
+  display: block;
+}
+
+.perennial-create-page {
+  display: grid;
+  gap: 1rem;
+}
+
+.perennial-create-page__card {
+  max-width: 52rem;
+  border-radius: 0.5rem;
+}
