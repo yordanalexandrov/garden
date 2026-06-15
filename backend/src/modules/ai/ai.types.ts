@@ -1,10 +1,10 @@
 import type { DbHandle } from "../../db/transaction.js";
 import type { UUID } from "../auth/auth.types.js";
 
-export const AI_SESSION_KINDS = ["product_ingestion", "bed_planning", "problem_assist"] as const;
+export const AI_SESSION_KINDS = ["product_ingestion", "bed_planning", "problem_assist", "plant_ingestion"] as const;
 export const AI_SESSION_INPUT_MODES = ["name", "text", "image", "mixed"] as const;
 export const AI_SESSION_STATUSES = ["pending", "completed", "failed", "dismissed", "accepted"] as const;
-export const AI_SUGGESTION_TYPES = ["product", "product_rule", "bed_plan", "problem_summary", "followup_questions"] as const;
+export const AI_SUGGESTION_TYPES = ["product", "product_rule", "bed_plan", "problem_summary", "followup_questions", "plant"] as const;
 
 export type AiSessionKind = (typeof AI_SESSION_KINDS)[number];
 export type AiSessionInputMode = (typeof AI_SESSION_INPUT_MODES)[number];

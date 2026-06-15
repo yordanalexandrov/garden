@@ -40,6 +40,12 @@ export const BASELINE_MIGRATIONS = [
     label: "archive activities",
     filePath: resolve(docsDir, "005_archive_activities.sql"),
     containsSeedData: false
+  },
+  {
+    id: "006",
+    label: "ai plant ingestion session kind and suggestion type",
+    filePath: resolve(docsDir, "006_ai_plant_ingestion.sql"),
+    containsSeedData: false
   }
 ] as const satisfies readonly BaselineMigration[];
 

@@ -19,6 +19,7 @@ import { AiService } from "./ai.service.js";
 import {
   acceptSuggestionBodySchema,
   bedPlanningBodySchema,
+  plantIngestionBodySchema,
   problemAssistBodySchema,
   productIngestionBodySchema,
   rejectSuggestionBodySchema,
@@ -41,6 +42,17 @@ export const registerAiRoutes: FastifyPluginCallback<AiRouteOptions> = (app, opt
     const result = await requireAiService(aiService).ingestProduct(actor, {
       ...(body.productName !== undefined ? { productName: body.productName } : {}),
       ...(body.labelText !== undefined ? { labelText: body.labelText } : {})
+    });
+
+    return successEnvelope(toGenerationResponseDto(result.session, result.suggestions, result.warnings));
+  });
+
+  app.post("/plant-ingestion", protectedRoute, async (request) => {
+    const actor = requireActor(request);
+    const { body } = validateRequest(request, { body: plantIngestionBodySchema });
+    const result = await requireAiService(aiService).ingestPlant(actor, {
+      plantName: body.plantName,
+      ...(body.notes !== undefined ? { notes: body.notes } : {})
     });
 
     return successEnvelope(toGenerationResponseDto(result.session, result.suggestions, result.warnings));

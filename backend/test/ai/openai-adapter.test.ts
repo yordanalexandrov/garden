@@ -260,6 +260,76 @@ describe("OpenAiAdapter", () => {
     });
   });
 
+  describe("ingestPlant", () => {
+    it("returns multiple plant suggestions (one per variant)", async () => {
+      const payload = {
+        plants: [
+          {
+            commonName: "Домат",
+            variety: "Воловско сърце",
+            plantCategory: "Плодови зеленчуци",
+            lifecycleType: "annual",
+            growingStyle: "vegetable",
+            notes: "Едроплоден сорт, 80 дни до зреене.",
+          },
+          {
+            commonName: "Домат",
+            variety: "Черри Бела",
+            plantCategory: "Плодови зеленчуци",
+            lifecycleType: "annual",
+            growingStyle: "vegetable",
+            notes: "Черешов тип, 60 дни.",
+          },
+        ],
+        warnings: ["Информацията е проверена от kalina-sad.bg"],
+      };
+      mockResponsesCreate.mockResolvedValue(makeResponse(JSON.stringify(payload)));
+
+      const result = await adapter.ingestPlant({ plantName: "Домат" });
+
+      expect(result.suggestions).toHaveLength(2);
+      expect(result.suggestions[0]!.type).toBe("plant");
+      expect(result.suggestions[1]!.type).toBe("plant");
+      expect(result.warnings).toEqual(["Информацията е проверена от kalina-sad.bg"]);
+
+      const first = result.suggestions[0]!.payload as Record<string, unknown>;
+      expect(first.variety).toBe("Воловско сърце");
+      expect(first.lifecycleType).toBe("annual");
+      expect(first.growingStyle).toBe("vegetable");
+    });
+
+    it("uses Responses API with strict json_schema and web_search", async () => {
+      const payload = { plants: [], warnings: [] };
+      mockResponsesCreate.mockResolvedValue(makeResponse(JSON.stringify(payload)));
+
+      await adapter.ingestPlant({ plantName: "Краставица" });
+
+      const request = mockResponsesCreate.mock.calls[0]![0] as {
+        temperature: number;
+        tools?: Array<{ type: string }>;
+        text: { format: { type: string; strict: boolean; name: string } };
+      };
+      expect(request.temperature).toBe(0);
+      expect(request.text.format.type).toBe("json_schema");
+      expect(request.text.format.strict).toBe(true);
+      expect(request.text.format.name).toBe("plant_ingestion");
+      expect(request.tools).toEqual([{ type: "web_search" }]);
+    });
+
+    it("returns no suggestions when model finds no variants", async () => {
+      const payload = {
+        plants: [],
+        warnings: ["Не са намерени конкретни сортове."],
+      };
+      mockResponsesCreate.mockResolvedValue(makeResponse(JSON.stringify(payload)));
+
+      const result = await adapter.ingestPlant({ plantName: "Неизвестно растение" });
+
+      expect(result.suggestions).toHaveLength(0);
+      expect(result.warnings).toHaveLength(1);
+    });
+  });
+
   describe("suggestBedPlan", () => {
     it("returns a bed_plan suggestion", async () => {
       const payload = {
