@@ -4,6 +4,7 @@ import { Router, provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 
 import { AppShell } from '../../core/layout/app-shell';
+import { provideAuthPortStub } from '../../core/auth/auth-port.testing';
 import { ApiError } from '../../core/errors/api-error';
 import { routes } from '../../app.routes';
 import { PlaceDetail } from './places.models';
@@ -49,6 +50,7 @@ describe('place detail shell and overview', () => {
       providers: [
         provideNoopAnimations(),
         provideRouter(routes),
+        provideAuthPortStub(),
         { provide: PlacesApiService, useValue: placesApi },
         { provide: WeatherApiService, useValue: weatherApi },
       ],
