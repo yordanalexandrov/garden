@@ -64,6 +64,10 @@
   flex: 0 0 auto;
 }
 
+.app-shell__toolbar-spacer {
+  flex: 1 1 auto;
+}
+
 .app-shell__mobile-drawer {
   width: min(20rem, 88vw);
   border-radius: 0;
@@ -78,8 +82,26 @@
   border-bottom: 1px solid var(--mat-sys-outline-variant);
 }
 
+.app-shell__nav-group {
+  padding-block: 0.25rem;
+}
+
+.app-shell__nav-group + .app-shell__nav-group {
+  border-top: 1px solid var(--mat-sys-outline-variant);
+}
+
+.app-shell__nav-section-label {
+  margin: 0;
+  padding: 0.5rem 1rem 0.25rem;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-label-small);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
 .app-shell__nav-list {
-  padding: 0.5rem;
+  padding: 0 0.5rem 0.25rem;
 }
 
 .app-shell__nav-link {

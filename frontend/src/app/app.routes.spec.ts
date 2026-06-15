@@ -3,6 +3,7 @@ import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { Router, provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 
+import { provideAuthPortStub } from './core/auth/auth-port.testing';
 import { AppShell } from './core/layout/app-shell';
 import { ArchiveConfirmationService } from './shared/components/confirm-dialog/confirm-dialog';
 import { InventoryApiService } from './features/inventory/inventory-api.service';
@@ -23,6 +24,7 @@ describe('app routes', () => {
       providers: [
         provideNoopAnimations(),
         provideRouter(routes),
+        provideAuthPortStub(),
         {
           provide: ActivitiesApiService,
           useValue: {

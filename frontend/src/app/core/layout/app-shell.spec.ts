@@ -3,13 +3,14 @@ import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { Router, provideRouter } from '@angular/router';
 
 import { routes } from '../../app.routes';
+import { provideAuthPortStub } from '../auth/auth-port.testing';
 import { AppShell, PRIMARY_NAVIGATION_ITEMS } from './app-shell';
 
 describe('AppShell', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [AppShell],
-      providers: [provideNoopAnimations(), provideRouter(routes)],
+      providers: [provideNoopAnimations(), provideRouter(routes), provideAuthPortStub()],
     }).compileComponents();
   });
 

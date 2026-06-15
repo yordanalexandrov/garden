@@ -24,23 +24,28 @@
       </button>
     </div>
 
-    <mat-nav-list class="app-shell__nav-list">
-      @for (item of navigationItems; track item.route) {
-        <a
-          mat-list-item
-          class="app-shell__nav-link"
-          [routerLink]="item.route"
-          routerLinkActive="app-shell__nav-link--active"
-          #mobileLinkActive="routerLinkActive"
-          [routerLinkActiveOptions]="{ exact: item.exact }"
-          [attr.aria-current]="mobileLinkActive.isActive ? 'page' : null"
-          (click)="closeMobileNavigation()"
-        >
-          <mat-icon matListItemIcon aria-hidden="true" [fontIcon]="item.icon" />
-          <span matListItemTitle>{{ item.label }}</span>
-        </a>
-      }
-    </mat-nav-list>
+    @for (section of navigationSections; track section.label) {
+      <div class="app-shell__nav-group">
+        <p class="app-shell__nav-section-label">{{ section.label }}</p>
+        <mat-nav-list class="app-shell__nav-list">
+          @for (item of section.items; track item.route) {
+            <a
+              mat-list-item
+              class="app-shell__nav-link"
+              [routerLink]="item.route"
+              routerLinkActive="app-shell__nav-link--active"
+              #mobileLinkActive="routerLinkActive"
+              [routerLinkActiveOptions]="{ exact: item.exact }"
+              [attr.aria-current]="mobileLinkActive.isActive ? 'page' : null"
+              (click)="closeMobileNavigation()"
+            >
+              <mat-icon matListItemIcon aria-hidden="true" [fontIcon]="item.icon" />
+              <span matListItemTitle>{{ item.label }}</span>
+            </a>
+          }
+        </mat-nav-list>
+      </div>
+    }
   </mat-drawer>
 
   <mat-drawer-content class="app-shell__content">
@@ -60,6 +65,32 @@
         <mat-icon class="app-shell__brand-icon" aria-hidden="true" fontIcon="local_florist" />
         <span class="app-shell__brand-text">Gardening Helper</span>
       </div>
+
+      <span class="app-shell__toolbar-spacer"></span>
+
+      <button
+        mat-icon-button
+        class="app-shell__icon-button"
+        type="button"
+        aria-label="Account menu"
+        matTooltip="Account"
+        [matMenuTriggerFor]="accountMenu"
+      >
+        <mat-icon aria-hidden="true" fontIcon="account_circle" />
+      </button>
+      <mat-menu #accountMenu="matMenu">
+        @if (authSession.isAuthenticated()) {
+          <button mat-menu-item type="button" (click)="signOut()">
+            <mat-icon aria-hidden="true" fontIcon="logout" />
+            <span>Sign out</span>
+          </button>
+        } @else {
+          <a mat-menu-item routerLink="/login">
+            <mat-icon aria-hidden="true" fontIcon="login" />
+            <span>Sign in</span>
+          </a>
+        }
+      </mat-menu>
     </mat-toolbar>
 
     <div class="app-shell__loading-slot">
@@ -70,22 +101,27 @@
 
     <div class="app-shell__body">
       <nav class="app-shell__desktop-nav" aria-label="Primary navigation">
-        <mat-nav-list class="app-shell__nav-list">
-          @for (item of navigationItems; track item.route) {
-            <a
-              mat-list-item
-              class="app-shell__nav-link"
-              [routerLink]="item.route"
-              routerLinkActive="app-shell__nav-link--active"
-              #desktopLinkActive="routerLinkActive"
-              [routerLinkActiveOptions]="{ exact: item.exact }"
-              [attr.aria-current]="desktopLinkActive.isActive ? 'page' : null"
-            >
-              <mat-icon matListItemIcon aria-hidden="true" [fontIcon]="item.icon" />
-              <span matListItemTitle>{{ item.label }}</span>
-            </a>
-          }
-        </mat-nav-list>
+        @for (section of navigationSections; track section.label) {
+          <div class="app-shell__nav-group">
+            <p class="app-shell__nav-section-label">{{ section.label }}</p>
+            <mat-nav-list class="app-shell__nav-list">
+              @for (item of section.items; track item.route) {
+                <a
+                  mat-list-item
+                  class="app-shell__nav-link"
+                  [routerLink]="item.route"
+                  routerLinkActive="app-shell__nav-link--active"
+                  #desktopLinkActive="routerLinkActive"
+                  [routerLinkActiveOptions]="{ exact: item.exact }"
+                  [attr.aria-current]="desktopLinkActive.isActive ? 'page' : null"
+                >
+                  <mat-icon matListItemIcon aria-hidden="true" [fontIcon]="item.icon" />
+                  <span matListItemTitle>{{ item.label }}</span>
+                </a>
+              }
+            </mat-nav-list>
+          </div>
+        }
       </nav>
 
       <main class="app-shell__main" id="main-content" aria-label="Main content" tabindex="-1">
