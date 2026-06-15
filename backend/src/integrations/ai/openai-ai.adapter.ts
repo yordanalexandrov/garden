@@ -158,9 +158,9 @@ Source-of-truth and honesty rules:
   warning explaining what is missing.
 - When you use web search, add a warning naming the source(s) you relied on so the
   user can verify before saving.
-- Detect the language of the input and write free-text fields (notes, dilutionText,
-  warnings) in that same language. Keep enum values (category, units) exactly as
-  the English tokens listed below.
+- Always write all free-text fields (notes, dilutionText, warnings) in Bulgarian,
+  regardless of the language of the input. Keep enum values (category, units) exactly
+  as the English tokens listed below.
 
 Field rules:
 - product.category must be exactly one of:
@@ -235,11 +235,12 @@ Return data that conforms to the provided JSON schema.`,
 Suggest a planting plan for the given bed based on the candidate plants.
 Return a JSON object with these fields:
 - spacingSuggestions: [{ plant, spacingCm }] — recommended spacing per plant
-- coexistenceNotes: string[] — companion planting notes
-- warnings: string[] — any caveats or uncertainties
+- coexistenceNotes: string[] — companion planting notes (in Bulgarian)
+- warnings: string[] — any caveats or uncertainties (in Bulgarian)
 - roughQuantityGuidance: [{ plant, recommendedCount }] — rough plant counts
 
 The plant identifiers are UUIDs — use them as-is in your suggestions.
+Always write all free-text fields (coexistenceNotes, warnings) in Bulgarian.
 Return only valid JSON. Do not include markdown fences.`,
       userContent,
     );
@@ -273,10 +274,11 @@ Return only valid JSON. Do not include markdown fences.`,
       `You are a gardening problem diagnostic assistant.
 Analyze the described plant problem and provide advisory information only.
 You must NOT make definitive diagnoses — present possibilities, not conclusions.
+Always write all free-text output (summary, followUpQuestions) in Bulgarian.
 Return a JSON object with these fields:
-- summary: string — a brief, cautious advisory summary
+- summary: string — a brief, cautious advisory summary (in Bulgarian)
 - possibleCategories: string[] — possible problem categories (e.g. fungus, pest, nutrient_deficiency, environmental)
-- followUpQuestions: string[] — clarifying questions to narrow down the problem
+- followUpQuestions: string[] — clarifying questions to narrow down the problem (in Bulgarian)
 
 Return only valid JSON. Do not include markdown fences.`,
       userContent,
