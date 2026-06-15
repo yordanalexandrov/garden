@@ -1,0 +1,75 @@
+<section class="plant-ingestion-page" aria-labelledby="plant-ingestion-title">
+<app-page-header
+  title="Добавяне на растения"
+  titleId="plant-ingestion-title"
+  icon="eco"
+  subtitle="AI търси сортове по български сайтове и предлага варианти за добавяне в каталога"
+/>
+
+<p class="ai-page__advisory" role="note">
+  AI предложенията не се запазват докато не ги приемеш изрично. Прегледай данните преди да приемеш.
+</p>
+
+<form [formGroup]="form" (ngSubmit)="submit()" class="ai-page__form" novalidate>
+  <mat-form-field appearance="outline" class="ai-page__field">
+    <mat-label>Название на растението</mat-label>
+    <input matInput formControlName="plantName" autocomplete="off" placeholder="напр. Домат, Краставица, Ягода" />
+    @if (form.controls.plantName.invalid && form.controls.plantName.touched) {
+      <mat-error>Названието е задължително.</mat-error>
+    }
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="ai-page__field">
+    <mat-label>Допълнителни бележки (по избор)</mat-label>
+    <textarea matInput formControlName="notes" rows="3" autocomplete="off" placeholder="напр. търся едроплодни сортове за оранжерия"></textarea>
+    <mat-hint>Уточни какво търсиш, за да получиш по-точни предложения.</mat-hint>
+  </mat-form-field>
+
+  <div class="ai-page__actions">
+    <button
+      mat-flat-button
+      type="submit"
+      color="primary"
+      [disabled]="submitting()"
+    >
+      @if (submitting()) {
+        <mat-spinner diameter="18" />
+        Търся сортове…
+      } @else {
+        Търси сортове
+      }
+    </button>
+  </div>
+</form>
+
+<app-api-error-summary [error]="sessionError()" />
+
+@if (warnings.length > 0) {
+  <div class="ai-page__warnings" role="note">
+    <mat-icon fontIcon="info" aria-hidden="true" />
+    <ul>
+      @for (warning of warnings; track warning) {
+        <li>{{ warning }}</li>
+      }
+    </ul>
+  </div>
+}
+
+@if (suggestionStates().length > 0) {
+  <p class="ai-page__advisory" role="note">
+    <mat-icon fontIcon="info" aria-hidden="true" />
+    Намерени са {{ suggestionStates().length }} варианта. Приеми един сорт и откажи останалите.
+  </p>
+}
+
+@for (state of suggestionStates(); track state.suggestion.id) {
+  <app-ai-suggestion-card
+    [suggestion]="state.suggestion"
+    [status]="state.status"
+    [error]="state.error"
+    [acceptResult]="state.acceptResult"
+    (accept)="onAccept($event)"
+    (reject)="onReject($event)"
+  />
+}
+</section>

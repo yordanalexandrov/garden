@@ -17,6 +17,14 @@ export const aiRoutes: Routes = [
       ),
   },
   {
+    path: 'plant-ingestion',
+    title: 'AI Plant Ingestion',
+    loadComponent: () =>
+      import('./pages/plant-ingestion-page/plant-ingestion-page').then(
+        (m) => m.PlantIngestionPage,
+      ),
+  },
+  {
     path: 'bed-planning',
     title: 'AI Bed Planning',
     loadComponent: () =>
