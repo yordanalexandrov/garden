@@ -4,8 +4,11 @@ import { AiProviderError, type AiPort } from "./ai.port.js";
 import type {
   AssistProblemInput,
   AssistProblemResult,
+  IngestPlantInput,
+  IngestPlantResult,
   IngestProductInput,
   IngestProductResult,
+  NormalizedPlantPayload,
   NormalizedSuggestion,
   SuggestBedPlanInput,
   SuggestBedPlanResult,
@@ -83,6 +86,50 @@ const PRODUCT_INGESTION_SCHEMA = {
       warnings: { type: "array", items: { type: "string" } },
     },
     required: ["product", "product_rule", "warnings"],
+  },
+} as const;
+
+const PLANT_LIFECYCLE_TYPES = ["annual", "biennial", "perennial"] as const;
+const PLANT_GROWING_STYLES = [
+  "tree",
+  "shrub",
+  "vine",
+  "herb",
+  "vegetable",
+  "berry",
+  "flower",
+  "other",
+] as const;
+
+// Strict JSON Schema for plant ingestion. The model returns an array of
+// plant variants so the user can choose the one they want. Each variant
+// must carry rich Bulgarian notes (origin, characteristics, growing days, etc.).
+const PLANT_INGESTION_SCHEMA = {
+  name: "plant_ingestion",
+  strict: true,
+  schema: {
+    type: "object",
+    additionalProperties: false,
+    properties: {
+      plants: {
+        type: "array",
+        items: {
+          type: "object",
+          additionalProperties: false,
+          properties: {
+            commonName: { type: "string" },
+            variety: { type: ["string", "null"] },
+            plantCategory: { type: ["string", "null"] },
+            lifecycleType: { type: "string", enum: [...PLANT_LIFECYCLE_TYPES] },
+            growingStyle: { type: "string", enum: [...PLANT_GROWING_STYLES] },
+            notes: { type: ["string", "null"] },
+          },
+          required: ["commonName", "variety", "plantCategory", "lifecycleType", "growingStyle", "notes"],
+        },
+      },
+      warnings: { type: "array", items: { type: "string" } },
+    },
+    required: ["plants", "warnings"],
   },
 } as const;
 
@@ -220,6 +267,70 @@ Return data that conforms to the provided JSON schema.`,
     return warnings.length > 0 ? { suggestions, warnings } : { suggestions };
   }
 
+  async ingestPlant(input: IngestPlantInput): Promise<IngestPlantResult> {
+    const userContent = [
+      `Plant name: ${input.plantName}`,
+      input.notes ? `Additional notes from user: ${input.notes}` : null,
+    ]
+      .filter(Boolean)
+      .join("\n");
+
+    const raw = await this.callStructuredJson(
+      `You are an expert assistant for a Bulgarian gardening app that manages a plant catalog.
+
+Given a plant name (and optional notes), search for and return 3 to 5 distinct varieties
+or cultivars of that plant that are commonly grown or available in Bulgaria.
+
+Search strategy:
+- Use the web_search tool to look up Bulgarian gardening websites, seed catalogs,
+  and nursery sites (e.g. kalina-sad.bg, rasadnik.bg, semena.bg, obi.bg/градина,
+  Bulgarian agricultural extension sites). Prefer Bulgarian-language sources.
+- If no distinct varieties are found for the plant, return the species itself as a
+  single item with variety set to null.
+- Never invent a variety that does not exist. If you are unsure, set variety to null
+  and add a warning.
+
+For each plant variant, include rich Bulgarian notes covering:
+- origin and region (e.g. "Български сорт, създаден в Садово")
+- key characteristics (color, size, flavor, disease resistance, etc.)
+- growing season / days to maturity
+- any special care requirements or known advantages
+- availability in Bulgaria
+
+Language: write ALL free-text fields (notes, warnings, plantCategory) in Bulgarian.
+Keep enum fields (lifecycleType, growingStyle) as the exact English tokens below.
+
+Enum rules:
+- lifecycleType must be exactly one of: annual, biennial, perennial
+- growingStyle must be exactly one of: tree, shrub, vine, herb, vegetable, berry, flower, other
+
+When you use web search, add a warning naming the source(s) you relied on.
+
+Return data that conforms to the provided JSON schema.`,
+      userContent,
+      PLANT_INGESTION_SCHEMA,
+    );
+
+    const rawPlants = Array.isArray(raw.plants) ? raw.plants : [];
+    const warnings: string[] = Array.isArray(raw.warnings) ? (raw.warnings as string[]) : [];
+
+    const suggestions: NormalizedSuggestion[] = rawPlants
+      .filter((p): p is Record<string, unknown> => p !== null && typeof p === "object")
+      .map((p): NormalizedSuggestion => {
+        const payload: NormalizedPlantPayload = {
+          commonName: str(p.commonName, input.plantName),
+          variety: strOrNull(p.variety),
+          plantCategory: strOrNull(p.plantCategory),
+          lifecycleType: str(p.lifecycleType, "annual"),
+          growingStyle: str(p.growingStyle, "other"),
+          notes: strOrNull(p.notes),
+        };
+        return { type: "plant", payload };
+      });
+
+    return warnings.length > 0 ? { suggestions, warnings } : { suggestions };
+  }
+
   async suggestBedPlan(input: SuggestBedPlanInput): Promise<SuggestBedPlanResult> {
     const userContent = [
       `Bed ID: ${input.bedId}`,
@@ -306,7 +417,7 @@ Return only valid JSON. Do not include markdown fences.`,
   private async callStructuredJson(
     systemPrompt: string,
     userContent: string,
-    schema: typeof PRODUCT_INGESTION_SCHEMA,
+    schema: { name: string; strict: boolean; schema: Record<string, unknown> },
   ): Promise<Record<string, unknown>> {
     try {
       const response = await this.client.responses.create({

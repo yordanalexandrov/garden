@@ -1,7 +1,17 @@
-import type { AssistProblemInput, AssistProblemResult, IngestProductInput, IngestProductResult, SuggestBedPlanInput, SuggestBedPlanResult } from "./ai.types.js";
+import type {
+  AssistProblemInput,
+  AssistProblemResult,
+  IngestPlantInput,
+  IngestPlantResult,
+  IngestProductInput,
+  IngestProductResult,
+  SuggestBedPlanInput,
+  SuggestBedPlanResult,
+} from "./ai.types.js";
 
 export interface AiPort {
   ingestProduct(input: IngestProductInput): Promise<IngestProductResult>;
+  ingestPlant(input: IngestPlantInput): Promise<IngestPlantResult>;
   suggestBedPlan(input: SuggestBedPlanInput): Promise<SuggestBedPlanResult>;
   assistProblem(input: AssistProblemInput): Promise<AssistProblemResult>;
 }

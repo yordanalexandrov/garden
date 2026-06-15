@@ -2,6 +2,8 @@ import { AiProviderError, type AiPort } from "./ai.port.js";
 import type {
   AssistProblemInput,
   AssistProblemResult,
+  IngestPlantInput,
+  IngestPlantResult,
   IngestProductInput,
   IngestProductResult,
   NormalizedSuggestion,
@@ -62,8 +64,34 @@ const DEFAULT_PROBLEM_SUGGESTIONS: NormalizedSuggestion[] = [
   }
 ];
 
+const DEFAULT_PLANT_SUGGESTIONS: NormalizedSuggestion[] = [
+  {
+    type: "plant",
+    payload: {
+      commonName: "Домат",
+      variety: "Воловско сърце",
+      plantCategory: "Плодови зеленчуци",
+      lifecycleType: "annual",
+      growingStyle: "vegetable",
+      notes: "Едроплоден български сорт. Плодовете достигат 300-500 г. Зреене около 80 дни."
+    }
+  },
+  {
+    type: "plant",
+    payload: {
+      commonName: "Домат",
+      variety: "Белозерка",
+      plantCategory: "Плодови зеленчуци",
+      lifecycleType: "annual",
+      growingStyle: "vegetable",
+      notes: "Месест, слабо семенен сорт. Подходящ за консерви. Зреене 75 дни."
+    }
+  }
+];
+
 export class TestAiAdapter implements AiPort {
   readonly ingestProductCalls: IngestProductInput[] = [];
+  readonly ingestPlantCalls: IngestPlantInput[] = [];
   readonly suggestBedPlanCalls: SuggestBedPlanInput[] = [];
   readonly assistProblemCalls: AssistProblemInput[] = [];
 
@@ -80,6 +108,20 @@ export class TestAiAdapter implements AiPort {
     return {
       suggestions: DEFAULT_PRODUCT_SUGGESTIONS,
       warnings: ["Review label data before saving."]
+    };
+  }
+
+  async ingestPlant(input: IngestPlantInput): Promise<IngestPlantResult> {
+    await Promise.resolve();
+    this.ingestPlantCalls.push(input);
+
+    if (this.options.failRequests === true) {
+      throw new AiProviderError("Test AI plant ingestion failed");
+    }
+
+    return {
+      suggestions: DEFAULT_PLANT_SUGGESTIONS,
+      warnings: ["Данните са тестови и не са потвърдени от реален източник."]
     };
   }
 

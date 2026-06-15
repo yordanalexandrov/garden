@@ -14,13 +14,14 @@ import { BASELINE_MIGRATIONS, SEED_MIGRATION } from "../../src/db/migrations/bas
 
 describe("baseline migration registration", () => {
   it("registers the provided SQL files in deterministic phase order", () => {
-    expect(BASELINE_MIGRATIONS.map((migration) => migration.id)).toEqual(["001", "002", "003", "004", "005"]);
+    expect(BASELINE_MIGRATIONS.map((migration) => migration.id)).toEqual(["001", "002", "003", "004", "005", "006"]);
     expect(BASELINE_MIGRATIONS.map((migration) => migration.filePath)).toEqual([
       expect.stringContaining("001_initial_schema_gardening_helper.sql"),
       expect.stringContaining("002_views_gardening_helper.sql"),
       expect.stringContaining("003_seed_reference_data_gardening_helper.sql"),
       expect.stringContaining("004_guards_and_triggers_gardening_helper.sql"),
-      expect.stringContaining("005_archive_activities.sql")
+      expect.stringContaining("005_archive_activities.sql"),
+      expect.stringContaining("006_ai_plant_ingestion.sql")
     ]);
   });
 

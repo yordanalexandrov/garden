@@ -7,7 +7,7 @@ import { AppError } from "../../shared/errors/app-error.js";
 import type { AuditService } from "../audit/audit.service.js";
 import type { AuthenticatedActor, UUID } from "../auth/auth.types.js";
 import type { BedsRepository } from "../beds/beds.types.js";
-import type { PlantsRepository } from "../plants/plants.types.js";
+import type { CreatePlantInput, PlantsRepository } from "../plants/plants.types.js";
 import type { CreateProductServiceInput, CreateProductUsageRuleServiceInput, ProductsService } from "../products/products.service.js";
 import type {
   AcceptSuggestionResult,
@@ -29,6 +29,15 @@ const acceptedProductPayloadSchema = z.object({
   notes: optionalTextBodyFieldSchema
 });
 
+const acceptedPlantPayloadSchema = z.object({
+  commonName: z.string().trim().min(1),
+  variety: optionalTextBodyFieldSchema,
+  plantCategory: optionalTextBodyFieldSchema,
+  lifecycleType: z.enum(["annual", "biennial", "perennial"]),
+  growingStyle: z.enum(["tree", "shrub", "vine", "herb", "vegetable", "berry", "flower", "other"]),
+  notes: optionalTextBodyFieldSchema
+});
+
 const acceptedProductRulePayloadSchema = z.object({
   productId: uuidSchema,
   plantId: uuidSchema,
@@ -44,6 +53,11 @@ const acceptedProductRulePayloadSchema = z.object({
 export type IngestProductInput = {
   productName?: string;
   labelText?: string;
+};
+
+export type IngestPlantInput = {
+  plantName: string;
+  notes?: string;
 };
 
 export type SuggestBedPlanInput = {
@@ -97,6 +111,45 @@ export class AiService {
       inputMode: input.productName !== undefined && input.labelText !== undefined ? "mixed" : input.labelText !== undefined ? "text" : "name",
       status: "completed",
       rawInputText: input.labelText ?? input.productName ?? null
+    });
+
+    const suggestions = await this.aiRepository.addSuggestions(
+      session.id,
+      portResult.suggestions.map((s) => ({
+        suggestionType: s.type,
+        payload: s.payload
+      }))
+    );
+
+    return {
+      session,
+      suggestions,
+      ...(portResult.warnings !== undefined ? { warnings: portResult.warnings } : {})
+    };
+  }
+
+  async ingestPlant(actor: AuthenticatedActor, input: IngestPlantInput): Promise<GenerationResult> {
+    let portResult;
+
+    try {
+      portResult = await this.aiPort.ingestPlant({
+        plantName: input.plantName,
+        ...(input.notes !== undefined ? { notes: input.notes } : {})
+      });
+    } catch (error) {
+      if (isAiProviderError(error)) {
+        throw new AppError("EXTERNAL_SERVICE_ERROR", "AI provider failed");
+      }
+
+      throw error;
+    }
+
+    const session = await this.aiRepository.createSession({
+      accountId: actor.accountId,
+      kind: "plant_ingestion",
+      inputMode: "name",
+      status: "completed",
+      rawInputText: input.plantName
     });
 
     const suggestions = await this.aiRepository.addSuggestions(
@@ -343,6 +396,33 @@ export class AiService {
 
       return {
         createdEntities: [{ entityType: "product_rule", entityId: rule.id }],
+        updatedEntities: []
+      };
+    }
+
+    if (suggestionType === "plant") {
+      const parsed = acceptedPlantPayloadSchema.safeParse(payload);
+
+      if (!parsed.success) {
+        throw new AppError("VALIDATION_ERROR", "Invalid plant payload", {
+          fields: parsed.error.issues.map((i) => i.message)
+        });
+      }
+
+      const plantInput: CreatePlantInput = {
+        accountId: actor.accountId,
+        commonName: parsed.data.commonName,
+        variety: parsed.data.variety ?? null,
+        plantCategory: parsed.data.plantCategory ?? null,
+        lifecycleType: parsed.data.lifecycleType,
+        growingStyle: parsed.data.growingStyle,
+        notes: parsed.data.notes ?? null
+      };
+
+      const plant = await this.plantsRepository.create(plantInput, db);
+
+      return {
+        createdEntities: [{ entityType: "plant", entityId: plant.id }],
         updatedEntities: []
       };
     }

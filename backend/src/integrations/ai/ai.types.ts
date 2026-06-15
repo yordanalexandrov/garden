@@ -39,14 +39,34 @@ export type NormalizedFollowupQuestionsPayload = {
   questions: string[];
 };
 
+export type NormalizedPlantPayload = {
+  commonName: string;
+  variety: string | null;
+  plantCategory: string | null;
+  lifecycleType: string;
+  growingStyle: string;
+  notes: string | null;
+};
+
 export type NormalizedSuggestion =
   | { type: "product"; payload: NormalizedProductPayload }
   | { type: "product_rule"; payload: NormalizedProductRulePayload }
   | { type: "bed_plan"; payload: NormalizedBedPlanPayload }
   | { type: "problem_summary"; payload: NormalizedProblemSummaryPayload }
-  | { type: "followup_questions"; payload: NormalizedFollowupQuestionsPayload };
+  | { type: "followup_questions"; payload: NormalizedFollowupQuestionsPayload }
+  | { type: "plant"; payload: NormalizedPlantPayload };
 
 export type IngestProductResult = {
+  suggestions: NormalizedSuggestion[];
+  warnings?: string[];
+};
+
+export type IngestPlantInput = {
+  plantName: string;
+  notes?: string;
+};
+
+export type IngestPlantResult = {
   suggestions: NormalizedSuggestion[];
   warnings?: string[];
 };
