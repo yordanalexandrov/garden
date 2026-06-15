@@ -1,0 +1,30 @@
+<section class="bed-edit-page" aria-labelledby="bed-edit-title">
+  <app-page-header
+    title="Edit bed"
+    titleId="bed-edit-title"
+    [subtitle]="bed()?.name ?? null"
+    icon="grid_view"
+  >
+    <a mat-button page-actions [routerLink]="['/beds', bedId()]">Cancel</a>
+  </app-page-header>
+
+  @if (loading()) {
+    <app-loading-indicator message="Loading bed..." />
+  }
+
+  <app-api-error-summary [error]="apiError()" />
+
+  @if (bed(); as currentBed) {
+    <mat-card class="bed-edit-page__card">
+      <mat-card-content>
+        <app-bed-form
+          [bed]="currentBed"
+          [apiError]="apiError()"
+          [saving]="saving()"
+          (submitted)="saveBed($event)"
+          (cancelled)="cancel()"
+        />
+      </mat-card-content>
+    </mat-card>
+  }
+</section>

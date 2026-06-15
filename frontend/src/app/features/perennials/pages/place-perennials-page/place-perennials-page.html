@@ -4,10 +4,12 @@
       <h2 id="place-perennials-title">Trees / Perennials</h2>
       <p>Individually tracked long-lived plants in this place.</p>
     </div>
-    <button mat-flat-button type="button" (click)="openCreateForm()">
-      <mat-icon aria-hidden="true" fontIcon="add" />
-      Add perennial
-    </button>
+    @if (placeId(); as currentPlaceId) {
+      <a mat-flat-button [routerLink]="['/places', currentPlaceId, 'perennials', 'new']">
+        <mat-icon aria-hidden="true" fontIcon="add" />
+        Add perennial
+      </a>
+    }
   </div>
 
   <form class="perennials-page__filters" [formGroup]="filters" (ngSubmit)="loadPerennials()">
@@ -34,25 +36,6 @@
 
   <app-api-error-summary [error]="listError()" />
 
-  @if (formOpen()) {
-    <mat-card class="perennials-page__form-card">
-      <mat-card-header>
-        <mat-card-title>
-          {{ editingPerennial() === null ? 'Add perennial' : 'Edit perennial' }}
-        </mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <app-perennial-form
-          [perennial]="editingPerennial()"
-          [apiError]="formError()"
-          [saving]="saving()"
-          (submitted)="savePerennial($event)"
-          (cancelled)="closeForm()"
-        />
-      </mat-card-content>
-    </mat-card>
-  }
-
   @if (loading()) {
     <app-loading-indicator message="Loading perennials..." />
   } @else if (perennials().length === 0) {
@@ -74,7 +57,14 @@
             <app-status-chip [status]="perennial.status" />
           </mat-card-content>
           <mat-card-actions align="end">
-            <button mat-button type="button" (click)="openEditForm(perennial)">Edit</button>
+            @if (placeId(); as currentPlaceId) {
+              <a
+                mat-button
+                [routerLink]="['/places', currentPlaceId, 'perennials', perennial.id, 'edit']"
+              >
+                Edit
+              </a>
+            }
             <button mat-button type="button" color="warn" (click)="archivePerennial(perennial)">
               Archive
             </button>

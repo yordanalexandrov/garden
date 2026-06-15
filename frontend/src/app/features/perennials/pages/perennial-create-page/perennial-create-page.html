@@ -1,0 +1,19 @@
+<section class="perennial-create-page" aria-labelledby="perennial-create-title">
+  <app-page-header
+    title="New perennial"
+    titleId="perennial-create-title"
+    subtitle="Add a tree, vine, shrub, or other long-lived plant"
+    icon="park"
+  />
+
+  <mat-card class="perennial-create-page__card">
+    <mat-card-content>
+      <app-perennial-form
+        [apiError]="apiError()"
+        [saving]="saving()"
+        (submitted)="savePerennial($event)"
+        (cancelled)="cancel()"
+      />
+    </mat-card-content>
+  </mat-card>
+</section>

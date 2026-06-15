@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
-import { ActivatedRoute, convertToParamMap } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, Router } from '@angular/router';
 import { of } from 'rxjs';
 
 import { ApiError } from '../../core/errors/api-error';
@@ -8,6 +8,7 @@ import { SnackbarService } from '../../core/notifications/snackbar.service';
 import { PlantsApiService } from '../plants/plants-api.service';
 import { ArchiveConfirmationService } from '../../shared/components/confirm-dialog/confirm-dialog';
 import { PerennialForm } from './components/perennial-form/perennial-form';
+import { PerennialCreatePage } from './pages/perennial-create-page/perennial-create-page';
 import { PlacePerennialsPage } from './pages/place-perennials-page/place-perennials-page';
 import { PerennialListItem } from './perennials.models';
 import { PerennialsApiService } from './perennials-api.service';
@@ -39,6 +40,9 @@ describe('place perennials Phase 7 page', () => {
     showMessage: vi.fn(),
     showError: vi.fn(),
   };
+  const router = {
+    navigate: vi.fn(),
+  };
 
   beforeEach(() => {
     perennialsApi.listByPlace.mockReturnValue(
@@ -61,6 +65,7 @@ describe('place perennials Phase 7 page', () => {
         { provide: PlantsApiService, useValue: plantsApi },
         { provide: ArchiveConfirmationService, useValue: archiveConfirmation },
         { provide: SnackbarService, useValue: snackbar },
+        { provide: Router, useValue: router },
       ],
     });
   });
@@ -97,9 +102,10 @@ describe('place perennials Phase 7 page', () => {
     expect(fixture.componentInstance.form.controls.plantedYear.hasError('saneYear')).toBe(true);
   });
 
-  it('does not send trusted scope fields when creating or updating', () => {
+  it('does not send trusted scope fields when creating a perennial', () => {
     const forbiddenKey = ['account', 'Id'].join('');
-    const fixture = TestBed.createComponent(PlacePerennialsPage);
+    const fixture = TestBed.createComponent(PerennialCreatePage);
+    fixture.detectChanges();
 
     fixture.componentInstance.savePerennial({
       plantId: 'plant-1',
@@ -116,6 +122,7 @@ describe('place perennials Phase 7 page', () => {
       notes: null,
     });
     expect(perennialsApi.create.mock.calls[0][1]).not.toHaveProperty(forbiddenKey);
+    expect(router.navigate).toHaveBeenCalledWith(['/places', 'place-1', 'perennials']);
   });
 
   it('renders backend invalid reference errors', () => {

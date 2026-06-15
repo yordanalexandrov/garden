@@ -2,6 +2,7 @@ import { Route, Routes } from '@angular/router';
 
 import { LoginPage } from './features/auth/pages/login-page/login-page';
 import { BedDetailPage } from './features/beds/pages/bed-detail-page/bed-detail-page';
+import { BedEditPage } from './features/beds/pages/bed-edit-page/bed-edit-page';
 import { inventoryRoutes } from './features/inventory/inventory.routes';
 import { NotFoundPage } from './features/not-found/not-found-page';
 import { FeaturePlaceholderPage } from './features/placeholders/feature-placeholder-page';
@@ -26,6 +27,7 @@ export const routes: Routes = [
       import('./features/dashboard/dashboard.routes').then((module) => module.dashboardRoutes),
   },
   { path: 'places', children: placesRoutes },
+  { path: 'beds/:bedId/edit', title: 'Edit Bed', component: BedEditPage },
   { path: 'beds/:bedId', title: 'Bed Detail', component: BedDetailPage },
   { path: 'plants', children: plantsRoutes },
   { path: 'products', children: productsRoutes },

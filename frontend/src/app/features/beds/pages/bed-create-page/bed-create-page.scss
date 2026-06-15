@@ -1,0 +1,13 @@
+:host {
+  display: block;
+}
+
+.bed-create-page {
+  display: grid;
+  gap: 1rem;
+}
+
+.bed-create-page__card {
+  max-width: 52rem;
+  border-radius: 0.5rem;
+}

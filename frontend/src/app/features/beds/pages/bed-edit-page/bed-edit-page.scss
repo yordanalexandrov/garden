@@ -1,0 +1,13 @@
+:host {
+  display: block;
+}
+
+.bed-edit-page {
+  display: grid;
+  gap: 1rem;
+}
+
+.bed-edit-page__card {
+  max-width: 52rem;
+  border-radius: 0.5rem;
+}

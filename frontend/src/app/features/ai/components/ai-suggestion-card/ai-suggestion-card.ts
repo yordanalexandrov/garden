@@ -102,7 +102,7 @@ export class AiSuggestionCard implements OnChanges {
     return {};
   }
 
-  get payloadEntries(): Array<{ key: string; value: unknown }> {
+  get payloadEntries(): { key: string; value: unknown }[] {
     return Object.entries(this.payloadAsRecord).map(([key, value]) => ({ key, value }));
   }
 
