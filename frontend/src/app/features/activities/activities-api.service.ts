@@ -3,6 +3,7 @@ import { Observable } from 'rxjs';
 
 import { ApiClient } from '../../core/api/api-client';
 import { buildQueryParams } from '../../core/api/query-params';
+import { ArchiveResult } from '../garden-structure-api.types';
 import {
   ActivitiesPage,
   ActivityDetail,
@@ -29,8 +30,8 @@ export class ActivitiesApiService {
     return this.api.post<CreateActivityResult>('/activities', request);
   }
 
-  archive(activityId: string): Observable<void> {
-    return this.api.delete<void>(`/activities/${encodeURIComponent(activityId)}`);
+  archive(activityId: string): Observable<ArchiveResult> {
+    return this.api.post<ArchiveResult>(`/activities/${encodeURIComponent(activityId)}/archive`, {});
   }
 }
 
