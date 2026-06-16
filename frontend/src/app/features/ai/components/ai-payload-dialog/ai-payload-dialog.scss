@@ -1,0 +1,48 @@
+.ai-payload-dialog {
+  &__content {
+    min-width: min(70vw, 520px);
+  }
+
+  &__field {
+    width: 100%;
+
+    textarea {
+      font-family: monospace;
+      font-size: 0.8125rem;
+      line-height: 1.4;
+    }
+  }
+
+  &__readonly {
+    margin: 0;
+    padding: 0.75rem;
+    background: var(--mat-sys-surface-variant, #f1f1eb);
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  &__error {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin: 0.25rem 0 0;
+    color: var(--mat-sys-error, #ba1a1a);
+    font-size: 0.875rem;
+
+    mat-icon {
+      font-size: 1rem;
+      height: 1rem;
+      width: 1rem;
+    }
+  }
+}
+
+h2[mat-dialog-title] {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}

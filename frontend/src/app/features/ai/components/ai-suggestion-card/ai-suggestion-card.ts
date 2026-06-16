@@ -6,15 +6,15 @@ import {
   OnChanges,
   Output,
   SimpleChanges,
+  inject,
   signal,
 } from '@angular/core';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { FormControl } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
-import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
 
 import { mapApiError } from '../../../../core/errors/api-error.mapper';
 import { ApiErrorSummary } from '../../../../shared/forms/api-error-summary/api-error-summary';
@@ -24,6 +24,7 @@ import {
   AiSuggestionDto,
   AiSuggestionStatus,
 } from '../../ai.models';
+import { AiPayloadDialog, AiPayloadDialogData } from '../ai-payload-dialog/ai-payload-dialog';
 
 export interface AiSuggestionAcceptEvent {
   readonly suggestionId: string;
@@ -36,16 +37,7 @@ export interface AiSuggestionRejectEvent {
 
 @Component({
   selector: 'app-ai-suggestion-card',
-  imports: [
-    ApiErrorSummary,
-    MatButtonModule,
-    MatCardModule,
-    MatChipsModule,
-    MatFormFieldModule,
-    MatIconModule,
-    MatInputModule,
-    ReactiveFormsModule,
-  ],
+  imports: [ApiErrorSummary, MatButtonModule, MatCardModule, MatChipsModule, MatIconModule],
   templateUrl: './ai-suggestion-card.html',
   styleUrl: './ai-suggestion-card.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -60,8 +52,11 @@ export class AiSuggestionCard implements OnChanges {
   @Output() readonly accept = new EventEmitter<AiSuggestionAcceptEvent>();
   @Output() readonly reject = new EventEmitter<AiSuggestionRejectEvent>();
 
+  private readonly dialog = inject(MatDialog);
+
   readonly editPayloadControl = new FormControl<string>('');
   readonly mappedError = signal<ReturnType<typeof mapApiError> | null>(null);
+  private originalPayloadJson = '';
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['error'] && this.error !== null) {
@@ -74,12 +69,35 @@ export class AiSuggestionCard implements OnChanges {
       const payload = this.suggestion.payload;
       if (payload !== null && payload !== undefined) {
         try {
-          this.editPayloadControl.setValue(JSON.stringify(payload, null, 2));
+          this.originalPayloadJson = JSON.stringify(payload, null, 2);
+          this.editPayloadControl.setValue(this.originalPayloadJson);
         } catch {
+          this.originalPayloadJson = '';
           this.editPayloadControl.setValue('');
         }
       }
     }
+  }
+
+  /** True once the user has changed the payload JSON away from the AI's original. */
+  get isPayloadEdited(): boolean {
+    return (this.editPayloadControl.value ?? '') !== this.originalPayloadJson;
+  }
+
+  openPayloadDialog(): void {
+    if (this.isActing || this.isAccepted || this.isRejected) return;
+
+    this.dialog
+      .open<AiPayloadDialog, AiPayloadDialogData, string | undefined>(AiPayloadDialog, {
+        data: { payloadJson: this.editPayloadControl.value ?? '', editable: true },
+        autoFocus: false,
+      })
+      .afterClosed()
+      .subscribe((result) => {
+        if (result !== undefined) {
+          this.editPayloadControl.setValue(result);
+        }
+      });
   }
 
   get isActing(): boolean {

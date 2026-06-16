@@ -1,6 +1,8 @@
 import { SimpleChange } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { MatDialog } from '@angular/material/dialog';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
+import { of } from 'rxjs';
 
 import { AiSuggestionCard } from './ai-suggestion-card';
 
@@ -44,6 +46,36 @@ describe('Phase 24 AiSuggestionCard', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.textContent).toContain('name');
     expect(compiled.textContent).toContain('category');
+  });
+
+  it('does not show the raw JSON inline, only a button to open it', () => {
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('textarea')).toBeNull();
+    expect(compiled.textContent).toContain('View / edit JSON');
+  });
+
+  it('opens the payload dialog and applies the edited JSON on close', () => {
+    const dialog = TestBed.inject(MatDialog);
+    const openSpy = vi
+      .spyOn(dialog, 'open')
+      .mockReturnValue({ afterClosed: () => of('{"name":"From Dialog"}') } as never);
+
+    component.openPayloadDialog();
+
+    expect(openSpy).toHaveBeenCalled();
+    expect(component.editPayloadControl.value).toBe('{"name":"From Dialog"}');
+    expect(component.isPayloadEdited).toBe(true);
+  });
+
+  it('keeps the payload unchanged when the dialog is dismissed', () => {
+    const dialog = TestBed.inject(MatDialog);
+    vi.spyOn(dialog, 'open').mockReturnValue({ afterClosed: () => of(undefined) } as never);
+    const before = component.editPayloadControl.value;
+
+    component.openPayloadDialog();
+
+    expect(component.editPayloadControl.value).toBe(before);
+    expect(component.isPayloadEdited).toBe(false);
   });
 
   it('shows warnings when provided', () => {
