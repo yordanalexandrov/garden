@@ -48,17 +48,23 @@
         }
       </div>
 
-      <mat-form-field class="ai-suggestion-card__edit-field" appearance="outline">
-        <mat-label>Edit payload (JSON)</mat-label>
-        <textarea
-          matInput
-          [formControl]="editPayloadControl"
-          rows="6"
-          autocomplete="off"
-          aria-label="Edit suggestion payload as JSON"
-        ></textarea>
-        <mat-hint>Optional: edit the JSON payload before accepting.</mat-hint>
-      </mat-form-field>
+      <div class="ai-suggestion-card__json-actions">
+        <button
+          mat-stroked-button
+          type="button"
+          [disabled]="isActing"
+          (click)="openPayloadDialog()"
+          aria-label="View or edit suggestion payload as JSON"
+        >
+          <mat-icon fontIcon="data_object" aria-hidden="true" />
+          View / edit JSON
+        </button>
+        @if (isPayloadEdited) {
+          <span class="ai-suggestion-card__json-edited">
+            <mat-icon fontIcon="edit" aria-hidden="true" /> Payload edited
+          </span>
+        }
+      </div>
     }
 
     @if (isAccepted) {

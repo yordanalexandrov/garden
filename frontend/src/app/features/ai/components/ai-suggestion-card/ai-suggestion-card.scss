@@ -69,13 +69,26 @@
     }
   }
 
-  &__edit-field {
-    width: 100%;
+  &__json-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
     margin-top: 0.5rem;
+    flex-wrap: wrap;
+  }
 
-    textarea {
-      font-family: monospace;
-      font-size: 0.8125rem;
+  &__json-edited {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.8125rem;
+    font-style: italic;
+    color: var(--mat-sys-on-surface-variant, #43483f);
+
+    mat-icon {
+      font-size: 1rem;
+      height: 1rem;
+      width: 1rem;
     }
   }
 
