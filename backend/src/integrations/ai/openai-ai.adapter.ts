@@ -4,12 +4,16 @@ import { AiProviderError, type AiPort } from "./ai.port.js";
 import type {
   AssistProblemInput,
   AssistProblemResult,
+  GenerateProductRulesInput,
+  GenerateProductRulesResult,
   IngestPlantInput,
   IngestPlantResult,
   IngestProductInput,
   IngestProductResult,
   NormalizedPlantPayload,
+  NormalizedProductRulePayload,
   NormalizedSuggestion,
+  ProductRuleOperation,
   SuggestBedPlanInput,
   SuggestBedPlanResult,
 } from "./ai.types.js";
@@ -29,6 +33,10 @@ const PRODUCT_CATEGORIES = [
 ] as const;
 
 const PRODUCT_UNITS = ["ml", "l", "g", "kg", "tablet", "sachet", "other"] as const;
+
+// product_usage_rules.dose_unit is constrained to these four in the database, so
+// the rule-generation flow restricts doseUnit to them to avoid accept failures.
+const RULE_UNITS = ["ml", "l", "g", "kg"] as const;
 
 // Strict JSON Schema for product ingestion. Enforces valid enum values so the
 // model can no longer return categories/units that silently collapse to "other".
@@ -409,6 +417,130 @@ Return only valid JSON. Do not include markdown fences.`,
     ];
 
     return { suggestions };
+  }
+
+  async generateProductRules(input: GenerateProductRulesInput): Promise<GenerateProductRulesResult> {
+    const plantIds = input.plants.map((p) => p.plantId);
+    const ruleIds = input.existingRules.map((r) => r.ruleId);
+
+    // No plants to target — nothing the model can produce.
+    if (plantIds.length === 0) {
+      return { suggestions: [], warnings: ["Няма налични растения в акаунта, за които да се генерира правило."] };
+    }
+
+    const userContent = [
+      "Продукт:",
+      JSON.stringify(input.product, null, 2),
+      "",
+      "Съществуващи правила за продукта (опресни ги, ако имаш по-добри данни):",
+      input.existingRules.length > 0 ? JSON.stringify(input.existingRules, null, 2) : "няма",
+      "",
+      "Растения в акаунта (избери само подходящите за този продукт):",
+      JSON.stringify(input.plants, null, 2),
+    ].join("\n");
+
+    // Constrain plantId/ruleId to the exact values we provided so the model can
+    // only choose from the account's real rows; the service re-validates anyway.
+    const schema = {
+      name: "product_rule_generation",
+      strict: true,
+      schema: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          rules: {
+            type: "array",
+            items: {
+              type: "object",
+              additionalProperties: false,
+              properties: {
+                plantId: { type: "string", enum: plantIds },
+                operation: { type: "string", enum: ["create", "update"] },
+                ruleId: { type: ["string", "null"], enum: [...ruleIds, null] },
+                doseValue: { type: ["number", "null"] },
+                doseUnit: { type: ["string", "null"], enum: [...RULE_UNITS, null] },
+                dilutionText: { type: ["string", "null"] },
+                applicationMethod: { type: ["string", "null"] },
+                reapplicationIntervalDays: { type: ["integer", "null"] },
+                quarantinePeriodDays: { type: ["integer", "null"] },
+                notes: { type: ["string", "null"] },
+              },
+              required: [
+                "plantId",
+                "operation",
+                "ruleId",
+                "doseValue",
+                "doseUnit",
+                "dilutionText",
+                "applicationMethod",
+                "reapplicationIntervalDays",
+                "quarantinePeriodDays",
+                "notes",
+              ],
+            },
+          },
+          warnings: { type: "array", items: { type: "string" } },
+        },
+        required: ["rules", "warnings"],
+      },
+    };
+
+    const raw = await this.callStructuredJson(
+      `You are an expert assistant for a Bulgarian gardening app. The user owns a
+specific plant-protection / fertilizer product and a set of plants. Your job is
+to propose concrete spraying/application rules (dose, dilution, intervals,
+quarantine) for the plants this product is suitable for.
+
+Rules:
+- Only propose rules for plants from the provided list, using their exact plantId.
+- If a plant already has an existing rule and you can improve/refresh it, set
+  operation to "update" and reference that rule's exact ruleId. Otherwise set
+  operation to "create" and ruleId to null.
+- Only include plants for which this product is genuinely appropriate. Skip the
+  rest — do not pad the list.
+- doseUnit must be exactly one of: ml, l, g, kg.
+- Never invent a precise dose, interval, or quarantine. If you cannot confirm a
+  value, set it to null and add a warning explaining what is missing.
+- Write all free-text fields (dilutionText, applicationMethod, notes, warnings)
+  in Bulgarian.
+
+Return data that conforms to the provided JSON schema.`,
+      userContent,
+      schema,
+    );
+
+    const rawRules = Array.isArray(raw.rules) ? raw.rules : [];
+    const warnings: string[] = Array.isArray(raw.warnings) ? (raw.warnings as string[]) : [];
+
+    const plantIdSet = new Set(plantIds);
+    const ruleIdSet = new Set(ruleIds);
+
+    const suggestions: NormalizedSuggestion[] = rawRules
+      .filter((r): r is Record<string, unknown> => r !== null && typeof r === "object")
+      .filter((r) => typeof r.plantId === "string" && plantIdSet.has(r.plantId))
+      .map((r): NormalizedSuggestion => {
+        const operation: ProductRuleOperation = r.operation === "update" ? "update" : "create";
+        const ruleId = typeof r.ruleId === "string" && ruleIdSet.has(r.ruleId) ? r.ruleId : undefined;
+        const plant = input.plants.find((p) => p.plantId === r.plantId);
+
+        const payload: NormalizedProductRulePayload = {
+          plantId: r.plantId as string,
+          ...(plant !== undefined ? { plantName: plant.commonName } : {}),
+          operation,
+          ...(operation === "update" && ruleId !== undefined ? { ruleId } : {}),
+          doseValue: numOrNull(r.doseValue) ?? 0,
+          doseUnit: str(r.doseUnit, "ml"),
+          dilutionText: strOrNull(r.dilutionText),
+          applicationMethod: strOrNull(r.applicationMethod),
+          reapplicationIntervalDays: numOrNull(r.reapplicationIntervalDays),
+          quarantinePeriodDays: numOrNull(r.quarantinePeriodDays),
+          notes: strOrNull(r.notes),
+        };
+
+        return { type: "product_rule", payload };
+      });
+
+    return warnings.length > 0 ? { suggestions, warnings } : { suggestions };
   }
 
   // Structured extraction via the Responses API. Enables the hosted web_search

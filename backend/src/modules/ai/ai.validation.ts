@@ -36,6 +36,10 @@ export const plantIngestionBodySchema = z.object({
   notes: z.string().trim().min(1).optional()
 });
 
+export const productRuleGenerationBodySchema = z.object({
+  productId: uuidSchema
+});
+
 export const acceptSuggestionBodySchema = z.object({
   editedPayload: z.record(z.string(), z.unknown()).optional()
 });
@@ -47,4 +51,5 @@ export type ProductIngestionBody = z.infer<typeof productIngestionBodySchema>;
 export type BedPlanningBody = z.infer<typeof bedPlanningBodySchema>;
 export type ProblemAssistBody = z.infer<typeof problemAssistBodySchema>;
 export type PlantIngestionBody = z.infer<typeof plantIngestionBodySchema>;
+export type ProductRuleGenerationBody = z.infer<typeof productRuleGenerationBodySchema>;
 export type AcceptSuggestionBody = z.infer<typeof acceptSuggestionBodySchema>;

@@ -2,6 +2,8 @@ import { AiProviderError, type AiPort } from "./ai.port.js";
 import type {
   AssistProblemInput,
   AssistProblemResult,
+  GenerateProductRulesInput,
+  GenerateProductRulesResult,
   IngestPlantInput,
   IngestPlantResult,
   IngestProductInput,
@@ -94,6 +96,7 @@ export class TestAiAdapter implements AiPort {
   readonly ingestPlantCalls: IngestPlantInput[] = [];
   readonly suggestBedPlanCalls: SuggestBedPlanInput[] = [];
   readonly assistProblemCalls: AssistProblemInput[] = [];
+  readonly generateProductRulesCalls: GenerateProductRulesInput[] = [];
 
   constructor(private readonly options: TestAiAdapterOptions = {}) {}
 
@@ -145,5 +148,60 @@ export class TestAiAdapter implements AiPort {
     }
 
     return { suggestions: DEFAULT_PROBLEM_SUGGESTIONS };
+  }
+
+  async generateProductRules(input: GenerateProductRulesInput): Promise<GenerateProductRulesResult> {
+    await Promise.resolve();
+    this.generateProductRulesCalls.push(input);
+
+    if (this.options.failRequests === true) {
+      throw new AiProviderError("Test AI product rule generation failed");
+    }
+
+    const rulesByPlant = new Map(input.existingRules.map((rule) => [rule.plantId, rule]));
+
+    const suggestions: NormalizedSuggestion[] = input.plants.map((plant) => {
+      const existing = rulesByPlant.get(plant.plantId);
+
+      if (existing !== undefined) {
+        return {
+          type: "product_rule",
+          payload: {
+            plantName: plant.commonName,
+            plantId: plant.plantId,
+            ruleId: existing.ruleId,
+            operation: "update",
+            doseValue: 12,
+            doseUnit: "ml",
+            dilutionText: "12 ml / 10 l вода",
+            applicationMethod: null,
+            reapplicationIntervalDays: 7,
+            quarantinePeriodDays: 14,
+            notes: "Обновени стойности по препоръка на ИИ."
+          }
+        };
+      }
+
+      return {
+        type: "product_rule",
+        payload: {
+          plantName: plant.commonName,
+          plantId: plant.plantId,
+          operation: "create",
+          doseValue: 10,
+          doseUnit: "ml",
+          dilutionText: "10 ml / 10 l вода",
+          applicationMethod: null,
+          reapplicationIntervalDays: 10,
+          quarantinePeriodDays: 14,
+          notes: "Предложено правило за пръскане."
+        }
+      };
+    });
+
+    return {
+      suggestions,
+      warnings: ["Данните са тестови и трябва да се потвърдят преди запис."]
+    };
   }
 }
