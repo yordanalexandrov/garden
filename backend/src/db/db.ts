@@ -10,7 +10,11 @@ import {
 import type { Database } from "./database.types.js";
 import { KyselyDbClient, type DbClient } from "./transaction.js";
 
-const { Pool } = pg;
+const { Pool, types } = pg;
+
+// pg parses DATE columns as JS Date objects by default, but our schema types
+// declare them as DateOnly (string). Return raw "YYYY-MM-DD" strings instead.
+types.setTypeParser(types.builtins.DATE, (val: string) => val);
 
 export function createPgPool(settings: DatabaseConnectionSettings): pg.Pool {
   return new Pool(toPgPoolConfig(settings));

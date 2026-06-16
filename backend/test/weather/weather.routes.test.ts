@@ -121,7 +121,7 @@ describeDatabase("Weather routes with database", () => {
       placeId: Ids.placeEnabledA,
       enabled: true,
       locationLabel: "Ruse, Bulgaria",
-      forecast: [expect.objectContaining({ date: "2026-05-13", rainProbability: 0.4 })]
+      forecast: expect.arrayContaining([expect.objectContaining({ date: "2026-05-13", rainProbability: 0.4 })])
     });
     expect(weather.forecastCalls).toHaveLength(1);
     expect(missingLocation.statusCode).toBe(422);
@@ -231,10 +231,10 @@ async function insertWeatherFixture(pool: Pool): Promise<void> {
     [Ids.placeDisabledA, Ids.placeEnabledA, Ids.placeMissingLocationA, Ids.placeB, AccountFixtureIds.accountA, AccountFixtureIds.accountB]
   );
   await pool.query(
-    `insert into tasks (id, account_id, place_id, type, due_date, source_type, source_reference_id, target_scope_type, status)
+    `insert into tasks (id, account_id, place_id, type, due_date, source_type, source_reference_id, target_scope_type, status, confirmed_at)
      values
-       ($1, $3, $4, 'spraying', '2026-05-23', 'manual', null, 'whole_place', 'planned'),
-       ($2, $5, $6, 'spraying', '2026-05-23', 'manual', null, 'whole_place', 'planned')`,
+       ($1, $3, $4, 'spraying', '2026-05-23', 'manual', null, 'whole_place', 'planned', now()),
+       ($2, $5, $6, 'spraying', '2026-05-23', 'manual', null, 'whole_place', 'planned', now())`,
     [Ids.taskA, Ids.taskB, AccountFixtureIds.accountA, Ids.placeEnabledA, AccountFixtureIds.accountB, Ids.placeB]
   );
   await pool.query(

@@ -2,8 +2,12 @@ BEGIN;
 
 ALTER TABLE activities ADD COLUMN is_archived BOOLEAN NOT NULL DEFAULT FALSE;
 
--- Recreate activity_detail_view to expose is_archived and exclude archived activities
-CREATE OR REPLACE VIEW activity_detail_view AS
+-- Recreate activity_detail_view to expose is_archived and exclude archived activities.
+-- DROP + CREATE (not CREATE OR REPLACE) because is_archived is inserted before the
+-- existing target_count column; CREATE OR REPLACE VIEW can only append columns, never
+-- reorder/rename them. No other view depends on this view, so a plain DROP is safe.
+DROP VIEW IF EXISTS activity_detail_view;
+CREATE VIEW activity_detail_view AS
 SELECT
     a.id,
     a.account_id,

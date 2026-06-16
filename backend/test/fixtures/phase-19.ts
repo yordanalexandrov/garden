@@ -116,7 +116,7 @@ async function insertUsageAndQuarantine(
   );
   await pool.query(
     `insert into quarantine_periods (id, account_id, place_id, activity_id, activity_product_usage_id, product_id, starts_on, ends_on)
-     values ($1, $2, $3, $4, $5, $6, current_date - interval '1 day', current_date + interval '7 days')`,
+     values ($1, $2, $3, $4, $5, $6, '2026-05-13', current_date + interval '365 days')`,
     [quarantineId, accountId, placeId, activityId, usageId, productId]
   );
 }

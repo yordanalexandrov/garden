@@ -15,6 +15,7 @@ const describeDatabase = hasTestDatabase() ? describe : describe.skip;
 const Ids = {
   placeA: "11111111-1111-4111-8111-111111111111",
   emptyPlaceA: "12121212-1212-4121-8121-121212121212",
+  otherPlaceA: "1a1a1a1a-1a1a-4a1a-8a1a-1a1a1a1a1a1a",
   placeB: "13131313-1313-4131-8131-131313131313",
   plantA: "22222222-2222-4222-8222-222222222222",
   plantB: "23232323-2323-4232-8232-232323232323",
@@ -265,6 +266,10 @@ async function insertTargetResolverFixture(pool: Pool): Promise<void> {
     Ids.emptyPlaceA,
     AccountFixtureIds.accountA
   ]);
+  await pool.query("insert into places (id, account_id, name) values ($1, $2, 'Other Place A')", [
+    Ids.otherPlaceA,
+    AccountFixtureIds.accountA
+  ]);
   await pool.query("insert into places (id, account_id, name) values ($1, $2, 'Place B')", [
     Ids.placeB,
     AccountFixtureIds.accountB
@@ -289,7 +294,7 @@ async function insertTargetResolverFixture(pool: Pool): Promise<void> {
     "archived",
     new Date("2026-01-01T00:00:00.000Z")
   );
-  await insertPerennial(pool, Ids.perennialOtherPlaceA, AccountFixtureIds.accountA, Ids.emptyPlaceA, Ids.plantA, "Other pear");
+  await insertPerennial(pool, Ids.perennialOtherPlaceA, AccountFixtureIds.accountA, Ids.otherPlaceA, Ids.plantA, "Other pear");
   await insertPerennial(pool, Ids.perennialB, AccountFixtureIds.accountB, Ids.placeB, Ids.plantB, "Foreign pear");
 
   await insertBed(pool, Ids.bedA, AccountFixtureIds.accountA, Ids.placeA, "Bed A");
@@ -302,7 +307,7 @@ async function insertTargetResolverFixture(pool: Pool): Promise<void> {
     "archived",
     new Date("2026-01-01T00:00:00.000Z")
   );
-  await insertBed(pool, Ids.bedOtherPlaceA, AccountFixtureIds.accountA, Ids.emptyPlaceA, "Other Place Bed A");
+  await insertBed(pool, Ids.bedOtherPlaceA, AccountFixtureIds.accountA, Ids.otherPlaceA, "Other Place Bed A");
   await insertBed(pool, Ids.bedB, AccountFixtureIds.accountB, Ids.placeB, "Bed B");
 
   await insertYearly(pool, Ids.yearlyA, AccountFixtureIds.accountA, Ids.bedA, Ids.plantA, "planted");
@@ -315,7 +320,7 @@ async function insertTargetResolverFixture(pool: Pool): Promise<void> {
     "archived",
     new Date("2026-01-01T00:00:00.000Z")
   );
-  await insertYearly(pool, Ids.yearlyOtherPlaceA, AccountFixtureIds.accountA, Ids.bedOtherPlaceA, Ids.plantA, "planted");
+  await insertYearly(pool, Ids.yearlyOtherPlaceA, AccountFixtureIds.accountA, Ids.bedOtherPlaceA, Ids.plantA, "planted"); // bedOtherPlaceA is now in otherPlaceA
   await insertYearly(pool, Ids.yearlyB, AccountFixtureIds.accountB, Ids.bedB, Ids.plantB, "planted");
 
   await insertPersistent(pool, Ids.persistentA, AccountFixtureIds.accountA, Ids.bedA, Ids.plantA, "active");
@@ -328,7 +333,7 @@ async function insertTargetResolverFixture(pool: Pool): Promise<void> {
     "archived",
     new Date("2026-01-01T00:00:00.000Z")
   );
-  await insertPersistent(pool, Ids.persistentOtherPlaceA, AccountFixtureIds.accountA, Ids.bedOtherPlaceA, Ids.plantA, "active");
+  await insertPersistent(pool, Ids.persistentOtherPlaceA, AccountFixtureIds.accountA, Ids.bedOtherPlaceA, Ids.plantA, "active"); // bedOtherPlaceA is now in otherPlaceA
   await insertPersistent(pool, Ids.persistentB, AccountFixtureIds.accountB, Ids.bedB, Ids.plantB, "active");
 }
 

@@ -718,7 +718,11 @@ async function insertUsageRule(
 }
 
 async function expectTableCount(pool: Pool, tableName: string, expectedCount: number): Promise<void> {
-  const result = await pool.query<{ count: string }>(`select count(*) from ${tableName}`);
+  const sql =
+    tableName === "ai_suggestions"
+      ? `select count(*) from ai_suggestions s join ai_sessions sess on sess.id = s.ai_session_id where sess.account_id = $1`
+      : `select count(*) from ${tableName} where account_id = $1`;
+  const result = await pool.query<{ count: string }>(sql, [AccountFixtureIds.accountA]);
 
   expect(Number(result.rows[0]?.count ?? 0)).toBe(expectedCount);
 }

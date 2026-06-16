@@ -51,6 +51,11 @@ export function registerErrorHandling(app: FastifyInstance): void {
       return;
     }
 
+    if ((error as FastifyError).statusCode === 413) {
+      sendAppError(reply, new AppError("VALIDATION_ERROR", "Request payload is too large"));
+      return;
+    }
+
     request.log.error({ err: sanitizedUnhandledErrorForLog(error) }, "Unhandled request error");
     sendAppError(reply, new AppError("INTERNAL_ERROR", "Unexpected server error"));
   });
