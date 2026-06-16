@@ -81,6 +81,16 @@ svg {
   margin-bottom: 0.5rem;
 }
 
+.ai-page__rule-resolve {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+
+  .ai-page__field {
+    flex: 1 1 220px;
+  }
+}
+
 .ai-page__actions {
   display: flex;
   gap: 0.5rem;
