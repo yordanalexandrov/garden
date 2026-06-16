@@ -3,8 +3,14 @@ import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { of, throwError } from 'rxjs';
 
 import { ApiError } from '../../../../core/errors/api-error';
+import { PlantsApiService } from '../../../plants/plants-api.service';
+import { ProductsApiService } from '../../../products/products-api.service';
 import { AiApiService } from '../../data-access/ai-api.service';
 import { ProductIngestionPage } from './product-ingestion-page';
+
+function listResult<T>(items: T[]): { items: T[]; page: number; pageSize: number; total: number } {
+  return { items, page: 1, pageSize: 200, total: items.length };
+}
 
 const productSuggestion = {
   id: 'suggestion-1',
@@ -33,16 +39,28 @@ describe('Phase 24 ProductIngestionPage', () => {
     acceptSuggestion: vi.fn(),
     rejectSuggestion: vi.fn(),
   };
+  const productsApi = {
+    list: vi.fn(),
+  };
+  const plantsApi = {
+    list: vi.fn(),
+  };
 
   beforeEach(async () => {
     aiApi.productIngestion.mockReturnValue(of(generationResult));
     aiApi.acceptSuggestion.mockReturnValue(of(acceptResult));
     aiApi.rejectSuggestion.mockReturnValue(of({ rejected: true }));
+    productsApi.list.mockReturnValue(of(listResult([{ id: 'product-1', name: 'Fungicide A' }])));
+    plantsApi.list.mockReturnValue(
+      of(listResult([{ id: 'plant-1', commonName: 'Tomato', variety: null }])),
+    );
 
     await TestBed.configureTestingModule({
       imports: [ProductIngestionPage],
       providers: [
         { provide: AiApiService, useValue: aiApi },
+        { provide: ProductsApiService, useValue: productsApi },
+        { provide: PlantsApiService, useValue: plantsApi },
         provideNoopAnimations(),
       ],
     }).compileComponents();
@@ -113,6 +131,26 @@ describe('Phase 24 ProductIngestionPage', () => {
     const state = component.getState(productSuggestion);
     expect(state?.status).toBe('accepted');
     expect(state?.acceptResult?.createdEntities[0].entityId).toBe('product-1');
+  });
+
+  it('merges resolved productId and pre-matched plantId into a product_rule accept', () => {
+    const fixture = TestBed.createComponent(ProductIngestionPage);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.form.patchValue({ productName: 'Fungicide A' });
+    component.submit();
+    fixture.detectChanges();
+
+    // Accepting the product first resolves the productId for the rule.
+    component.onAccept({ suggestionId: 'suggestion-1' });
+    fixture.detectChanges();
+
+    component.onAccept({ suggestionId: 'suggestion-2' });
+
+    expect(aiApi.acceptSuggestion).toHaveBeenLastCalledWith('suggestion-2', {
+      editedPayload: expect.objectContaining({ productId: 'product-1', plantId: 'plant-1' }),
+    });
   });
 
   it('rejects a suggestion and updates state without creating entity links', () => {
