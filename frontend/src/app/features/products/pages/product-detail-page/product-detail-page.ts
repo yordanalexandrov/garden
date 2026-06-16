@@ -2,12 +2,17 @@ import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 
 import { ApiError } from '../../../../core/errors/api-error';
 import { mapApiError } from '../../../../core/errors/api-error.mapper';
+import {
+  AiProductRulesDialog,
+  AiProductRulesDialogData,
+} from '../../../ai/components/ai-product-rules-dialog/ai-product-rules-dialog';
 import { ArchiveConfirmationService } from '../../../../shared/components/confirm-dialog/confirm-dialog';
 import { PageHeader } from '../../../../shared/components/page-header/page-header';
 import { ApiErrorSummary } from '../../../../shared/forms/api-error-summary/api-error-summary';
@@ -37,10 +42,31 @@ export class ProductDetailPage {
   private readonly inventoryApi = inject(InventoryApiService);
   private readonly route = inject(ActivatedRoute);
   private readonly archiveConfirmation = inject(ArchiveConfirmationService);
+  private readonly dialog = inject(MatDialog);
   private readonly destroyRef = inject(DestroyRef);
 
   constructor() {
     this.load();
+  }
+
+  generateRulesWithAi(): void {
+    const product = this.product();
+
+    if (product === null) {
+      return;
+    }
+
+    this.dialog
+      .open<AiProductRulesDialog, AiProductRulesDialogData, void>(AiProductRulesDialog, {
+        data: { productId: product.id, productName: product.name },
+        autoFocus: false,
+      })
+      .afterClosed()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        // Rules may have been created or refreshed during the dialog session.
+        this.load();
+      });
   }
 
   archiveProduct(): void {

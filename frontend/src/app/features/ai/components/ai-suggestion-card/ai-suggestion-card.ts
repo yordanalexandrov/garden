@@ -26,6 +26,10 @@ import {
 } from '../../ai.models';
 import { AiPayloadDialog, AiPayloadDialogData } from '../ai-payload-dialog/ai-payload-dialog';
 
+// Technical identifiers/flags resolved server-side: kept in the JSON payload
+// (and the JSON modal) but hidden from the human-readable key/value view.
+const HIDDEN_PAYLOAD_KEYS = new Set(['productId', 'plantId', 'ruleId', 'operation']);
+
 export interface AiSuggestionAcceptEvent {
   readonly suggestionId: string;
   readonly editedPayload?: unknown;
@@ -121,7 +125,17 @@ export class AiSuggestionCard implements OnChanges {
   }
 
   get payloadEntries(): { key: string; value: unknown }[] {
-    return Object.entries(this.payloadAsRecord).map(([key, value]) => ({ key, value }));
+    return Object.entries(this.payloadAsRecord)
+      .filter(([key]) => !HIDDEN_PAYLOAD_KEYS.has(key))
+      .map(([key, value]) => ({ key, value }));
+  }
+
+  /** "Ново правило" / "Опресняване" for product-rule generation suggestions, else null. */
+  get operationLabel(): string | null {
+    const operation = this.payloadAsRecord['operation'];
+    if (operation === 'create') return 'Ново правило';
+    if (operation === 'update') return 'Опресняване';
+    return null;
   }
 
   get createdEntities(): readonly AiEntityRef[] {

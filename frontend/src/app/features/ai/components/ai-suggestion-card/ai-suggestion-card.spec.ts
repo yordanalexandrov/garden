@@ -54,6 +54,41 @@ describe('Phase 24 AiSuggestionCard', () => {
     expect(compiled.textContent).toContain('View / edit JSON');
   });
 
+  it('shows the refresh operation label and hides technical ids from the readable view', () => {
+    fixture.componentRef.setInput('suggestion', {
+      id: 'rule-suggestion-1',
+      suggestionType: 'product_rule',
+      payload: {
+        productId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+        plantId: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+        ruleId: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
+        operation: 'update',
+        plantName: 'Домат',
+        doseValue: 12,
+        doseUnit: 'ml',
+      },
+    });
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.textContent).toContain('Опресняване');
+    expect(compiled.textContent).toContain('Домат');
+    expect(compiled.textContent).not.toContain('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa');
+    expect(compiled.textContent).not.toContain('cccccccc-cccc-4ccc-8ccc-cccccccccccc');
+  });
+
+  it('shows the create operation label for new rules', () => {
+    fixture.componentRef.setInput('suggestion', {
+      id: 'rule-suggestion-2',
+      suggestionType: 'product_rule',
+      payload: { operation: 'create', plantName: 'Краставица', doseValue: 10, doseUnit: 'ml' },
+    });
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.textContent).toContain('Ново правило');
+  });
+
   it('opens the payload dialog and applies the edited JSON on close', () => {
     const dialog = TestBed.inject(MatDialog);
     const openSpy = vi

@@ -1,0 +1,55 @@
+.ai-product-rules-dialog {
+  &__content {
+    min-width: min(80vw, 560px);
+  }
+
+  &__subtitle {
+    margin: 0 0 0.5rem;
+    font-weight: 500;
+  }
+
+  &__advisory {
+    margin: 0 0 1rem;
+    font-size: 0.875rem;
+    color: var(--mat-sys-on-surface-variant, #43483f);
+  }
+
+  &__loading {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 0;
+  }
+
+  &__warnings {
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-start;
+    background: #fff8e1;
+    border-left: 3px solid #f9a825;
+    padding: 0.5rem;
+    margin-bottom: 0.75rem;
+    border-radius: 0 4px 4px 0;
+
+    mat-icon {
+      color: #f9a825;
+      flex-shrink: 0;
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 1rem;
+    }
+  }
+
+  &__empty {
+    color: var(--mat-sys-on-surface-variant, #43483f);
+    font-style: italic;
+  }
+}
+
+h2[mat-dialog-title] {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}

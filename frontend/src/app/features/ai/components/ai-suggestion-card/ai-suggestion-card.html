@@ -5,6 +5,9 @@
       AI Suggestion
       <mat-chip-set aria-label="Suggestion type">
         <mat-chip [highlighted]="true" color="accent">{{ suggestion.suggestionType }}</mat-chip>
+        @if (operationLabel) {
+          <mat-chip [highlighted]="true">{{ operationLabel }}</mat-chip>
+        }
       </mat-chip-set>
     </mat-card-title>
     <mat-card-subtitle>
