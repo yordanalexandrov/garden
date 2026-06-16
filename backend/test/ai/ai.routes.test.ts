@@ -288,6 +288,10 @@ describeDatabase("AI routes with database", () => {
   });
 
   describe("product rule generation", () => {
+    beforeEach(async () => {
+      await insertProductRuleFixtures(pool);
+    });
+
     it("creates a product_rule_generation session with create suggestions, no rules persisted", async () => {
       const response = await app!.inject({
         method: "POST",
@@ -735,6 +739,13 @@ async function insertAiFixtures(pool: Pool): Promise<void> {
      ($4, $5, $6, 'observation', 'place', $6, 'Problem B', 'Problem B description', 'open', now())`,
     [Ids.problemA, accountA, Ids.placeA, Ids.problemB, accountB, Ids.placeB]
   );
+}
+
+// Product fixtures live in the product-rule-generation suite only, so the other
+// suites keep asserting a clean product/rule baseline before acceptance.
+async function insertProductRuleFixtures(pool: Pool): Promise<void> {
+  const accountA = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa";
+  const accountB = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb";
 
   await pool.query(
     `insert into products (id, account_id, name, category, default_unit) values
