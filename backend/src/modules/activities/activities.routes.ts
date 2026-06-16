@@ -76,12 +76,12 @@ export const registerActivitiesRoutes: FastifyPluginCallback<ActivitiesRouteOpti
     return successEnvelope(toActivityDetailDto(result));
   });
 
-  app.delete("/:activityId", protectedRoute, async (request, reply) => {
+  app.post("/:activityId/archive", protectedRoute, async (request) => {
     const actor = requireActor(request);
     const { params } = validateRequest(request, { params: activityParamsSchema });
     await requireActivitiesService(activitiesService).archiveActivity(actor, params.activityId);
 
-    return reply.code(204).send();
+    return successEnvelope({ archived: true });
   });
 
   done();

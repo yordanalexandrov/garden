@@ -117,12 +117,15 @@ describeDatabase("Weather routes with database", () => {
     });
 
     expect(enabled.statusCode).toBe(200);
-    expect(parseJsonResponse<ForecastResponse>(enabled).data).toMatchObject({
+    const enabledData = parseJsonResponse<ForecastResponse>(enabled).data;
+    expect(enabledData).toMatchObject({
       placeId: Ids.placeEnabledA,
       enabled: true,
-      locationLabel: "Ruse, Bulgaria",
-      forecast: expect.arrayContaining([expect.objectContaining({ date: "2026-05-13", rainProbability: 0.4 })])
+      locationLabel: "Ruse, Bulgaria"
     });
+    expect(enabledData.forecast).toEqual(
+      expect.arrayContaining([expect.objectContaining({ date: "2026-05-13", rainProbability: 0.4 })])
+    );
     expect(weather.forecastCalls).toHaveLength(1);
     expect(missingLocation.statusCode).toBe(422);
     expect(missingLocation.json()).toMatchObject({ error: { code: "BUSINESS_RULE_VIOLATION" } });
