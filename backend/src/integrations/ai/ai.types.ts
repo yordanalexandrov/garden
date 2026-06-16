@@ -13,13 +13,22 @@ export type NormalizedProductPayload = {
   notes?: string | null;
 };
 
+export type ProductRuleOperation = "create" | "update";
+
 export type NormalizedProductRulePayload = {
   plantName?: string;
+  /** Resolved plant id, present when the rule targets a known account plant. */
+  plantId?: string;
+  /** Existing rule id, present only when operation is "update" (refresh). */
+  ruleId?: string;
+  operation?: ProductRuleOperation;
   doseValue: number;
   doseUnit: string;
   dilutionText?: string | null;
+  applicationMethod?: string | null;
   reapplicationIntervalDays?: number | null;
   quarantinePeriodDays?: number | null;
+  notes?: string | null;
 };
 
 export type NormalizedBedPlanPayload = {
@@ -89,4 +98,45 @@ export type AssistProblemInput = {
 
 export type AssistProblemResult = {
   suggestions: NormalizedSuggestion[];
+};
+
+export type GenerateProductRulesProductContext = {
+  id: string;
+  name: string;
+  category: string;
+  activeSubstance?: string | null;
+  manufacturer?: string | null;
+  formulation?: string | null;
+  defaultUnit: string;
+  notes?: string | null;
+};
+
+export type GenerateProductRulesExistingRule = {
+  ruleId: string;
+  plantId: string;
+  plantName: string;
+  doseValue: number;
+  doseUnit: string;
+  dilutionText?: string | null;
+  applicationMethod?: string | null;
+  reapplicationIntervalDays?: number | null;
+  quarantinePeriodDays?: number | null;
+};
+
+export type GenerateProductRulesPlant = {
+  plantId: string;
+  commonName: string;
+  variety?: string | null;
+  plantCategory?: string | null;
+};
+
+export type GenerateProductRulesInput = {
+  product: GenerateProductRulesProductContext;
+  existingRules: GenerateProductRulesExistingRule[];
+  plants: GenerateProductRulesPlant[];
+};
+
+export type GenerateProductRulesResult = {
+  suggestions: NormalizedSuggestion[];
+  warnings?: string[];
 };

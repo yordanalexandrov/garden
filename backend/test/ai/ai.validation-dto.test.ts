@@ -9,6 +9,7 @@ import {
   bedPlanningBodySchema,
   problemAssistBodySchema,
   productIngestionBodySchema,
+  productRuleGenerationBodySchema,
   suggestionParamsSchema
 } from "../../src/modules/ai/ai.validation.js";
 
@@ -71,6 +72,16 @@ describe("AI validation schemas", () => {
 
   it("rejects problem assist with neither field", () => {
     expect(problemAssistBodySchema.safeParse({}).success).toBe(false);
+  });
+
+  it("validates product rule generation with a valid productId", () => {
+    expect(
+      productRuleGenerationBodySchema.safeParse({ productId: "11111111-1111-4111-8111-111111111111" }).success
+    ).toBe(true);
+  });
+
+  it("rejects product rule generation with an invalid productId", () => {
+    expect(productRuleGenerationBodySchema.safeParse({ productId: "nope" }).success).toBe(false);
   });
 
   it("validates accept with no editedPayload", () => {
@@ -206,6 +217,42 @@ describe("TestAiAdapter", () => {
 
     expect(adapter.ingestProductCalls).toHaveLength(1);
     expect(adapter.ingestProductCalls[0]).toEqual({ productName: "Test" });
+  });
+
+  it("generates create and update rule suggestions per plant", async () => {
+    const adapter = new TestAiAdapter();
+    const result = await adapter.generateProductRules({
+      product: {
+        id: "prod-1",
+        name: "Test Fungicide",
+        category: "fungicide",
+        defaultUnit: "g"
+      },
+      existingRules: [
+        {
+          ruleId: "rule-1",
+          plantId: "plant-1",
+          plantName: "Домат",
+          doseValue: 20,
+          doseUnit: "g"
+        }
+      ],
+      plants: [
+        { plantId: "plant-1", commonName: "Домат" },
+        { plantId: "plant-2", commonName: "Краставица" }
+      ]
+    });
+
+    expect(result.suggestions).toHaveLength(2);
+    const update = result.suggestions.find(
+      (s) => s.type === "product_rule" && (s.payload as { plantId?: string }).plantId === "plant-1"
+    );
+    const create = result.suggestions.find(
+      (s) => s.type === "product_rule" && (s.payload as { plantId?: string }).plantId === "plant-2"
+    );
+    expect((update?.payload as { operation?: string }).operation).toBe("update");
+    expect((update?.payload as { ruleId?: string }).ruleId).toBe("rule-1");
+    expect((create?.payload as { operation?: string }).operation).toBe("create");
   });
 });
 

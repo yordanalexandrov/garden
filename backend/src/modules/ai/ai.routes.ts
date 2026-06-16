@@ -22,6 +22,7 @@ import {
   plantIngestionBodySchema,
   problemAssistBodySchema,
   productIngestionBodySchema,
+  productRuleGenerationBodySchema,
   rejectSuggestionBodySchema,
   suggestionParamsSchema
 } from "./ai.validation.js";
@@ -54,6 +55,14 @@ export const registerAiRoutes: FastifyPluginCallback<AiRouteOptions> = (app, opt
       plantName: body.plantName,
       ...(body.notes !== undefined ? { notes: body.notes } : {})
     });
+
+    return successEnvelope(toGenerationResponseDto(result.session, result.suggestions, result.warnings));
+  });
+
+  app.post("/product-rule-generation", protectedRoute, async (request) => {
+    const actor = requireActor(request);
+    const { body } = validateRequest(request, { body: productRuleGenerationBodySchema });
+    const result = await requireAiService(aiService).generateProductRules(actor, body.productId);
 
     return successEnvelope(toGenerationResponseDto(result.session, result.suggestions, result.warnings));
   });

@@ -9,6 +9,11 @@ import type { AuthenticatedActor, UUID } from "../auth/auth.types.js";
 import type { BedsRepository } from "../beds/beds.types.js";
 import type { CreatePlantInput, PlantsRepository } from "../plants/plants.types.js";
 import type { CreateProductServiceInput, CreateProductUsageRuleServiceInput, ProductsService } from "../products/products.service.js";
+import type { UpdateProductUsageRuleInput } from "../products/products.types.js";
+import type {
+  GenerateProductRulesExistingRule,
+  GenerateProductRulesPlant
+} from "../../integrations/ai/ai.types.js";
 import type {
   AcceptSuggestionResult,
   AiRepository,
@@ -41,6 +46,7 @@ const acceptedPlantPayloadSchema = z.object({
 const acceptedProductRulePayloadSchema = z.object({
   productId: uuidSchema,
   plantId: uuidSchema,
+  ruleId: uuidSchema.optional(),
   doseValue: z.number().positive(),
   doseUnit: z.string().trim().min(1),
   dilutionText: optionalTextBodyFieldSchema,
@@ -264,6 +270,127 @@ export class AiService {
     return { session, suggestions };
   }
 
+  async generateProductRules(actor: AuthenticatedActor, productId: UUID): Promise<GenerationResult> {
+    // Validates the product belongs to the actor's account and loads its rules.
+    const product = await this.productsService.getProduct(actor, productId);
+
+    const activeRules = product.usageRules.filter((rule) => rule.archivedAt === null);
+
+    const plantsPage = await this.plantsRepository.list(actor.accountId, {
+      includeArchived: false,
+      page: 1,
+      pageSize: 1000
+    });
+    const plants = plantsPage.items;
+
+    const plantNameById = new Map(
+      plants.map((plant) => [plant.id, plant.variety ? `${plant.commonName} — ${plant.variety}` : plant.commonName])
+    );
+
+    const existingRules: GenerateProductRulesExistingRule[] = activeRules.map((rule) => ({
+      ruleId: rule.id,
+      plantId: rule.plantId,
+      plantName: plantNameById.get(rule.plantId) ?? "—",
+      doseValue: rule.doseValue,
+      doseUnit: rule.doseUnit,
+      dilutionText: rule.dilutionText,
+      applicationMethod: rule.applicationMethod,
+      reapplicationIntervalDays: rule.reapplicationIntervalDays,
+      quarantinePeriodDays: rule.quarantinePeriodDays
+    }));
+
+    const aiPlants: GenerateProductRulesPlant[] = plants.map((plant) => ({
+      plantId: plant.id,
+      commonName: plant.commonName,
+      variety: plant.variety,
+      plantCategory: plant.plantCategory
+    }));
+
+    let portResult;
+
+    try {
+      portResult = await this.aiPort.generateProductRules({
+        product: {
+          id: product.id,
+          name: product.name,
+          category: product.category,
+          activeSubstance: product.activeSubstance,
+          manufacturer: product.manufacturer,
+          formulation: product.formulation,
+          defaultUnit: product.defaultUnit,
+          notes: product.notes
+        },
+        existingRules,
+        plants: aiPlants
+      });
+    } catch (error) {
+      if (isAiProviderError(error)) {
+        throw new AppError("EXTERNAL_SERVICE_ERROR", "AI provider failed");
+      }
+
+      throw error;
+    }
+
+    const plantIdSet = new Set(plants.map((plant) => plant.id));
+    const activeRuleByPlantId = new Map(activeRules.map((rule) => [rule.plantId, rule]));
+    const warnings: string[] = portResult.warnings ? [...portResult.warnings] : [];
+
+    const suggestionPayloads: Array<Record<string, unknown>> = [];
+
+    for (const suggestion of portResult.suggestions) {
+      if (suggestion.type !== "product_rule") {
+        continue;
+      }
+
+      const payload = suggestion.payload;
+      const plantId = typeof payload.plantId === "string" ? payload.plantId : undefined;
+
+      if (plantId === undefined || !plantIdSet.has(plantId)) {
+        warnings.push("Пропуснато предложение за непознато растение.");
+        continue;
+      }
+
+      // The DB allows at most one active rule per (product, plant): refresh the
+      // existing one when present, otherwise create a new rule.
+      const existing = activeRuleByPlantId.get(plantId);
+
+      suggestionPayloads.push({
+        productId: product.id,
+        plantId,
+        operation: existing !== undefined ? "update" : "create",
+        ...(existing !== undefined ? { ruleId: existing.id } : {}),
+        ...(payload.plantName !== undefined ? { plantName: payload.plantName } : {}),
+        doseValue: payload.doseValue,
+        doseUnit: payload.doseUnit,
+        dilutionText: payload.dilutionText ?? null,
+        applicationMethod: payload.applicationMethod ?? null,
+        reapplicationIntervalDays: payload.reapplicationIntervalDays ?? null,
+        quarantinePeriodDays: payload.quarantinePeriodDays ?? null,
+        notes: payload.notes ?? null
+      });
+    }
+
+    const session = await this.aiRepository.createSession({
+      accountId: actor.accountId,
+      kind: "product_rule_generation",
+      inputMode: "name",
+      status: "completed",
+      relatedEntityType: "product",
+      relatedEntityId: product.id
+    });
+
+    const suggestions = await this.aiRepository.addSuggestions(
+      session.id,
+      suggestionPayloads.map((payload) => ({ suggestionType: "product_rule" as const, payload }))
+    );
+
+    return {
+      session,
+      suggestions,
+      ...(warnings.length > 0 ? { warnings } : {})
+    };
+  }
+
   async acceptSuggestion(
     actor: AuthenticatedActor,
     suggestionId: UUID,
@@ -379,6 +506,28 @@ export class AiService {
         throw new AppError("VALIDATION_ERROR", "Invalid product rule payload: productId and plantId are required", {
           fields: parsed.error.issues.map((i) => i.message)
         });
+      }
+
+      // Refresh: when a ruleId is present, update the existing rule in place
+      // instead of creating a new one (add/refresh flow for existing products).
+      if (parsed.data.ruleId !== undefined) {
+        const patch: UpdateProductUsageRuleInput = {
+          plantId: parsed.data.plantId,
+          doseValue: parsed.data.doseValue,
+          doseUnit: parsed.data.doseUnit as CreateProductUsageRuleServiceInput["doseUnit"],
+          dilutionText: parsed.data.dilutionText ?? null,
+          applicationMethod: parsed.data.applicationMethod ?? null,
+          reapplicationIntervalDays: parsed.data.reapplicationIntervalDays ?? null,
+          quarantinePeriodDays: parsed.data.quarantinePeriodDays ?? null,
+          notes: parsed.data.notes ?? null
+        };
+
+        const rule = await this.productsService.updateProductUsageRule(actor, parsed.data.ruleId, patch, db);
+
+        return {
+          createdEntities: [],
+          updatedEntities: [{ entityType: "product_rule", entityId: rule.id }]
+        };
       }
 
       const ruleInput: CreateProductUsageRuleServiceInput = {

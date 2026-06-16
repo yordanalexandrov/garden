@@ -23,7 +23,10 @@ const Ids = {
   plantA: "55555555-5555-4555-8555-555555555555",
   plantB: "66666666-6666-4666-8666-666666666666",
   problemA: "77777777-7777-4777-8777-777777777777",
-  problemB: "88888888-8888-4888-8888-888888888888"
+  problemB: "88888888-8888-4888-8888-888888888888",
+  productA: "a1111111-1111-4111-8111-111111111111",
+  productB: "b2222222-2222-4222-8222-222222222222",
+  ruleA: "c3333333-3333-4333-8333-333333333333"
 } as const;
 
 type GenerationResponse = {
@@ -85,6 +88,7 @@ describeDatabase("AI routes with database", () => {
     it("rejects unauthenticated requests to all AI routes", async () => {
       const routes = [
         { method: "POST" as const, url: "/api/v1/ai/product-ingestion", body: { productName: "Test" } },
+        { method: "POST" as const, url: "/api/v1/ai/product-rule-generation", body: { productId: Ids.productA } },
         { method: "POST" as const, url: "/api/v1/ai/bed-planning", body: { bedId: Ids.bedA, year: 2026, candidatePlantIds: [Ids.plantA] } },
         { method: "POST" as const, url: "/api/v1/ai/problem-assist", body: { text: "test" } },
         {
@@ -277,6 +281,117 @@ describeDatabase("AI routes with database", () => {
         url: "/api/v1/ai/problem-assist",
         headers: accountAAuthHeaders(),
         payload: { problemId: Ids.problemB }
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+  });
+
+  describe("product rule generation", () => {
+    it("creates a product_rule_generation session with create suggestions, no rules persisted", async () => {
+      const response = await app!.inject({
+        method: "POST",
+        url: "/api/v1/ai/product-rule-generation",
+        headers: accountAAuthHeaders(),
+        payload: { productId: Ids.productA }
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const body = parseJsonResponse<GenerationResponse>(response);
+
+      expect(body.data.aiSession.kind).toBe("product_rule_generation");
+      const ruleSuggestion = body.data.suggestions.find((s) => s.suggestionType === "product_rule");
+      expect(ruleSuggestion).toBeDefined();
+
+      const payload = ruleSuggestion!.payload as Record<string, unknown>;
+      expect(payload.productId).toBe(Ids.productA);
+      expect(payload.plantId).toBe(Ids.plantA);
+      expect(payload.operation).toBe("create");
+
+      const rulesBefore = await pool.query<{ count: string }>(
+        "select count(*) from product_usage_rules where account_id = $1",
+        ["aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"]
+      );
+      expect(Number(rulesBefore.rows[0]?.count)).toBe(0);
+    });
+
+    it("accepts a generated create suggestion and persists a new rule", async () => {
+      const generateResponse = await app!.inject({
+        method: "POST",
+        url: "/api/v1/ai/product-rule-generation",
+        headers: accountAAuthHeaders(),
+        payload: { productId: Ids.productA }
+      });
+
+      const suggestion = parseJsonResponse<GenerationResponse>(generateResponse).data.suggestions.find(
+        (s) => s.suggestionType === "product_rule"
+      );
+
+      const acceptResponse = await app!.inject({
+        method: "POST",
+        url: `/api/v1/ai/suggestions/${suggestion!.id}/accept`,
+        headers: accountAAuthHeaders(),
+        payload: {}
+      });
+
+      expect(acceptResponse.statusCode).toBe(200);
+
+      const body = parseJsonResponse<AcceptResponse>(acceptResponse);
+      expect(body.data.createdEntities).toHaveLength(1);
+      expect(body.data.createdEntities[0]?.entityType).toBe("product_rule");
+      expect(body.data.updatedEntities).toHaveLength(0);
+    });
+
+    it("refreshes an existing rule (update) on accept", async () => {
+      await pool.query(
+        `insert into product_usage_rules (id, account_id, product_id, plant_id, dose_value, dose_unit)
+         values ($1, $2, $3, $4, 20, 'g')`,
+        [Ids.ruleA, "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", Ids.productA, Ids.plantA]
+      );
+
+      const generateResponse = await app!.inject({
+        method: "POST",
+        url: "/api/v1/ai/product-rule-generation",
+        headers: accountAAuthHeaders(),
+        payload: { productId: Ids.productA }
+      });
+
+      const suggestion = parseJsonResponse<GenerationResponse>(generateResponse).data.suggestions.find(
+        (s) => s.suggestionType === "product_rule"
+      );
+      const payload = suggestion!.payload as Record<string, unknown>;
+      expect(payload.operation).toBe("update");
+      expect(payload.ruleId).toBe(Ids.ruleA);
+
+      const acceptResponse = await app!.inject({
+        method: "POST",
+        url: `/api/v1/ai/suggestions/${suggestion!.id}/accept`,
+        headers: accountAAuthHeaders(),
+        payload: {}
+      });
+
+      expect(acceptResponse.statusCode).toBe(200);
+
+      const body = parseJsonResponse<AcceptResponse>(acceptResponse);
+      expect(body.data.updatedEntities).toHaveLength(1);
+      expect(body.data.updatedEntities[0]?.entityId).toBe(Ids.ruleA);
+      expect(body.data.createdEntities).toHaveLength(0);
+
+      const ruleRow = await pool.query<{ dose_value: string; dose_unit: string }>(
+        "select dose_value, dose_unit from product_usage_rules where id = $1",
+        [Ids.ruleA]
+      );
+      expect(Number(ruleRow.rows[0]?.dose_value)).toBe(12);
+      expect(ruleRow.rows[0]?.dose_unit).toBe("ml");
+    });
+
+    it("rejects a product from another account", async () => {
+      const response = await app!.inject({
+        method: "POST",
+        url: "/api/v1/ai/product-rule-generation",
+        headers: accountAAuthHeaders(),
+        payload: { productId: Ids.productB }
       });
 
       expect(response.statusCode).toBe(404);
@@ -619,6 +734,13 @@ async function insertAiFixtures(pool: Pool): Promise<void> {
      ($1, $2, $3, 'observation', 'place', $3, 'Spotted leaves', 'Spotted leaves on plant', 'open', now()),
      ($4, $5, $6, 'observation', 'place', $6, 'Problem B', 'Problem B description', 'open', now())`,
     [Ids.problemA, accountA, Ids.placeA, Ids.problemB, accountB, Ids.placeB]
+  );
+
+  await pool.query(
+    `insert into products (id, account_id, name, category, default_unit) values
+     ($1, $2, 'Account A Fungicide', 'fungicide', 'g'),
+     ($3, $4, 'Account B Fungicide', 'fungicide', 'g')`,
+    [Ids.productA, accountA, Ids.productB, accountB]
   );
 }
 

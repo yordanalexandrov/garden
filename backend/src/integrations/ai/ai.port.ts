@@ -1,6 +1,8 @@
 import type {
   AssistProblemInput,
   AssistProblemResult,
+  GenerateProductRulesInput,
+  GenerateProductRulesResult,
   IngestPlantInput,
   IngestPlantResult,
   IngestProductInput,
@@ -14,6 +16,7 @@ export interface AiPort {
   ingestPlant(input: IngestPlantInput): Promise<IngestPlantResult>;
   suggestBedPlan(input: SuggestBedPlanInput): Promise<SuggestBedPlanResult>;
   assistProblem(input: AssistProblemInput): Promise<AssistProblemResult>;
+  generateProductRules(input: GenerateProductRulesInput): Promise<GenerateProductRulesResult>;
 }
 
 export class AiProviderError extends Error {

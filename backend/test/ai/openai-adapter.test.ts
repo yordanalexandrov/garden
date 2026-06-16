@@ -377,6 +377,129 @@ describe("OpenAiAdapter", () => {
     });
   });
 
+  describe("generateProductRules", () => {
+    const baseInput = {
+      product: {
+        id: "prod-1",
+        name: "Copper Fungicide",
+        category: "fungicide",
+        activeSubstance: "Copper",
+        manufacturer: null,
+        formulation: null,
+        defaultUnit: "g",
+        notes: null,
+      },
+      existingRules: [
+        {
+          ruleId: "rule-1",
+          plantId: "plant-1",
+          plantName: "Домат",
+          doseValue: 20,
+          doseUnit: "g",
+          dilutionText: null,
+          applicationMethod: null,
+          reapplicationIntervalDays: null,
+          quarantinePeriodDays: null,
+        },
+      ],
+      plants: [
+        { plantId: "plant-1", commonName: "Домат", variety: null, plantCategory: null },
+        { plantId: "plant-2", commonName: "Краставица", variety: null, plantCategory: null },
+      ],
+    };
+
+    it("maps create and update rule proposals from a valid response", async () => {
+      const payload = {
+        rules: [
+          {
+            plantId: "plant-1",
+            operation: "update",
+            ruleId: "rule-1",
+            doseValue: 15,
+            doseUnit: "g",
+            dilutionText: "15 g / 10 l вода",
+            applicationMethod: null,
+            reapplicationIntervalDays: 7,
+            quarantinePeriodDays: 14,
+            notes: "Опреснени стойности.",
+          },
+          {
+            plantId: "plant-2",
+            operation: "create",
+            ruleId: null,
+            doseValue: 10,
+            doseUnit: "g",
+            dilutionText: null,
+            applicationMethod: null,
+            reapplicationIntervalDays: null,
+            quarantinePeriodDays: null,
+            notes: null,
+          },
+        ],
+        warnings: ["Потвърдете преди запис."],
+      };
+      mockResponsesCreate.mockResolvedValue(makeResponse(JSON.stringify(payload)));
+
+      const result = await adapter.generateProductRules(baseInput);
+
+      expect(result.suggestions).toHaveLength(2);
+      const first = result.suggestions[0]!.payload as Record<string, unknown>;
+      expect(first.plantId).toBe("plant-1");
+      expect(first.operation).toBe("update");
+      expect(first.ruleId).toBe("rule-1");
+      const second = result.suggestions[1]!.payload as Record<string, unknown>;
+      expect(second.operation).toBe("create");
+      expect(second.ruleId).toBeUndefined();
+      expect(result.warnings).toEqual(["Потвърдете преди запис."]);
+    });
+
+    it("uses a strict json_schema named product_rule_generation", async () => {
+      mockResponsesCreate.mockResolvedValue(makeResponse(JSON.stringify({ rules: [], warnings: [] })));
+
+      await adapter.generateProductRules(baseInput);
+
+      const request = mockResponsesCreate.mock.calls[0]![0] as {
+        text: { format: { type: string; strict: boolean; name: string } };
+      };
+      expect(request.text.format.type).toBe("json_schema");
+      expect(request.text.format.strict).toBe(true);
+      expect(request.text.format.name).toBe("product_rule_generation");
+    });
+
+    it("drops proposals for plants not in the provided set", async () => {
+      const payload = {
+        rules: [
+          {
+            plantId: "unknown-plant",
+            operation: "create",
+            ruleId: null,
+            doseValue: 10,
+            doseUnit: "g",
+            dilutionText: null,
+            applicationMethod: null,
+            reapplicationIntervalDays: null,
+            quarantinePeriodDays: null,
+            notes: null,
+          },
+        ],
+        warnings: [],
+      };
+      mockResponsesCreate.mockResolvedValue(makeResponse(JSON.stringify(payload)));
+
+      const result = await adapter.generateProductRules(baseInput);
+
+      expect(result.suggestions).toHaveLength(0);
+    });
+
+    it("returns early without calling the model when there are no plants", async () => {
+      const result = await adapter.generateProductRules({ ...baseInput, plants: [] });
+
+      expect(result.suggestions).toHaveLength(0);
+      expect(result.warnings).toBeDefined();
+      expect(mockResponsesCreate).not.toHaveBeenCalled();
+    });
+  });
+
   describe("error mapping", () => {
     it("maps AuthenticationError to AiProviderError", async () => {
       const { AuthenticationError } = await import("openai") as unknown as { AuthenticationError: AnyConstructor };
