@@ -1,0 +1,55 @@
+<h2 mat-dialog-title>
+  <mat-icon fontIcon="auto_awesome" aria-hidden="true" />
+  AI правила за продукт
+</h2>
+
+<mat-dialog-content class="ai-product-rules-dialog__content">
+  @if (data.productName) {
+    <p class="ai-product-rules-dialog__subtitle">{{ data.productName }}</p>
+  }
+
+  <p class="ai-product-rules-dialog__advisory" role="note">
+    Предложенията не се записват, докато не ги приемете. Прегледайте стойностите преди да приемете.
+  </p>
+
+  @if (loading()) {
+    <div class="ai-product-rules-dialog__loading">
+      <mat-spinner diameter="28" />
+      <span>Генериране на предложения…</span>
+    </div>
+  }
+
+  <app-api-error-summary [error]="sessionError()" />
+
+  @if (warnings.length > 0) {
+    <div class="ai-product-rules-dialog__warnings" role="note">
+      <mat-icon fontIcon="warning" aria-hidden="true" />
+      <ul>
+        @for (warning of warnings; track warning) {
+          <li>{{ warning }}</li>
+        }
+      </ul>
+    </div>
+  }
+
+  @if (!loading() && sessionError() === null && suggestionStates().length === 0) {
+    <p class="ai-product-rules-dialog__empty">
+      ИИ не предложи правила за този продукт спрямо наличните ви растения.
+    </p>
+  }
+
+  @for (state of suggestionStates(); track state.suggestion.id) {
+    <app-ai-suggestion-card
+      [suggestion]="state.suggestion"
+      [status]="state.status"
+      [error]="state.error"
+      [acceptResult]="state.acceptResult"
+      (accept)="onAccept($event)"
+      (reject)="onReject($event)"
+    />
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-flat-button type="button" mat-dialog-close>Затвори</button>
+</mat-dialog-actions>

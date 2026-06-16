@@ -79,6 +79,10 @@
         }
       </mat-card-content>
       <mat-card-actions align="end">
+        <button mat-button type="button" (click)="generateRulesWithAi()">
+          <mat-icon fontIcon="auto_awesome" aria-hidden="true" />
+          Генерирай rules с ИИ
+        </button>
         <a mat-button [routerLink]="['/products', product.id, 'rules', 'new']">Add rule</a>
       </mat-card-actions>
     </mat-card>

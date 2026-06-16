@@ -65,6 +65,10 @@ export interface PlantIngestionRequest {
   readonly notes?: string;
 }
 
+export interface ProductRuleGenerationRequest {
+  readonly productId: string;
+}
+
 export interface PlantSuggestionPayload {
   readonly commonName?: string;
   readonly variety?: string | null;
@@ -90,11 +94,17 @@ export interface ProductSuggestionPayload {
 
 export interface ProductRuleSuggestionPayload {
   readonly plantName?: string;
+  readonly plantId?: string;
+  readonly productId?: string;
+  readonly ruleId?: string;
+  readonly operation?: 'create' | 'update';
   readonly doseValue?: number | null;
   readonly doseUnit?: string;
   readonly dilutionText?: string;
+  readonly applicationMethod?: string | null;
   readonly reapplicationIntervalDays?: number | null;
   readonly quarantinePeriodDays?: number | null;
+  readonly notes?: string | null;
 }
 
 export interface SpacingSuggestion {
