@@ -381,7 +381,7 @@ describeDatabase("Problems routes with database", () => {
     expect(upload.statusCode).toBe(200);
     const uploadBody = parseJsonResponse<{ data: { id: string; storageKey: string } }>(upload);
     expect(typeof uploadBody.data.id).toBe("string");
-    expect(uploadBody.data.storageKey).toContain(`/problems/${createdProblem}/`);
+    expect(uploadBody.data.storageKey).toContain(`problems/${AccountFixtureIds.accountA}/${createdProblem}/`);
     expect(storage.objects.has(uploadBody.data.storageKey)).toBe(true);
 
     const rows = await pool.query<{ storage_key: string; original_filename: string; mime_type: string; file_size_bytes: string }>(
@@ -471,14 +471,15 @@ describeDatabase("Problems routes with database", () => {
     const createdProblem = parseJsonResponse<CreateProblemResponse>(
       await app!.inject({ method: "POST", url: "/api/v1/problems", headers: accountAAuthHeaders(), payload: validCreatePayload() })
     ).data.id;
-    await app!.close();
+    await app!.close(); // destroys dbClient via onClose hook
     storage = new TestStorageAdapter({ failUploads: true });
+    const freshDbClient = createDbClient(loadConfig({ NODE_ENV: "test", DATABASE_URL: process.env.TEST_DATABASE_URL ?? process.env.DATABASE_URL }));
     app = await createTestApp({
-      db: dbClient,
+      db: freshDbClient,
       storage,
       auth: {
         authPort: new TestAuthAdapter(),
-        accountsRepository: new KyselyAccountsRepository(dbClient)
+        accountsRepository: new KyselyAccountsRepository(freshDbClient)
       }
     });
     const image = multipartPayload({ filename: "leaf.jpg", contentType: "image/jpeg", body: Buffer.from("jpeg") });

@@ -220,8 +220,8 @@ describeDatabase("Places routes with database", () => {
       }
     });
 
-    const stored = await pool.query<{ account_id: string }>("select account_id from places where name = $1", [
-      "Home Garden"
+    const stored = await pool.query<{ account_id: string }>("select account_id from places where id = $1", [
+      body.data.id
     ]);
     expect(stored.rows[0]?.account_id).toBe(AccountFixtureIds.accountA);
   });

@@ -207,7 +207,7 @@ describeDatabase("AI routes with database", () => {
       expect(body.data.aiSession.kind).toBe("bed_planning");
       expect(body.data.suggestions.some((s) => s.suggestionType === "bed_plan")).toBe(true);
 
-      const plantingCount = await pool.query<{ count: string }>("select count(*) from yearly_bed_plantings");
+      const plantingCount = await pool.query<{ count: string }>("select count(*) from yearly_bed_plantings where account_id = $1", ["aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"]);
 
       expect(Number(plantingCount.rows[0]?.count)).toBe(0);
     });
@@ -546,8 +546,8 @@ describeDatabase("AI routes with database", () => {
         payload: { productName: "Test Fungicide" }
       });
 
-      const products = await pool.query<{ count: string }>("select count(*) from products");
-      const rules = await pool.query<{ count: string }>("select count(*) from product_usage_rules");
+      const products = await pool.query<{ count: string }>("select count(*) from products where account_id = $1", ["aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"]);
+      const rules = await pool.query<{ count: string }>("select count(*) from product_usage_rules where account_id = $1", ["aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"]);
 
       expect(Number(products.rows[0]?.count)).toBe(0);
       expect(Number(rules.rows[0]?.count)).toBe(0);
@@ -561,8 +561,8 @@ describeDatabase("AI routes with database", () => {
         payload: { bedId: Ids.bedA, year: 2026, candidatePlantIds: [Ids.plantA] }
       });
 
-      const plantings = await pool.query<{ count: string }>("select count(*) from yearly_bed_plantings");
-      const tasks = await pool.query<{ count: string }>("select count(*) from tasks");
+      const plantings = await pool.query<{ count: string }>("select count(*) from yearly_bed_plantings where account_id = $1", ["aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"]);
+      const tasks = await pool.query<{ count: string }>("select count(*) from tasks where account_id = $1", ["aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"]);
 
       expect(Number(plantings.rows[0]?.count)).toBe(0);
       expect(Number(tasks.rows[0]?.count)).toBe(0);
@@ -578,8 +578,8 @@ describeDatabase("AI routes with database", () => {
         payload: { problemId: Ids.problemA }
       });
 
-      const activities = await pool.query<{ count: string }>("select count(*) from activities");
-      const tasks = await pool.query<{ count: string }>("select count(*) from tasks");
+      const activities = await pool.query<{ count: string }>("select count(*) from activities where account_id = $1", ["aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"]);
+      const tasks = await pool.query<{ count: string }>("select count(*) from tasks where account_id = $1", ["aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"]);
       const problemsAfter = await pool.query<{ updated_at: Date }>("select updated_at from problems where id = $1", [Ids.problemA]);
 
       expect(Number(activities.rows[0]?.count)).toBe(0);
@@ -601,23 +601,23 @@ async function insertAiFixtures(pool: Pool): Promise<void> {
   );
 
   await pool.query(
-    `insert into beds (id, account_id, place_id, name) values
-     ($1, $2, $3, 'Bed A'),
-     ($4, $5, $6, 'Bed B')`,
+    `insert into beds (id, account_id, place_id, name, status) values
+     ($1, $2, $3, 'Bed A', 'active'),
+     ($4, $5, $6, 'Bed B', 'active')`,
     [Ids.bedA, accountA, Ids.placeA, Ids.bedB, accountB, Ids.placeB]
   );
 
   await pool.query(
-    `insert into plants (id, account_id, name, type) values
-     ($1, $2, 'Plant A', 'vegetable'),
-     ($3, $4, 'Plant B', 'vegetable')`,
+    `insert into plants (id, account_id, common_name, lifecycle_type, growing_style) values
+     ($1, $2, 'Plant A', 'annual', 'vegetable'),
+     ($3, $4, 'Plant B', 'annual', 'vegetable')`,
     [Ids.plantA, accountA, Ids.plantB, accountB]
   );
 
   await pool.query(
-    `insert into problems (id, account_id, place_id, kind, title, status) values
-     ($1, $2, $3, 'observation', 'Spotted leaves', 'open'),
-     ($4, $5, $6, 'observation', 'Problem B', 'open')`,
+    `insert into problems (id, account_id, place_id, type, target_type, target_id, title, description, status, observed_at) values
+     ($1, $2, $3, 'observation', 'place', $3, 'Spotted leaves', 'Spotted leaves on plant', 'open', now()),
+     ($4, $5, $6, 'observation', 'place', $6, 'Problem B', 'Problem B description', 'open', now())`,
     [Ids.problemA, accountA, Ids.placeA, Ids.problemB, accountB, Ids.placeB]
   );
 }
