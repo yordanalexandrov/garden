@@ -46,6 +46,7 @@ const envSchema = z.object({
   SUPABASE_AUTH_EXTERNAL_URL: optionalUrl,
   SUPABASE_AUTH_SITE_URL: optionalUrl,
   SUPABASE_STORAGE_URL: optionalUrl,
+  SUPABASE_STORAGE_PUBLIC_URL: optionalUrl,
   SUPABASE_STORAGE_BUCKET_PROBLEM_PHOTOS: optionalString,
   PROBLEM_PHOTO_MAX_BYTES: z.preprocess(emptyStringToUndefined, z.coerce.number().int().positive().default(5 * 1024 * 1024)),
   PROBLEM_PHOTO_ALLOWED_MIME_TYPES: z.preprocess(
@@ -121,6 +122,7 @@ export type IntegrationConfig = {
   supabaseAuthExternalUrl: string | undefined;
   supabaseAuthSiteUrl: string | undefined;
   supabaseStorageUrl: string | undefined;
+  supabaseStoragePublicUrl: string | undefined;
   supabaseStorageBucketProblemPhotos: string | undefined;
   problemPhotoMaxBytes: number;
   problemPhotoAllowedMimeTypes: string[];
@@ -191,6 +193,7 @@ function toAppConfig(env: ParsedEnv): AppConfig {
       supabaseAuthExternalUrl: env.SUPABASE_AUTH_EXTERNAL_URL,
       supabaseAuthSiteUrl: env.SUPABASE_AUTH_SITE_URL,
       supabaseStorageUrl: env.SUPABASE_STORAGE_URL,
+      supabaseStoragePublicUrl: env.SUPABASE_STORAGE_PUBLIC_URL,
       supabaseStorageBucketProblemPhotos: env.SUPABASE_STORAGE_BUCKET_PROBLEM_PHOTOS,
       problemPhotoMaxBytes: env.PROBLEM_PHOTO_MAX_BYTES,
       problemPhotoAllowedMimeTypes: env.PROBLEM_PHOTO_ALLOWED_MIME_TYPES,
