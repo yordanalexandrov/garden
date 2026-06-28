@@ -58,6 +58,17 @@ export interface BedPlanningRequest {
 export interface ProblemAssistRequest {
   readonly problemId?: string;
   readonly text?: string;
+  readonly followUpAnswers?: readonly FollowUpAnswer[];
+}
+
+export interface FollowUpQuestion {
+  readonly text: string;
+  readonly type: 'yes_no' | 'free_text';
+}
+
+export interface FollowUpAnswer {
+  readonly question: string;
+  readonly answer: string;
 }
 
 export interface PlantIngestionRequest {
@@ -134,7 +145,7 @@ export interface BedPlanSuggestionPayload {
 export interface ProblemSummarySuggestionPayload {
   readonly summary?: string;
   readonly possibleCategories?: readonly string[];
-  readonly followUpQuestions?: readonly string[];
+  readonly followUpQuestions?: readonly FollowUpQuestion[];
 }
 
 export interface AiSuggestionUiState {
