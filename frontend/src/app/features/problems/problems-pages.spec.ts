@@ -161,6 +161,63 @@ describe('Phase 17 problem pages', () => {
     expect(image?.getAttribute('src')).toBe('https://storage.example/signed/photo-1.jpg');
   });
 
+  it('shows photo uploader on problem detail and hides it for observations', () => {
+    const problemFixture = TestBed.createComponent(ProblemDetailPage);
+    problemFixture.detectChanges();
+
+    const uploadButton = (problemFixture.nativeElement as HTMLElement).querySelector(
+      'button[mat-stroked-button]',
+    );
+    expect(uploadButton).not.toBeNull();
+    expect(uploadButton?.textContent?.trim()).toContain('Upload Photo');
+
+    problemsApi.get.mockReturnValue(
+      of({ ...detail, type: 'observation', photos: [] }),
+    );
+    const observationFixture = TestBed.createComponent(ProblemDetailPage);
+    observationFixture.detectChanges();
+
+    const obsUploadButton = (observationFixture.nativeElement as HTMLElement).querySelector(
+      'button[mat-stroked-button]',
+    );
+    expect(obsUploadButton).toBeNull();
+  });
+
+  it('upload button is disabled until a file is selected on detail', () => {
+    const fixture = TestBed.createComponent(ProblemDetailPage);
+    fixture.detectChanges();
+
+    const button = (fixture.nativeElement as HTMLElement).querySelector(
+      'button[mat-stroked-button]',
+    ) as HTMLButtonElement | null;
+    expect(button?.disabled).toBe(true);
+
+    const file = new File(['binary'], 'leaf.jpg', { type: 'image/jpeg' });
+    fixture.componentInstance.uploader()?.onFileChange(fileChangeEvent(file));
+    fixture.detectChanges();
+
+    expect(button?.disabled).toBe(false);
+  });
+
+  it('uploads a photo on detail and reloads the problem', () => {
+    const fixture = TestBed.createComponent(ProblemDetailPage);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    const file = new File(['binary'], 'leaf.jpg', { type: 'image/jpeg' });
+    component.uploader()?.onFileChange(fileChangeEvent(file));
+    fixture.detectChanges();
+
+    component.uploadPhoto();
+
+    expect(problemsApi.uploadPhoto).toHaveBeenCalledWith('problem-1', file);
+    expect(problemsApi.get).toHaveBeenCalledTimes(2);
+    expect(component.uploader()?.uploaded()).toEqual({
+      id: 'photo-1',
+      storageKey: 'problems/problem-1/photo.jpg',
+    });
+  });
+
   it('shows the uploader for problems and submits without a photo', () => {
     const fixture = TestBed.createComponent(ProblemCreatePage);
     const component = fixture.componentInstance;

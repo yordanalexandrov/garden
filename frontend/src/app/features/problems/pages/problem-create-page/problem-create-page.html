@@ -17,8 +17,12 @@
         <mat-card-subtitle>Record saved through the backend API</mat-card-subtitle>
       </mat-card-header>
       <mat-card-content>
-        <a [routerLink]="['/problems', createdProblem.id]">Open detail</a>
-        <a routerLink="/problems">Back to problems</a>
+        @if (saving()) {
+          <p class="status">Uploading photo, please wait...</p>
+        } @else {
+          <a [routerLink]="['/problems', createdProblem.id]">Open detail</a>
+          <a routerLink="/problems">Back to problems</a>
+        }
       </mat-card-content>
     </mat-card>
   }
