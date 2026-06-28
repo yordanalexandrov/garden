@@ -11,9 +11,11 @@ import type { CreatePlantInput, PlantsRepository } from "../plants/plants.types.
 import type { CreateProductServiceInput, CreateProductUsageRuleServiceInput, ProductsService } from "../products/products.service.js";
 import type { UpdateProductUsageRuleInput } from "../products/products.types.js";
 import type {
+  FollowUpAnswer,
   GenerateProductRulesExistingRule,
   GenerateProductRulesPlant
 } from "../../integrations/ai/ai.types.js";
+import type { StoragePort } from "../files/storage.port.js";
 import type { ProblemsRepository } from "../problems/problems.types.js";
 import type {
   AcceptSuggestionResult,
@@ -77,6 +79,7 @@ export type SuggestBedPlanInput = {
 export type AssistProblemInput = {
   problemId?: UUID;
   text?: string;
+  followUpAnswers?: FollowUpAnswer[];
 };
 
 export type GenerationResult = {
@@ -94,7 +97,8 @@ export class AiService {
     private readonly plantsRepository: PlantsRepository,
     private readonly dbClient: DbClient,
     private readonly auditService?: AuditService,
-    private readonly problemsRepository?: ProblemsRepository
+    private readonly problemsRepository?: ProblemsRepository,
+    private readonly storagePort?: StoragePort
   ) {}
 
   async ingestProduct(actor: AuthenticatedActor, input: IngestProductInput): Promise<GenerationResult> {
@@ -229,6 +233,7 @@ export class AiService {
 
   async assistProblem(actor: AuthenticatedActor, input: AssistProblemInput): Promise<GenerationResult> {
     let problemContext: Parameters<AiPort["assistProblem"]>[0]["problemContext"];
+    let photoUrls: string[] = [];
 
     if (input.problemId !== undefined) {
       if (this.problemsRepository !== undefined) {
@@ -247,6 +252,17 @@ export class AiService {
           observedAt: detail.observedAt.toISOString().slice(0, 10),
           photosCount: detail.photos.length
         };
+
+        if (this.storagePort !== undefined && detail.photos.length > 0) {
+          const results = await Promise.allSettled(
+            detail.photos.map((photo) =>
+              this.storagePort!.getSignedUrl({ storageKey: photo.storageKey, expiresInSeconds: 300 })
+            )
+          );
+          photoUrls = results
+            .filter((r): r is PromiseFulfilledResult<string> => r.status === "fulfilled")
+            .map((r) => r.value);
+        }
       } else {
         const exists = await this.findProblemForAccount(actor.accountId, input.problemId);
 
@@ -262,7 +278,9 @@ export class AiService {
       portResult = await this.aiPort.assistProblem({
         ...(input.problemId !== undefined ? { problemId: input.problemId } : {}),
         ...(input.text !== undefined ? { text: input.text } : {}),
-        ...(problemContext !== undefined ? { problemContext } : {})
+        ...(problemContext !== undefined ? { problemContext } : {}),
+        ...(photoUrls.length > 0 ? { photoUrls } : {}),
+        ...(input.followUpAnswers !== undefined ? { followUpAnswers: input.followUpAnswers } : {}),
       });
     } catch (error) {
       if (isAiProviderError(error)) {
