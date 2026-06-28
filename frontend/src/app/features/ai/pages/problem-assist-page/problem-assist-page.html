@@ -19,8 +19,12 @@
 
   @if (form.controls.inputMode.value === 'problem') {
     <mat-form-field appearance="outline" class="ai-page__field">
-      <mat-label>Problem ID</mat-label>
-      <input matInput formControlName="problemId" autocomplete="off" placeholder="e.g. problem-uuid" />
+      <mat-label>Select problem</mat-label>
+      <mat-select formControlName="problemId">
+        @for (p of problems(); track p.id) {
+          <mat-option [value]="p.id">{{ p.title }}</mat-option>
+        }
+      </mat-select>
     </mat-form-field>
   } @else {
     <mat-form-field appearance="outline" class="ai-page__field">

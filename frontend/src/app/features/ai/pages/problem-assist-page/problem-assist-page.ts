@@ -13,6 +13,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatRadioModule } from '@angular/material/radio';
+import { MatSelectModule } from '@angular/material/select';
+import { ActivatedRoute } from '@angular/router';
 
 import { mapApiError } from '../../../../core/errors/api-error.mapper';
 import { ApiErrorSummary } from '../../../../shared/forms/api-error-summary/api-error-summary';
@@ -26,6 +28,8 @@ import {
 } from '../../ai.models';
 import { AiApiService } from '../../data-access/ai-api.service';
 import { AiSuggestionCard, AiSuggestionAcceptEvent, AiSuggestionRejectEvent } from '../../components/ai-suggestion-card/ai-suggestion-card';
+import { ProblemsApiService } from '../../../problems/problems-api.service';
+import { ProblemListItem } from '../../../problems/problems.models';
 
 const requireProblemIdOrText: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
   const problemId = control.get('problemId')?.value?.trim();
@@ -47,6 +51,7 @@ const requireProblemIdOrText: ValidatorFn = (control: AbstractControl): Validati
     MatInputModule,
     MatProgressSpinnerModule,
     MatRadioModule,
+    MatSelectModule,
     PageHeader,
     ReactiveFormsModule,
   ],
@@ -57,6 +62,10 @@ export class ProblemAssistPage {
   private readonly aiApi = inject(AiApiService);
   private readonly fb = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly problemsApi = inject(ProblemsApiService);
+  private readonly route = inject(ActivatedRoute);
+
+  readonly problems = signal<readonly ProblemListItem[]>([]);
 
   readonly form = this.fb.group(
     {
@@ -71,6 +80,18 @@ export class ProblemAssistPage {
   readonly sessionError = signal<ReturnType<typeof mapApiError> | null>(null);
   readonly result = signal<AiGenerationResult | null>(null);
   readonly suggestionStates = signal<AiSuggestionUiState[]>([]);
+
+  constructor() {
+    this.problemsApi
+      .list({ pageSize: 100 })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((page) => this.problems.set(page.items));
+
+    const problemId = this.route.snapshot.queryParamMap.get('problemId');
+    if (problemId) {
+      this.form.patchValue({ inputMode: 'problem', problemId });
+    }
+  }
 
   get warnings(): readonly string[] {
     return this.result()?.warnings ?? [];

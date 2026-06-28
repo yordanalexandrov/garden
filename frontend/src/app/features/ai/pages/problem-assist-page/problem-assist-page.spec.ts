@@ -1,8 +1,10 @@
 import { TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
+import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 
 import { ApiError } from '../../../../core/errors/api-error';
+import { ProblemsApiService } from '../../../problems/problems-api.service';
 import { AiApiService } from '../../data-access/ai-api.service';
 import { ProblemAssistPage } from './problem-assist-page';
 
@@ -21,12 +23,22 @@ const generationResult = {
   suggestions: [problemSummarySuggestion],
 };
 
+const problemsPage = {
+  items: [
+    { id: 'problem-1', title: 'Leaf spots', type: 'problem', placeId: 'place-1', targetType: 'bed', targetId: 'bed-1', targetLabel: 'Bed A', category: 'fungus', severity: 'medium', status: 'open', observedAt: '2026-05-13T07:00:00.000Z', photosCount: 0 },
+  ],
+  page: 1,
+  pageSize: 100,
+  total: 1,
+};
+
 describe('Phase 24 ProblemAssistPage', () => {
   const aiApi = {
     problemAssist: vi.fn(),
     acceptSuggestion: vi.fn(),
     rejectSuggestion: vi.fn(),
   };
+  const problemsApi = { list: vi.fn() };
 
   beforeEach(async () => {
     aiApi.problemAssist.mockReturnValue(of(generationResult));
@@ -34,12 +46,19 @@ describe('Phase 24 ProblemAssistPage', () => {
       of({ acceptedSuggestionId: 'suggestion-1', createdEntities: [], updatedEntities: [] }),
     );
     aiApi.rejectSuggestion.mockReturnValue(of({ rejected: true }));
+    problemsApi.list.mockReturnValue(of(problemsPage));
 
     await TestBed.configureTestingModule({
       imports: [ProblemAssistPage],
       providers: [
         { provide: AiApiService, useValue: aiApi },
+        { provide: ProblemsApiService, useValue: problemsApi },
         provideNoopAnimations(),
+        provideRouter([]),
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { queryParamMap: convertToParamMap({}) } },
+        },
       ],
     }).compileComponents();
   });
@@ -47,6 +66,40 @@ describe('Phase 24 ProblemAssistPage', () => {
   afterEach(() => {
     vi.clearAllMocks();
     TestBed.resetTestingModule();
+  });
+
+  it('loads problems and exposes them for the dropdown', () => {
+    const fixture = TestBed.createComponent(ProblemAssistPage);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    expect(problemsApi.list).toHaveBeenCalledWith({ pageSize: 100 });
+    expect(component.problems()).toHaveLength(1);
+    expect(component.problems()[0].title).toBe('Leaf spots');
+  });
+
+  it('pre-selects problem from query param and switches to problem mode', async () => {
+    TestBed.resetTestingModule();
+    await TestBed.configureTestingModule({
+      imports: [ProblemAssistPage],
+      providers: [
+        { provide: AiApiService, useValue: aiApi },
+        { provide: ProblemsApiService, useValue: problemsApi },
+        provideNoopAnimations(),
+        provideRouter([]),
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { queryParamMap: convertToParamMap({ problemId: 'problem-1' }) } },
+        },
+      ],
+    }).compileComponents();
+
+    const fixture = TestBed.createComponent(ProblemAssistPage);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    expect(component.form.controls.inputMode.value).toBe('problem');
+    expect(component.form.controls.problemId.value).toBe('problem-1');
   });
 
   it('rejects empty request — requires problemId or text', () => {
