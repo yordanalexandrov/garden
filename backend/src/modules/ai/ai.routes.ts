@@ -10,6 +10,7 @@ import { KyselyAuditLogsRepository } from "../audit/audit.repository.js";
 import { AuditService } from "../audit/audit.service.js";
 import { hasAuthDecorator, requireActor } from "../auth/request-actor.js";
 import { KyselyBedsRepository } from "../beds/beds.repository.js";
+import type { StoragePort } from "../files/storage.port.js";
 import { KyselyPlantsRepository } from "../plants/plants.repository.js";
 import { KyselyProblemsRepository } from "../problems/problems.repository.js";
 import { KyselyProductsRepository } from "../products/products.repository.js";
@@ -32,6 +33,7 @@ export type AiRouteOptions = {
   db?: DbClient;
   config?: AppConfig;
   ai?: AiPort;
+  storage?: StoragePort;
 };
 
 export const registerAiRoutes: FastifyPluginCallback<AiRouteOptions> = (app, options, done) => {
@@ -86,7 +88,8 @@ export const registerAiRoutes: FastifyPluginCallback<AiRouteOptions> = (app, opt
     const { body } = validateRequest(request, { body: problemAssistBodySchema });
     const result = await requireAiService(aiService).assistProblem(actor, {
       ...(body.problemId !== undefined ? { problemId: body.problemId } : {}),
-      ...(body.text !== undefined ? { text: body.text } : {})
+      ...(body.text !== undefined ? { text: body.text } : {}),
+      ...(body.followUpAnswers !== undefined ? { followUpAnswers: body.followUpAnswers } : {})
     });
 
     return successEnvelope(toGenerationResponseDto(result.session, result.suggestions));
@@ -144,7 +147,8 @@ function createAiService(options: AiRouteOptions): AiService | undefined {
     new KyselyPlantsRepository(db),
     db,
     auditService,
-    new KyselyProblemsRepository(db)
+    new KyselyProblemsRepository(db),
+    options.storage
   );
 }
 
