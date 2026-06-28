@@ -383,4 +383,23 @@ describe('Phase 17 problem pages', () => {
     expect(uploader?.hasFile()).toBe(false);
     expect(uploader?.validationError()).toContain('Unsupported file type');
   });
+
+  it('shows AI Assist link on problem detail and hides it for observations', () => {
+    const problemFixture = TestBed.createComponent(ProblemDetailPage);
+    problemFixture.detectChanges();
+
+    const links = (problemFixture.nativeElement as HTMLElement).querySelectorAll('a');
+    const aiLink = Array.from(links).find((a) => a.textContent?.trim().includes('Get AI Suggestions'));
+    expect(aiLink).not.toBeNull();
+
+    problemsApi.get.mockReturnValue(
+      of({ ...detail, type: 'observation', photos: [] }),
+    );
+    const obsFixture = TestBed.createComponent(ProblemDetailPage);
+    obsFixture.detectChanges();
+
+    const obsLinks = (obsFixture.nativeElement as HTMLElement).querySelectorAll('a');
+    const obsAiLink = Array.from(obsLinks).find((a) => a.textContent?.trim().includes('Get AI Suggestions'));
+    expect(obsAiLink).toBeUndefined();
+  });
 });

@@ -81,6 +81,22 @@
           }
         </mat-card-content>
       </mat-card>
+
+      @if (item.type === 'problem') {
+        <mat-card>
+          <mat-card-header><mat-card-title>AI Assist</mat-card-title></mat-card-header>
+          <mat-card-content>
+            <p>Get AI category suggestions for this problem.</p>
+            <a
+              mat-stroked-button
+              [routerLink]="['/ai/problem-assist']"
+              [queryParams]="{ problemId: item.id }"
+            >
+              Get AI Suggestions
+            </a>
+          </mat-card-content>
+        </mat-card>
+      }
     </div>
   }
 </section>
