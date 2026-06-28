@@ -25,7 +25,15 @@ export const bedPlanningBodySchema = z.object({
 export const problemAssistBodySchema = z
   .object({
     problemId: uuidSchema.optional(),
-    text: z.string().trim().min(1).optional()
+    text: z.string().trim().min(1).optional(),
+    followUpAnswers: z
+      .array(
+        z.object({
+          question: z.string().trim().min(1),
+          answer: z.string().trim().min(1),
+        }),
+      )
+      .optional(),
   })
   .refine((value) => value.problemId !== undefined || value.text !== undefined, {
     message: "Either problemId or text is required"

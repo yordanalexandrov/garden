@@ -74,6 +74,42 @@ describe("AI validation schemas", () => {
     expect(problemAssistBodySchema.safeParse({}).success).toBe(false);
   });
 
+  it("validates problem assist with followUpAnswers", () => {
+    expect(
+      problemAssistBodySchema.safeParse({
+        text: "Yellow spots on leaves",
+        followUpAnswers: [{ question: "Are spots wet?", answer: "да" }],
+      }).success,
+    ).toBe(true);
+  });
+
+  it("accepts problem assist with empty followUpAnswers array", () => {
+    expect(
+      problemAssistBodySchema.safeParse({
+        text: "Yellow spots",
+        followUpAnswers: [],
+      }).success,
+    ).toBe(true);
+  });
+
+  it("rejects problem assist followUpAnswers with empty question string", () => {
+    expect(
+      problemAssistBodySchema.safeParse({
+        text: "Yellow spots",
+        followUpAnswers: [{ question: "", answer: "да" }],
+      }).success,
+    ).toBe(false);
+  });
+
+  it("rejects problem assist followUpAnswers with empty answer string", () => {
+    expect(
+      problemAssistBodySchema.safeParse({
+        text: "Yellow spots",
+        followUpAnswers: [{ question: "Are spots wet?", answer: "" }],
+      }).success,
+    ).toBe(false);
+  });
+
   it("validates product rule generation with a valid productId", () => {
     expect(
       productRuleGenerationBodySchema.safeParse({ productId: "11111111-1111-4111-8111-111111111111" }).success
