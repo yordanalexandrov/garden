@@ -62,6 +62,23 @@
           } @empty {
             <p>No photos attached.</p>
           }
+
+          @if (item.type === 'problem') {
+            <div class="photo-upload">
+              <app-problem-photo-uploader
+                [enabled]="true"
+                (fileSelected)="onFileSelected($event)"
+              />
+              <button
+                mat-stroked-button
+                type="button"
+                [disabled]="uploading() || !hasSelectedFile()"
+                (click)="uploadPhoto()"
+              >
+                {{ uploading() ? 'Uploading...' : 'Upload Photo' }}
+              </button>
+            </div>
+          }
         </mat-card-content>
       </mat-card>
     </div>
