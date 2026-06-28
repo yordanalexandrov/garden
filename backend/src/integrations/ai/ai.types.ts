@@ -91,9 +91,20 @@ export type SuggestBedPlanResult = {
   suggestions: NormalizedSuggestion[];
 };
 
+export type ProblemContextInput = {
+  title: string;
+  description: string;
+  targetLabel: string | null;
+  category: string | null;
+  severity: string | null;
+  observedAt: string;
+  photosCount: number;
+};
+
 export type AssistProblemInput = {
   problemId?: string;
   text?: string;
+  problemContext?: ProblemContextInput;
 };
 
 export type AssistProblemResult = {

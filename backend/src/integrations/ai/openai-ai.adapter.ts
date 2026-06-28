@@ -382,20 +382,33 @@ Return only valid JSON. Do not include markdown fences.`,
   }
 
   async assistProblem(input: AssistProblemInput): Promise<AssistProblemResult> {
-    const userContent = [
-      input.problemId ? `Problem ID: ${input.problemId}` : null,
-      input.text ? `Description: ${input.text}` : null,
-    ]
-      .filter(Boolean)
-      .join("\n");
+    const parts: string[] = [];
+
+    if (input.problemContext !== undefined) {
+      const ctx = input.problemContext;
+      parts.push(`Title: ${ctx.title}`);
+      parts.push(`Description: ${ctx.description}`);
+      if (ctx.targetLabel !== null) parts.push(`Affected plant/target: ${ctx.targetLabel}`);
+      if (ctx.category !== null) parts.push(`Category: ${ctx.category}`);
+      if (ctx.severity !== null) parts.push(`Severity: ${ctx.severity}`);
+      parts.push(`Observed at: ${ctx.observedAt}`);
+      if (ctx.photosCount > 0) parts.push(`Photos attached: ${ctx.photosCount}`);
+    } else if (input.problemId !== undefined) {
+      parts.push(`Problem ID: ${input.problemId}`);
+    }
+
+    if (input.text !== undefined) parts.push(`Additional description: ${input.text}`);
+
+    const userContent = parts.join("\n");
 
     const raw = await this.callJson(
       `You are a gardening problem diagnostic assistant.
 Analyze the described plant problem and provide advisory information only.
 You must NOT make definitive diagnoses — present possibilities, not conclusions.
+Base your analysis on the problem title, description, affected plant/target, severity, and any other context provided.
 Always write all free-text output (summary, followUpQuestions) in Bulgarian.
 Return a JSON object with these fields:
-- summary: string — a brief, cautious advisory summary (in Bulgarian)
+- summary: string — a brief, cautious advisory summary based on the specific problem described (in Bulgarian)
 - possibleCategories: string[] — possible problem categories (e.g. fungus, pest, nutrient_deficiency, environmental)
 - followUpQuestions: string[] — clarifying questions to narrow down the problem (in Bulgarian)
 

@@ -11,6 +11,7 @@ import { AuditService } from "../audit/audit.service.js";
 import { hasAuthDecorator, requireActor } from "../auth/request-actor.js";
 import { KyselyBedsRepository } from "../beds/beds.repository.js";
 import { KyselyPlantsRepository } from "../plants/plants.repository.js";
+import { KyselyProblemsRepository } from "../problems/problems.repository.js";
 import { KyselyProductsRepository } from "../products/products.repository.js";
 import { ProductsService } from "../products/products.service.js";
 import { toAcceptResponseDto, toGenerationResponseDto, toRejectResponseDto } from "./ai.dto.js";
@@ -142,7 +143,8 @@ function createAiService(options: AiRouteOptions): AiService | undefined {
     new KyselyBedsRepository(db),
     new KyselyPlantsRepository(db),
     db,
-    auditService
+    auditService,
+    new KyselyProblemsRepository(db)
   );
 }
 
