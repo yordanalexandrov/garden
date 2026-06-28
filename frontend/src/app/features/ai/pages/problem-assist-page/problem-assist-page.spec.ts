@@ -14,7 +14,10 @@ const problemSummarySuggestion = {
   payload: {
     summary: 'Possible fungal infection on lower leaves.',
     possibleCategories: ['fungus', 'nutrient_deficiency'],
-    followUpQuestions: ['Are the spots dry or wet?', 'Is it spreading?'],
+    followUpQuestions: [
+      { text: 'Are the spots dry or wet?', type: 'yes_no' },
+      { text: 'When did you first notice it?', type: 'free_text' },
+    ],
   },
 };
 
@@ -216,5 +219,109 @@ describe('Phase 24 ProblemAssistPage', () => {
       ),
     );
     expect(mutationKeys).toEqual([]);
+  });
+
+  it('renders yes_no question with Да / Не / Не знам radio buttons', () => {
+    const fixture = TestBed.createComponent(ProblemAssistPage);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.form.patchValue({ text: 'Yellow leaves' });
+    component.submit();
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.textContent).toContain('Да');
+    expect(compiled.textContent).toContain('Не');
+    expect(compiled.textContent).toContain('Не знам');
+  });
+
+  it('renders free_text question with a textarea', () => {
+    const fixture = TestBed.createComponent(ProblemAssistPage);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.form.patchValue({ text: 'Yellow leaves' });
+    component.submit();
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    // Should have at least one textarea for the free_text follow-up question
+    expect(compiled.querySelectorAll('textarea').length).toBeGreaterThan(0);
+  });
+
+  it('shows Прецизирай анализа button after AI response is received', () => {
+    const fixture = TestBed.createComponent(ProblemAssistPage);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    const compiledBefore = fixture.nativeElement as HTMLElement;
+    expect(compiledBefore.textContent).not.toContain('Прецизирай анализа');
+
+    component.form.patchValue({ text: 'Yellow leaves' });
+    component.submit();
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.textContent).toContain('Прецизирай анализа');
+  });
+
+  it('submitFollowUp sends non-empty answers alongside original params', () => {
+    const fixture = TestBed.createComponent(ProblemAssistPage);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.form.patchValue({ text: 'Yellow leaves' });
+    component.submit();
+    fixture.detectChanges();
+
+    component.setAnswer(0, 'да');
+    component.submitFollowUp();
+
+    expect(aiApi.problemAssist).toHaveBeenCalledTimes(2);
+    const secondCall = aiApi.problemAssist.mock.calls[1]![0] as Record<string, unknown>;
+    expect(secondCall['text']).toBe('Yellow leaves');
+    expect(secondCall['followUpAnswers']).toEqual([
+      { question: 'Are the spots dry or wet?', answer: 'да' },
+    ]);
+  });
+
+  it('submitFollowUp excludes blank free_text answers', () => {
+    const fixture = TestBed.createComponent(ProblemAssistPage);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.form.patchValue({ text: 'Yellow leaves' });
+    component.submit();
+    fixture.detectChanges();
+
+    // Don't call setAnswer — all answers are blank
+    component.submitFollowUp();
+
+    expect(aiApi.problemAssist).toHaveBeenCalledTimes(2);
+    const secondCall = aiApi.problemAssist.mock.calls[1]![0] as Record<string, unknown>;
+    expect(secondCall['followUpAnswers']).toEqual([]);
+  });
+
+  it('setAnswer stores answer at the given index', () => {
+    const fixture = TestBed.createComponent(ProblemAssistPage);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.setAnswer(2, 'не знам');
+    expect(component.followUpAnswers()[2]).toBe('не знам');
+  });
+
+  it('followUpAnswers signal is reset on new initial submit', () => {
+    const fixture = TestBed.createComponent(ProblemAssistPage);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.form.patchValue({ text: 'Yellow leaves' });
+    component.setAnswer(0, 'да');
+    component.submit();
+    fixture.detectChanges();
+
+    expect(component.followUpAnswers()).toEqual({});
   });
 });

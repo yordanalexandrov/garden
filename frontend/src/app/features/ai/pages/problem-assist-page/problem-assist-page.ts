@@ -25,6 +25,7 @@ import {
   AiGenerationResult,
   AiSuggestionStatus,
   AiSuggestionUiState,
+  ProblemAssistRequest,
   ProblemSummarySuggestionPayload,
 } from '../../ai.models';
 import { AiApiService } from '../../data-access/ai-api.service';
@@ -67,6 +68,11 @@ export class ProblemAssistPage {
   private readonly route = inject(ActivatedRoute);
 
   readonly problems = signal<readonly ProblemListItem[]>([]);
+  readonly submitting = signal(false);
+  readonly sessionError = signal<ReturnType<typeof mapApiError> | null>(null);
+  readonly result = signal<AiGenerationResult | null>(null);
+  readonly suggestionStates = signal<AiSuggestionUiState[]>([]);
+  readonly followUpAnswers = signal<Record<number, string>>({});
 
   readonly form = this.fb.group(
     {
@@ -76,11 +82,6 @@ export class ProblemAssistPage {
     },
     { validators: requireProblemIdOrText },
   );
-
-  readonly submitting = signal(false);
-  readonly sessionError = signal<ReturnType<typeof mapApiError> | null>(null);
-  readonly result = signal<AiGenerationResult | null>(null);
-  readonly suggestionStates = signal<AiSuggestionUiState[]>([]);
 
   constructor() {
     this.problemsApi
@@ -110,43 +111,49 @@ export class ProblemAssistPage {
     return null;
   }
 
+  currentSummaryPayload(): ProblemSummarySuggestionPayload | null {
+    const state = this.suggestionStates().find(
+      (s) => s.suggestion.suggestionType === 'problem_summary',
+    );
+    return state ? this.problemSummaryPayload(state) : null;
+  }
+
+  setAnswer(index: number, value: string): void {
+    this.followUpAnswers.update((a) => ({ ...a, [index]: value }));
+  }
+
   submit(): void {
     if (this.form.invalid || this.submitting()) return;
 
-    this.submitting.set(true);
-    this.sessionError.set(null);
-    this.result.set(null);
-    this.suggestionStates.set([]);
-
     const { inputMode, problemId, text } = this.form.getRawValue();
-
-    const request =
+    const request: ProblemAssistRequest =
       inputMode === 'problem'
         ? { problemId: problemId?.trim() || undefined }
         : { text: text?.trim() || undefined };
 
-    this.aiApi
-      .problemAssist(request)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (res) => {
-          this.result.set(res);
-          this.suggestionStates.set(
-            res.suggestions.map((s) => ({
-              suggestion: s,
-              status: 'unaccepted' as AiSuggestionStatus,
-              error: null,
-              acceptResult: null,
-              editedPayload: null,
-            })),
-          );
-          this.submitting.set(false);
-        },
-        error: (err: unknown) => {
-          this.sessionError.set(mapApiError(err));
-          this.submitting.set(false);
-        },
-      });
+    this.followUpAnswers.set({});
+    this.callProblemAssist(request);
+  }
+
+  submitFollowUp(): void {
+    if (this.submitting()) return;
+
+    const summary = this.currentSummaryPayload();
+    const questions = summary?.followUpQuestions ?? [];
+    const answers = this.followUpAnswers();
+
+    const followUpAnswers = questions
+      .map((q, i) => ({ question: q.text, answer: answers[i] ?? '' }))
+      .filter((a) => a.answer.length > 0);
+
+    const { inputMode, problemId, text } = this.form.getRawValue();
+    const base: ProblemAssistRequest =
+      inputMode === 'problem'
+        ? { problemId: problemId?.trim() || undefined }
+        : { text: text?.trim() || undefined };
+
+    this.followUpAnswers.set({});
+    this.callProblemAssist({ ...base, followUpAnswers });
   }
 
   onAccept(event: AiSuggestionAcceptEvent): void {
@@ -179,6 +186,36 @@ export class ProblemAssistPage {
         },
         error: (err: unknown) => {
           this.updateState(event.suggestionId, { status: 'error', error: err });
+        },
+      });
+  }
+
+  private callProblemAssist(request: ProblemAssistRequest): void {
+    this.submitting.set(true);
+    this.sessionError.set(null);
+    this.result.set(null);
+    this.suggestionStates.set([]);
+
+    this.aiApi
+      .problemAssist(request)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => {
+          this.result.set(res);
+          this.suggestionStates.set(
+            res.suggestions.map((s) => ({
+              suggestion: s,
+              status: 'unaccepted' as AiSuggestionStatus,
+              error: null,
+              acceptResult: null,
+              editedPayload: null,
+            })),
+          );
+          this.submitting.set(false);
+        },
+        error: (err: unknown) => {
+          this.sessionError.set(mapApiError(err));
+          this.submitting.set(false);
         },
       });
   }

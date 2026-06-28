@@ -95,12 +95,50 @@
 
       @if (summary.followUpQuestions && summary.followUpQuestions.length > 0) {
         <div class="ai-problem-summary__section">
-          <h3>Follow-up questions</h3>
-          <ul>
-            @for (q of summary.followUpQuestions; track q) {
-              <li>{{ q }}</li>
-            }
-          </ul>
+          <h3>Уточняващи въпроси</h3>
+          <p class="ai-problem-summary__followup-hint">
+            Отговорете на въпросите и натиснете „Прецизирай анализа" за по-конкретен резултат.
+          </p>
+
+          @for (q of summary.followUpQuestions; track q.text; let i = $index) {
+            <div class="ai-problem-summary__followup-item">
+              <p class="ai-problem-summary__followup-question">{{ q.text }}</p>
+
+              @if (q.type === 'yes_no') {
+                <mat-radio-group
+                  [value]="followUpAnswers()[i] ?? null"
+                  (change)="setAnswer(i, $event.value)"
+                  [attr.aria-label]="q.text"
+                >
+                  <mat-radio-button value="да">Да</mat-radio-button>
+                  <mat-radio-button value="не">Не</mat-radio-button>
+                  <mat-radio-button value="не знам">Не знам</mat-radio-button>
+                </mat-radio-group>
+              } @else {
+                <mat-form-field appearance="outline" class="ai-page__field">
+                  <textarea
+                    matInput
+                    rows="2"
+                    [value]="followUpAnswers()[i] ?? ''"
+                    (input)="setAnswer(i, $any($event.target).value)"
+                    [attr.aria-label]="q.text"
+                    placeholder="Отговор (незадължително)"
+                  ></textarea>
+                </mat-form-field>
+              }
+            </div>
+          }
+
+          <div class="ai-page__actions">
+            <button mat-flat-button color="primary" (click)="submitFollowUp()" [disabled]="submitting()">
+              @if (submitting()) {
+                <mat-spinner diameter="18" />
+                Анализирам…
+              } @else {
+                Прецизирай анализа
+              }
+            </button>
+          </div>
         </div>
       }
     </section>
