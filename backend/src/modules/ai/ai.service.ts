@@ -14,6 +14,7 @@ import type {
   GenerateProductRulesExistingRule,
   GenerateProductRulesPlant
 } from "../../integrations/ai/ai.types.js";
+import type { ProblemsRepository } from "../problems/problems.types.js";
 import type {
   AcceptSuggestionResult,
   AiRepository,
@@ -92,7 +93,8 @@ export class AiService {
     private readonly bedsRepository: BedsRepository,
     private readonly plantsRepository: PlantsRepository,
     private readonly dbClient: DbClient,
-    private readonly auditService?: AuditService
+    private readonly auditService?: AuditService,
+    private readonly problemsRepository?: ProblemsRepository
   ) {}
 
   async ingestProduct(actor: AuthenticatedActor, input: IngestProductInput): Promise<GenerationResult> {
@@ -226,11 +228,31 @@ export class AiService {
   }
 
   async assistProblem(actor: AuthenticatedActor, input: AssistProblemInput): Promise<GenerationResult> {
-    if (input.problemId !== undefined) {
-      const exists = await this.findProblemForAccount(actor.accountId, input.problemId);
+    let problemContext: Parameters<AiPort["assistProblem"]>[0]["problemContext"];
 
-      if (!exists) {
-        throw new AppError("NOT_FOUND", "Problem not found");
+    if (input.problemId !== undefined) {
+      if (this.problemsRepository !== undefined) {
+        const detail = await this.problemsRepository.getDetail(actor.accountId, input.problemId);
+
+        if (detail === null) {
+          throw new AppError("NOT_FOUND", "Problem not found");
+        }
+
+        problemContext = {
+          title: detail.title,
+          description: detail.description,
+          targetLabel: detail.targetLabel,
+          category: detail.category,
+          severity: detail.severity,
+          observedAt: detail.observedAt.toISOString().slice(0, 10),
+          photosCount: detail.photos.length
+        };
+      } else {
+        const exists = await this.findProblemForAccount(actor.accountId, input.problemId);
+
+        if (!exists) {
+          throw new AppError("NOT_FOUND", "Problem not found");
+        }
       }
     }
 
@@ -239,7 +261,8 @@ export class AiService {
     try {
       portResult = await this.aiPort.assistProblem({
         ...(input.problemId !== undefined ? { problemId: input.problemId } : {}),
-        ...(input.text !== undefined ? { text: input.text } : {})
+        ...(input.text !== undefined ? { text: input.text } : {}),
+        ...(problemContext !== undefined ? { problemContext } : {})
       });
     } catch (error) {
       if (isAiProviderError(error)) {
