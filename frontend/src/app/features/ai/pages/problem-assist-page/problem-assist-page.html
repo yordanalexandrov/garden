@@ -93,6 +93,13 @@
         </div>
       }
 
+      @if (summary.recommendation) {
+        <div class="ai-problem-summary__section ai-problem-summary__recommendation">
+          <h3>Препоръка</h3>
+          <p>{{ summary.recommendation }}</p>
+        </div>
+      }
+
       @if (summary.followUpQuestions && summary.followUpQuestions.length > 0) {
         <div class="ai-problem-summary__section">
           <h3>Уточняващи въпроси</h3>

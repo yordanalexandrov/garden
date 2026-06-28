@@ -52,6 +52,7 @@ export type NormalizedProblemSummaryPayload = {
   summary: string;
   possibleCategories: string[];
   followUpQuestions: FollowUpQuestion[];
+  recommendation?: string;
 };
 
 export type NormalizedFollowupQuestionsPayload = {
