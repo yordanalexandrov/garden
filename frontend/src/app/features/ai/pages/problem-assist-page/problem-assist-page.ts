@@ -6,6 +6,7 @@ import {
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { EMPTY, catchError } from 'rxjs';
 import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -84,11 +85,11 @@ export class ProblemAssistPage {
   constructor() {
     this.problemsApi
       .list({ pageSize: 100 })
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (page) => this.problems.set(page.items),
-        error: () => {},
-      });
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        catchError(() => EMPTY),
+      )
+      .subscribe((page) => this.problems.set(page.items));
 
     const problemId = this.route.snapshot.queryParamMap.get('problemId');
     if (problemId) {
