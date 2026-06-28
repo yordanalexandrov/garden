@@ -38,10 +38,20 @@ export type NormalizedBedPlanPayload = {
   roughQuantityGuidance: unknown[];
 };
 
+export type FollowUpQuestion = {
+  text: string;
+  type: "yes_no" | "free_text";
+};
+
+export type FollowUpAnswer = {
+  question: string;
+  answer: string;
+};
+
 export type NormalizedProblemSummaryPayload = {
   summary: string;
   possibleCategories: string[];
-  followUpQuestions: unknown[];
+  followUpQuestions: FollowUpQuestion[];
 };
 
 export type NormalizedFollowupQuestionsPayload = {
@@ -105,6 +115,8 @@ export type AssistProblemInput = {
   problemId?: string;
   text?: string;
   problemContext?: ProblemContextInput;
+  photoUrls?: string[];
+  followUpAnswers?: FollowUpAnswer[];
 };
 
 export type AssistProblemResult = {

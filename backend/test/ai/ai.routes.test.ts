@@ -285,6 +285,28 @@ describeDatabase("AI routes with database", () => {
 
       expect(response.statusCode).toBe(404);
     });
+
+    it("forwards followUpAnswers to the AI port", async () => {
+      const response = await app!.inject({
+        method: "POST",
+        url: "/api/v1/ai/problem-assist",
+        headers: accountAAuthHeaders(),
+        payload: {
+          text: "Yellow spots on leaves",
+          followUpAnswers: [
+            { question: "Влажни ли са петната?", answer: "да" },
+            { question: "Кога забелязахте?", answer: "Преди 3 дни" },
+          ],
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(ai.assistProblemCalls).toHaveLength(1);
+      expect(ai.assistProblemCalls[0]!.followUpAnswers).toEqual([
+        { question: "Влажни ли са петната?", answer: "да" },
+        { question: "Кога забелязахте?", answer: "Преди 3 дни" },
+      ]);
+    });
   });
 
   describe("product rule generation", () => {

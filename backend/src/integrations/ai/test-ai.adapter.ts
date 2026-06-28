@@ -61,9 +61,12 @@ const DEFAULT_PROBLEM_SUGGESTIONS: NormalizedSuggestion[] = [
     payload: {
       summary: "Possible fungal infection based on the described symptoms.",
       possibleCategories: ["fungus", "nutrient_deficiency"],
-      followUpQuestions: ["When did you first notice the symptoms?"]
-    }
-  }
+      followUpQuestions: [
+        { text: "Кога за първи път забелязахте симптомите?", type: "free_text" },
+        { text: "Влажни ли са петната при допир?", type: "yes_no" },
+      ],
+    },
+  },
 ];
 
 const DEFAULT_PLANT_SUGGESTIONS: NormalizedSuggestion[] = [
