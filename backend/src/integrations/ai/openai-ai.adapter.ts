@@ -408,15 +408,21 @@ Return only valid JSON. Do not include markdown fences.`,
 
     const userContent = parts.join("\n");
 
+    const hasFollowUpAnswers = input.followUpAnswers !== undefined && input.followUpAnswers.length > 0;
+
     const systemPrompt = `You are a gardening problem diagnostic assistant.
 Analyze the described plant problem and provide advisory information only.
 You must NOT make definitive diagnoses — present possibilities, not conclusions.
 Base your analysis on the problem title, description, affected plant/target, severity, and any other context provided.
-Always write all free-text output (summary, followUpQuestions text) in Bulgarian.
-Return a JSON object with these fields:
+Always write all free-text output (summary, followUpQuestions text, recommendation) in Bulgarian.
+${hasFollowUpAnswers ? `The user has already answered some follow-up questions. Incorporate those answers into a more specific analysis.
+- If the answers give you enough information, set followUpQuestions to an empty array and provide a specific recommendation.
+- If you still need clarification, ask DIFFERENT follow-up questions that are more specific than before. Never repeat questions the user already answered.
+` : ""}Return a JSON object with these fields:
 - summary: string — a brief, cautious advisory summary based on the specific problem described (in Bulgarian)
 - possibleCategories: string[] — possible problem categories (e.g. fungus, pest, nutrient_deficiency, environmental)
-- followUpQuestions: Array of { "text": string, "type": "yes_no" | "free_text" } — clarifying questions to narrow down the problem (text in Bulgarian). Use "yes_no" for questions answerable with yes/no, "free_text" for open questions.
+- followUpQuestions: Array of { "text": string, "type": "yes_no" | "free_text" } — clarifying questions to narrow down the problem (text in Bulgarian). Use "yes_no" for questions answerable with yes/no, "free_text" for open questions. Set to empty array if you have enough information.
+- recommendation: string — concrete, specific guidance in Bulgarian: what the grower should do (e.g. treatment approach, product type to consider, timing, preventive measures). Be actionable and specific, but cautious — this is advisory, not a guarantee.
 
 Return only valid JSON. Do not include markdown fences.`;
 
@@ -446,6 +452,9 @@ Return only valid JSON. Do not include markdown fences.`;
                     : ("free_text" as const),
               }))
             : [],
+          ...(typeof raw.recommendation === "string" && raw.recommendation.trim().length > 0
+            ? { recommendation: raw.recommendation }
+            : {}),
         },
       },
     ];

@@ -165,4 +165,24 @@ svg {
       padding-left: 1.25rem;
     }
   }
+
+  &__recommendation {
+    border-left: 3px solid var(--mdc-theme-primary, #4caf50);
+    padding-left: 0.75rem;
+  }
+
+  &__followup-hint {
+    font-size: 0.875rem;
+    color: var(--app-text-secondary, rgba(0, 0, 0, 0.6));
+    margin-bottom: 0.75rem;
+  }
+
+  &__followup-item {
+    margin-bottom: 1rem;
+  }
+
+  &__followup-question {
+    font-weight: 500;
+    margin: 0 0 0.5rem;
+  }
 }

@@ -146,6 +146,7 @@ export interface ProblemSummarySuggestionPayload {
   readonly summary?: string;
   readonly possibleCategories?: readonly string[];
   readonly followUpQuestions?: readonly FollowUpQuestion[];
+  readonly recommendation?: string;
 }
 
 export interface AiSuggestionUiState {
