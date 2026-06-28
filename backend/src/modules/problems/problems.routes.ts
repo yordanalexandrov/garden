@@ -133,7 +133,12 @@ function createStoragePort(config: AppConfig | undefined): StoragePort {
       throw new Error("Production problem photo storage requires Supabase Storage URL, bucket, and backend service role key");
     }
 
-    return new SupabaseStorageAdapter({ storageUrl, storagePublicUrl, bucket, serviceRoleKey });
+    return new SupabaseStorageAdapter({
+      storageUrl,
+      ...(storagePublicUrl !== undefined ? { storagePublicUrl } : {}),
+      bucket,
+      serviceRoleKey,
+    });
   }
 
   return new TestStorageAdapter();
