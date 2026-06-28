@@ -9,45 +9,55 @@ import {
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { Observable, of } from 'rxjs';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { catchError, concatMap, from, Observable, of, reduce, tap } from 'rxjs';
 
 import { mapApiError } from '../../../core/errors/api-error.mapper';
 import { ProblemsApiService } from '../../../features/problems/problems-api.service';
 import { ProblemPhotoMutationResult } from '../../../features/problems/problems.models';
 
+export interface FileUploadItem {
+  id: number;
+  file: File;
+  name: string;
+  status: 'pending' | 'uploading' | 'done' | 'error';
+  errorMsg?: string;
+}
+
+export interface UploadSummary {
+  succeeded: number;
+  failed: number;
+}
+
 const DEFAULT_ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'] as const;
 const DEFAULT_MAX_BYTES = 5 * 1024 * 1024;
 
+let nextItemId = 0;
+
 @Component({
   selector: 'app-problem-photo-uploader',
-  imports: [MatButtonModule, MatIconModule],
+  imports: [MatIconModule, MatProgressSpinnerModule],
   templateUrl: './problem-photo-uploader.html',
   styleUrl: './problem-photo-uploader.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProblemPhotoUploader {
-  /** Photos are supported only for problems in v1; parent binds type === 'problem'. */
   readonly enabled = input<boolean>(false);
   readonly allowedMimeTypes = input<readonly string[]>(DEFAULT_ALLOWED_MIME_TYPES);
   readonly maxBytes = input<number>(DEFAULT_MAX_BYTES);
 
-  readonly fileSelected = output<File | null>();
   readonly uploadComplete = output<ProblemPhotoMutationResult>();
+  readonly allUploadsComplete = output<UploadSummary>();
 
-  readonly selectedFile = signal<File | null>(null);
-  readonly previewName = signal<string | null>(null);
-  readonly validationError = signal<string | null>(null);
+  readonly items = signal<FileUploadItem[]>([]);
+  readonly validationErrors = signal<string[]>([]);
   readonly uploading = signal(false);
-  readonly uploadError = signal<string | null>(null);
-  readonly uploaded = signal<ProblemPhotoMutationResult | null>(null);
 
   private readonly problemsApi = inject(ProblemsApiService);
   private readonly destroyRef = inject(DestroyRef);
 
   constructor() {
-    // Observations never carry a photo; clear any selection if the uploader is disabled.
     effect(() => {
       if (!this.enabled()) {
         this.reset();
@@ -55,85 +65,97 @@ export class ProblemPhotoUploader {
     });
   }
 
-  hasFile(): boolean {
-    return this.selectedFile() !== null;
+  hasFiles(): boolean {
+    return this.items().some((i) => i.status === 'pending');
   }
 
   async onFileChange(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
-    const file = input.files?.[0] ?? null;
-    this.uploadError.set(null);
-    this.uploaded.set(null);
+    const files = Array.from(input.files ?? []);
+    const errors: string[] = [];
+    const valid: FileUploadItem[] = [];
 
-    if (file === null) {
-      this.clearSelection();
-      return;
+    for (const file of files) {
+      const err = this.validateFile(file);
+      if (err) {
+        errors.push(`${file.name}: ${err}`);
+      } else {
+        valid.push({ id: nextItemId++, file, name: file.name, status: 'pending' });
+      }
     }
 
-    const validationError = this.validateFile(file);
+    this.validationErrors.set(errors);
+    this.items.set([...this.items(), ...valid]);
 
-    if (validationError !== null) {
-      this.validationError.set(validationError);
-      this.clearSelection();
-      return;
-    }
-
-    this.validationError.set(null);
-    this.selectedFile.set(file);
-    this.previewName.set(file.name);
-    this.fileSelected.emit(file);
-
-    const compressed = await this.compressImage(file);
-    if (this.selectedFile() === file) {
-      this.selectedFile.set(compressed);
+    for (const item of valid) {
+      const compressed = await this.compressImage(item.file);
+      this.items.update((list) =>
+        list.map((i) => (i.id === item.id ? { ...i, file: compressed } : i)),
+      );
     }
   }
 
-  /**
-   * Uploads the selected file through the backend problems photo endpoint.
-   * Returns an observable that completes with the upload result, or null when
-   * there is nothing to upload (disabled or no file selected).
-   */
-  upload(problemId: string): Observable<ProblemPhotoMutationResult | null> {
-    const file = this.selectedFile();
+  upload(problemId: string): Observable<UploadSummary> {
+    const pending = this.items().filter((i) => i.status === 'pending');
 
-    if (!this.enabled() || file === null) {
-      return of(null);
+    if (!this.enabled() || pending.length === 0) {
+      return of({ succeeded: 0, failed: 0 });
     }
 
     this.uploading.set(true);
-    this.uploadError.set(null);
 
-    return new Observable<ProblemPhotoMutationResult | null>((subscriber) => {
-      const subscription = this.problemsApi
-        .uploadPhoto(problemId, file)
-        .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe({
-          next: (result) => {
-            this.uploading.set(false);
-            this.uploaded.set(result);
-            this.uploadComplete.emit(result);
-            subscriber.next(result);
-            subscriber.complete();
-          },
-          error: (error: unknown) => {
-            this.uploading.set(false);
-            this.uploadError.set(mapApiError(error).message);
-            subscriber.next(null);
-            subscriber.complete();
-          },
-        });
-
-      return () => subscription.unsubscribe();
-    });
+    return from(pending).pipe(
+      concatMap((item) => this.uploadOne(problemId, item)),
+      reduce(
+        (acc, ok) => ({
+          succeeded: acc.succeeded + (ok ? 1 : 0),
+          failed: acc.failed + (ok ? 0 : 1),
+        }),
+        { succeeded: 0, failed: 0 },
+      ),
+      tap((summary) => {
+        this.uploading.set(false);
+        this.allUploadsComplete.emit(summary);
+      }),
+      takeUntilDestroyed(this.destroyRef),
+    );
   }
 
   reset(): void {
-    this.clearSelection();
-    this.validationError.set(null);
-    this.uploadError.set(null);
-    this.uploaded.set(null);
+    this.items.set([]);
+    this.validationErrors.set([]);
     this.uploading.set(false);
+  }
+
+  removeItem(item: FileUploadItem): void {
+    this.items.update((list) => list.filter((i) => i.id !== item.id));
+  }
+
+  private uploadOne(
+    problemId: string,
+    item: FileUploadItem,
+  ): Observable<ProblemPhotoMutationResult | null> {
+    this.items.update((list) =>
+      list.map((i) => (i.id === item.id ? { ...i, status: 'uploading' } : i)),
+    );
+
+    const currentFile = this.items().find((i) => i.id === item.id)?.file ?? item.file;
+
+    return this.problemsApi.uploadPhoto(problemId, currentFile).pipe(
+      tap((result) => {
+        this.items.update((list) =>
+          list.map((i) => (i.id === item.id ? { ...i, status: 'done' } : i)),
+        );
+        this.uploadComplete.emit(result);
+      }),
+      catchError((error: unknown) => {
+        const msg = mapApiError(error).message;
+        this.items.update((list) =>
+          list.map((i) => (i.id === item.id ? { ...i, status: 'error', errorMsg: msg } : i)),
+        );
+        return of(null);
+      }),
+    );
   }
 
   private compressImage(file: File): Promise<File> {
@@ -172,7 +194,6 @@ export class ProblemPhotoUploader {
 
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-        // PNG stays lossless (resize only); JPEG/WebP use quality param.
         const quality = file.type === 'image/png' ? undefined : QUALITY;
         canvas.toBlob(
           (blob) => resolve(blob ? new File([blob], file.name, { type: file.type }) : file),
@@ -190,22 +211,14 @@ export class ProblemPhotoUploader {
     });
   }
 
-  private clearSelection(): void {
-    this.selectedFile.set(null);
-    this.previewName.set(null);
-    this.fileSelected.emit(null);
-  }
-
   private validateFile(file: File): string | null {
     if (!this.allowedMimeTypes().includes(file.type)) {
-      return `Unsupported file type. Allowed: ${this.allowedMimeTypes().join(', ')}.`;
+      return `Unsupported type. Allowed: ${this.allowedMimeTypes().join(', ')}.`;
     }
-
     if (file.size > this.maxBytes()) {
       const maxMb = Math.round(this.maxBytes() / (1024 * 1024));
-      return `File is too large. Maximum size is ${maxMb} MB.`;
+      return `Too large. Max ${maxMb} MB.`;
     }
-
     return null;
   }
 }

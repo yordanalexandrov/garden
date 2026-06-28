@@ -28,6 +28,7 @@
     "@fontsource/roboto": "^5.2.10",
     "@supabase/supabase-js": "^2.105.4",
     "material-icons": "^1.13.14",
+    "ng-gallery": "^13.0.0-next.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
   },

@@ -12,15 +12,88 @@
   color: var(--mat-sys-on-surface-variant);
 }
 
-.selected,
-.status {
+.hint {
   color: var(--mat-sys-on-surface-variant);
 }
 
-.error {
+.error-list {
+  margin: 0;
+  padding: 0 0 0 1.2em;
+  color: var(--mat-sys-error);
+  font-size: 0.85rem;
+}
+
+.file-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.file-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.875rem;
+
+  &[data-status='done'] .file-name {
+    color: var(--mat-sys-on-surface-variant);
+    text-decoration: line-through;
+  }
+
+  &[data-status='error'] {
+    color: var(--mat-sys-error);
+  }
+}
+
+.file-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-error {
+  font-size: 0.78rem;
   color: var(--mat-sys-error);
 }
 
-.hint {
+.icon-done {
+  color: #2e7d32;
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.icon-error {
+  color: var(--mat-sys-error);
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.icon-pending {
   color: var(--mat-sys-on-surface-variant);
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.remove-btn {
+  all: unset;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  color: var(--mat-sys-on-surface-variant);
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+
+  &:hover {
+    color: var(--mat-sys-error);
+  }
 }

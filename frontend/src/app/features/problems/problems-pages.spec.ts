@@ -1,9 +1,11 @@
+import { Component, input } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 
 import { ApiError } from '../../core/errors/api-error';
+import { ProblemPhotoGallery } from '../../shared/components/problem-photo-gallery/problem-photo-gallery';
 import { ActivitiesApiService } from '../activities/activities-api.service';
 import { BedsApiService } from '../beds/beds-api.service';
 import { PerennialsApiService } from '../perennials/perennials-api.service';
@@ -14,6 +16,17 @@ import { ProblemsApiService } from './problems-api.service';
 import { ProblemCreatePage } from './pages/problem-create-page/problem-create-page';
 import { ProblemDetailPage } from './pages/problem-detail-page/problem-detail-page';
 import { ProblemsListPage } from './pages/problems-list-page/problems-list-page';
+import { ProblemPhoto } from './problems.models';
+
+/** Stub — avoids JSDOM incompatibility with ng-gallery Lightbox directive */
+@Component({
+  selector: 'app-problem-photo-gallery',
+  standalone: true,
+  template: `@for (photo of photos(); track photo.id) { <img [src]="photo.url" [alt]="photo.originalFilename ?? 'photo'" /> }`,
+})
+class StubProblemPhotoGallery {
+  readonly photos = input<readonly ProblemPhoto[]>([]);
+}
 
 const fileChangeEvent = (file: File): Event =>
   ({ target: { files: [file] } }) as unknown as Event;
@@ -117,6 +130,11 @@ describe('Phase 17 problem pages', () => {
         { provide: PersistentBedPlantsApiService, useValue: persistentPlantsApi },
       ],
     });
+
+    TestBed.overrideComponent(ProblemDetailPage, {
+      remove: { imports: [ProblemPhotoGallery] },
+      add: { imports: [StubProblemPhotoGallery] },
+    });
   });
 
   afterEach(() => {
@@ -169,7 +187,7 @@ describe('Phase 17 problem pages', () => {
       'button[mat-stroked-button]',
     );
     expect(uploadButton).not.toBeNull();
-    expect(uploadButton?.textContent?.trim()).toContain('Upload Photo');
+    expect(uploadButton?.textContent?.trim()).toContain('Upload Photos');
 
     problemsApi.get.mockReturnValue(
       of({ ...detail, type: 'observation', photos: [] }),
@@ -208,14 +226,11 @@ describe('Phase 17 problem pages', () => {
     component.uploader()?.onFileChange(fileChangeEvent(file));
     fixture.detectChanges();
 
-    component.uploadPhoto();
+    component.uploadPhotos();
 
     expect(problemsApi.uploadPhoto).toHaveBeenCalledWith('problem-1', file);
     expect(problemsApi.get).toHaveBeenCalledTimes(2);
-    expect(component.uploader()?.uploaded()).toEqual({
-      id: 'photo-1',
-      storageKey: 'problems/problem-1/photo.jpg',
-    });
+    expect(component.uploader()?.items().find((i) => i.status === 'done')).toBeTruthy();
   });
 
   it('shows the uploader for problems and submits without a photo', () => {
@@ -339,10 +354,7 @@ describe('Phase 17 problem pages', () => {
 
     expect(problemsApi.create).toHaveBeenCalledTimes(1);
     expect(problemsApi.uploadPhoto).toHaveBeenCalledWith('problem-1', file);
-    expect(component.uploader()?.uploaded()).toEqual({
-      id: 'photo-1',
-      storageKey: 'problems/problem-1/photo.jpg',
-    });
+    expect(component.uploader()?.items().find((i) => i.status === 'done')).toBeTruthy();
   });
 
   it('keeps metadata and shows an upload error when photo upload fails', () => {
@@ -368,7 +380,9 @@ describe('Phase 17 problem pages', () => {
     expect(component.created()).toEqual({ id: 'problem-1' });
     expect(component.form.controls.title.value).toBe('Keep this title');
     expect(component.form.controls.description.value).toBe('Keep this description');
-    expect(component.uploader()?.uploadError()).toBe('Storage unavailable');
+    expect(
+      component.uploader()?.items().find((i) => i.status === 'error')?.errorMsg,
+    ).toBe('Storage unavailable');
   });
 
   it('rejects non-image files with a client validation message', () => {
@@ -380,8 +394,8 @@ describe('Phase 17 problem pages', () => {
     const pdf = new File(['binary'], 'note.pdf', { type: 'application/pdf' });
     uploader?.onFileChange(fileChangeEvent(pdf));
 
-    expect(uploader?.hasFile()).toBe(false);
-    expect(uploader?.validationError()).toContain('Unsupported file type');
+    expect(uploader?.hasFiles()).toBe(false);
+    expect(uploader?.validationErrors()[0]).toContain('Unsupported');
   });
 
   it('shows AI Assist link on problem detail and hides it for observations', () => {

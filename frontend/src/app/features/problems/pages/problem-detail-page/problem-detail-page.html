@@ -52,30 +52,18 @@
       <mat-card>
         <mat-card-header><mat-card-title>Photos</mat-card-title></mat-card-header>
         <mat-card-content>
-          @for (photo of item.photos; track photo.id) {
-            <figure class="photo">
-              <img [src]="photo.url" [alt]="photo.originalFilename || 'Problem photo'" />
-              @if (photo.originalFilename) {
-                <figcaption>{{ photo.originalFilename }}</figcaption>
-              }
-            </figure>
-          } @empty {
-            <p>No photos attached.</p>
-          }
+          <app-problem-photo-gallery [photos]="item.photos" />
 
           @if (item.type === 'problem') {
             <div class="photo-upload">
-              <app-problem-photo-uploader
-                [enabled]="true"
-                (fileSelected)="onFileSelected($event)"
-              />
+              <app-problem-photo-uploader [enabled]="true" />
               <button
                 mat-stroked-button
                 type="button"
-                [disabled]="uploading() || !hasSelectedFile()"
-                (click)="uploadPhoto()"
+                [disabled]="uploading() || !uploader()?.hasFiles()"
+                (click)="uploadPhotos()"
               >
-                {{ uploading() ? 'Uploading...' : 'Upload Photo' }}
+                {{ uploading() ? 'Uploading...' : 'Upload Photos' }}
               </button>
             </div>
           }
