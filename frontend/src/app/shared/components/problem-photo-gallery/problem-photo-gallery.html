@@ -1,5 +1,7 @@
 @if (photos().length > 0) {
-  <gallery [items]="galleryItems()" lightbox #lb="lightbox" class="gallery-source" />
+  <ng-template [lightbox] #lb="lightbox">
+    <gallery [items]="galleryItems()" />
+  </ng-template>
 
   <div class="photo-grid">
     @for (photo of photos(); track photo.id; let i = $index) {
