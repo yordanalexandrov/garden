@@ -8,40 +8,6 @@ import type { AiRepository, AiSession, AiSuggestion } from "../../src/modules/ai
 import { AiService } from "../../src/modules/ai/ai.service.js";
 import type { AuthenticatedActor } from "../../src/modules/auth/auth.types.js";
 
-// Minimal stubs — only the methods exercised by assistProblem
-function makeAiRepository(): AiRepository {
-  const session: AiSession = {
-    id: "sess-0000-0000-0000-000000000001",
-    accountId: "acct-0000-0000-0000-000000000001",
-    kind: "problem_assist",
-    inputMode: "text",
-    status: "completed",
-    rawInputText: null,
-    relatedEntityType: null,
-    relatedEntityId: null,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  };
-  const suggestion: AiSuggestion = {
-    id: "sugg-0000-0000-0000-000000000001",
-    aiSessionId: session.id,
-    suggestionType: "problem_summary",
-    payload: { summary: "test" },
-    accepted: null,
-    acceptedAt: null,
-    createdAt: new Date(),
-  };
-  return {
-    createSession: vi.fn().mockResolvedValue(session),
-    addSuggestions: vi.fn().mockResolvedValue([suggestion]),
-    updateSessionStatus: vi.fn(),
-    findSuggestionById: vi.fn(),
-    listSessionSuggestions: vi.fn(),
-    markAccepted: vi.fn(),
-    markRejected: vi.fn(),
-  } as unknown as AiRepository;
-}
-
 function makeProblemDetail(photoKeys: string[]): ProblemDetailRecord {
   return {
     id: "prob-0000-0000-0000-000000000001",
@@ -79,30 +45,77 @@ const ACTOR: AuthenticatedActor = {
 const PROBLEM_ID = "prob-0000-0000-0000-000000000001";
 
 describe("AiService.assistProblem – photo signed URL fetching", () => {
+  // Capture mock functions as plain variables to avoid unbound-method lint errors.
+  let createSessionMock: ReturnType<typeof vi.fn>;
+  let addSuggestionsMock: ReturnType<typeof vi.fn>;
+  let getDetailMock: ReturnType<typeof vi.fn>;
+  let assistProblemMock: ReturnType<typeof vi.fn>;
+  let getSignedUrlMock: ReturnType<typeof vi.fn>;
+
   let aiRepository: AiRepository;
   let aiPort: AiPort;
   let problemsRepository: ProblemsRepository;
   let storagePort: StoragePort;
 
-  // Minimal no-op stubs for unused constructor args
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const noop: any = {};
-
   beforeEach(() => {
-    aiRepository = makeAiRepository();
-    aiPort = { assistProblem: vi.fn().mockResolvedValue({ suggestions: [] }) } as unknown as AiPort;
-    problemsRepository = { getDetail: vi.fn() } as unknown as ProblemsRepository;
-    storagePort = { getSignedUrl: vi.fn() } as unknown as StoragePort;
+    const session: AiSession = {
+      id: "sess-0000-0000-0000-000000000001",
+      accountId: "acct-0000-0000-0000-000000000001",
+      kind: "problem_assist",
+      inputMode: "text",
+      status: "completed",
+      rawInputText: null,
+      relatedEntityType: null,
+      relatedEntityId: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    const suggestion: AiSuggestion = {
+      id: "sugg-0000-0000-0000-000000000001",
+      aiSessionId: session.id,
+      suggestionType: "problem_summary",
+      payload: { summary: "test" },
+      accepted: null,
+      acceptedAt: null,
+      createdAt: new Date(),
+    };
+
+    createSessionMock = vi.fn().mockResolvedValue(session);
+    addSuggestionsMock = vi.fn().mockResolvedValue([suggestion]);
+    getDetailMock = vi.fn();
+    assistProblemMock = vi.fn().mockResolvedValue({ suggestions: [] });
+    getSignedUrlMock = vi.fn();
+
+    aiRepository = {
+      createSession: createSessionMock,
+      addSuggestions: addSuggestionsMock,
+      updateSessionStatus: vi.fn(),
+      findSuggestionById: vi.fn(),
+      listSessionSuggestions: vi.fn(),
+      markAccepted: vi.fn(),
+      markRejected: vi.fn(),
+    } as unknown as AiRepository;
+
+    aiPort = { assistProblem: assistProblemMock } as unknown as AiPort;
+    problemsRepository = { getDetail: getDetailMock } as unknown as ProblemsRepository;
+    storagePort = { getSignedUrl: getSignedUrlMock } as unknown as StoragePort;
   });
 
   function makeService(storage?: StoragePort): AiService {
+    // productsService, bedsRepository, plantsRepository, dbClient are not exercised by assistProblem.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment
+    const unused = {} as any;
     return new AiService(
       aiRepository,
       aiPort,
-      noop, // productsService
-      noop, // bedsRepository
-      noop, // plantsRepository
-      noop, // dbClient
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+      unused, // productsService
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+      unused, // bedsRepository
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+      unused, // plantsRepository
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+      unused, // dbClient
       undefined, // auditService
       problemsRepository,
       storage,
@@ -111,19 +124,18 @@ describe("AiService.assistProblem – photo signed URL fetching", () => {
 
   it("calls getSignedUrl for each photo and passes URLs to aiPort.assistProblem", async () => {
     const keys = ["problems/acct/prob/photo0.jpg", "problems/acct/prob/photo1.jpg"];
-    vi.mocked(problemsRepository.getDetail).mockResolvedValue(makeProblemDetail(keys));
-    vi.mocked(storagePort.getSignedUrl)
+    getDetailMock.mockResolvedValue(makeProblemDetail(keys));
+    getSignedUrlMock
       .mockResolvedValueOnce("https://storage.test/signed/photo0")
       .mockResolvedValueOnce("https://storage.test/signed/photo1");
 
     const service = makeService(storagePort);
     await service.assistProblem(ACTOR, { problemId: PROBLEM_ID });
 
-    expect(storagePort.getSignedUrl).toHaveBeenCalledTimes(2);
-    expect(storagePort.getSignedUrl).toHaveBeenCalledWith({ storageKey: keys[0], expiresInSeconds: 300 });
-    expect(storagePort.getSignedUrl).toHaveBeenCalledWith({ storageKey: keys[1], expiresInSeconds: 300 });
-
-    expect(aiPort.assistProblem).toHaveBeenCalledWith(
+    expect(getSignedUrlMock).toHaveBeenCalledTimes(2);
+    expect(getSignedUrlMock).toHaveBeenCalledWith({ storageKey: keys[0], expiresInSeconds: 300 });
+    expect(getSignedUrlMock).toHaveBeenCalledWith({ storageKey: keys[1], expiresInSeconds: 300 });
+    expect(assistProblemMock).toHaveBeenCalledWith(
       expect.objectContaining({
         photoUrls: ["https://storage.test/signed/photo0", "https://storage.test/signed/photo1"],
       }),
@@ -132,8 +144,8 @@ describe("AiService.assistProblem – photo signed URL fetching", () => {
 
   it("skips failed signed URL and passes only successful ones (Promise.allSettled)", async () => {
     const keys = ["problems/acct/prob/ok.jpg", "problems/acct/prob/fail.jpg", "problems/acct/prob/ok2.jpg"];
-    vi.mocked(problemsRepository.getDetail).mockResolvedValue(makeProblemDetail(keys));
-    vi.mocked(storagePort.getSignedUrl)
+    getDetailMock.mockResolvedValue(makeProblemDetail(keys));
+    getSignedUrlMock
       .mockResolvedValueOnce("https://storage.test/signed/ok")
       .mockRejectedValueOnce(new StorageProviderError("signed URL failed"))
       .mockResolvedValueOnce("https://storage.test/signed/ok2");
@@ -141,8 +153,8 @@ describe("AiService.assistProblem – photo signed URL fetching", () => {
     const service = makeService(storagePort);
     await service.assistProblem(ACTOR, { problemId: PROBLEM_ID });
 
-    expect(storagePort.getSignedUrl).toHaveBeenCalledTimes(3);
-    expect(aiPort.assistProblem).toHaveBeenCalledWith(
+    expect(getSignedUrlMock).toHaveBeenCalledTimes(3);
+    expect(assistProblemMock).toHaveBeenCalledWith(
       expect.objectContaining({
         photoUrls: ["https://storage.test/signed/ok", "https://storage.test/signed/ok2"],
       }),
@@ -150,26 +162,24 @@ describe("AiService.assistProblem – photo signed URL fetching", () => {
   });
 
   it("omits photoUrls from aiPort call when storagePort is undefined", async () => {
-    const keys = ["problems/acct/prob/photo0.jpg"];
-    vi.mocked(problemsRepository.getDetail).mockResolvedValue(makeProblemDetail(keys));
+    getDetailMock.mockResolvedValue(makeProblemDetail(["problems/acct/prob/photo0.jpg"]));
 
     const service = makeService(undefined);
     await service.assistProblem(ACTOR, { problemId: PROBLEM_ID });
 
-    expect(aiPort.assistProblem).toHaveBeenCalledWith(
-      expect.not.objectContaining({ photoUrls: expect.anything() }),
-    );
+    // photoUrls should not be present in the call args at all
+    const callArg = assistProblemMock.mock.calls[0]?.[0] as Record<string, unknown>;
+    expect(callArg).not.toHaveProperty("photoUrls");
   });
 
   it("omits photoUrls from aiPort call when problem has no photos", async () => {
-    vi.mocked(problemsRepository.getDetail).mockResolvedValue(makeProblemDetail([]));
+    getDetailMock.mockResolvedValue(makeProblemDetail([]));
 
     const service = makeService(storagePort);
     await service.assistProblem(ACTOR, { problemId: PROBLEM_ID });
 
-    expect(storagePort.getSignedUrl).not.toHaveBeenCalled();
-    expect(aiPort.assistProblem).toHaveBeenCalledWith(
-      expect.not.objectContaining({ photoUrls: expect.anything() }),
-    );
+    expect(getSignedUrlMock).not.toHaveBeenCalled();
+    const callArg = assistProblemMock.mock.calls[0]?.[0] as Record<string, unknown>;
+    expect(callArg).not.toHaveProperty("photoUrls");
   });
 });
