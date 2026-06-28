@@ -161,6 +161,7 @@ export class ProblemPhotoUploader {
   private compressImage(file: File): Promise<File> {
     const MAX_DIMENSION = 1920;
     const QUALITY = 0.85;
+    const isPng = file.type === 'image/png';
 
     return new Promise<File>((resolve) => {
       let url: string;
@@ -176,12 +177,18 @@ export class ProblemPhotoUploader {
       img.onload = () => {
         URL.revokeObjectURL(url);
 
-        if (img.width <= MAX_DIMENSION && img.height <= MAX_DIMENSION) {
+        const needsResize = img.width > MAX_DIMENSION || img.height > MAX_DIMENSION;
+
+        // PNG is lossless — only process if a resize is needed.
+        if (isPng && !needsResize) {
           resolve(file);
           return;
         }
 
-        const ratio = Math.min(MAX_DIMENSION / img.width, MAX_DIMENSION / img.height);
+        const ratio = needsResize
+          ? Math.min(MAX_DIMENSION / img.width, MAX_DIMENSION / img.height)
+          : 1;
+
         const canvas = document.createElement('canvas');
         canvas.width = Math.round(img.width * ratio);
         canvas.height = Math.round(img.height * ratio);
@@ -194,9 +201,16 @@ export class ProblemPhotoUploader {
 
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-        const quality = file.type === 'image/png' ? undefined : QUALITY;
+        const quality = isPng ? undefined : QUALITY;
         canvas.toBlob(
-          (blob) => resolve(blob ? new File([blob], file.name, { type: file.type }) : file),
+          (blob) => {
+            // If encoding produced a larger file (already well-compressed), keep original.
+            if (blob === null || blob.size >= file.size) {
+              resolve(file);
+              return;
+            }
+            resolve(new File([blob], file.name, { type: file.type }));
+          },
           file.type,
           quality,
         );
