@@ -14,6 +14,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 
 import { ApiError } from '../../../../core/errors/api-error';
 import { mapApiError } from '../../../../core/errors/api-error.mapper';
+import { ProblemPhotoGallery } from '../../../../shared/components/problem-photo-gallery/problem-photo-gallery';
 import { ProblemPhotoUploader } from '../../../../shared/components/problem-photo-uploader/problem-photo-uploader';
 import { PageHeader } from '../../../../shared/components/page-header/page-header';
 import { ApiErrorSummary } from '../../../../shared/forms/api-error-summary/api-error-summary';
@@ -30,6 +31,7 @@ import { LoadingIndicator } from '../../../../shared/components/loading-indicato
     MatButtonModule,
     MatCardModule,
     PageHeader,
+    ProblemPhotoGallery,
     ProblemPhotoUploader,
     RouterLink,
   ],
@@ -42,7 +44,6 @@ export class ProblemDetailPage {
   readonly loading = signal(false);
   readonly error = signal<ApiError | null>(null);
   readonly uploading = signal(false);
-  readonly hasSelectedFile = signal(false);
 
   readonly uploader = viewChild(ProblemPhotoUploader);
 
@@ -54,15 +55,11 @@ export class ProblemDetailPage {
     this.loadProblem();
   }
 
-  onFileSelected(file: File | null): void {
-    this.hasSelectedFile.set(file !== null);
-  }
-
-  uploadPhoto(): void {
+  uploadPhotos(): void {
     const problem = this.problem();
     const uploader = this.uploader();
 
-    if (!problem || !uploader || !uploader.hasFile() || this.uploading()) {
+    if (!problem || !uploader || !uploader.hasFiles() || this.uploading()) {
       return;
     }
 
@@ -71,11 +68,9 @@ export class ProblemDetailPage {
     uploader
       .upload(problem.id)
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((result) => {
+      .subscribe(() => {
         this.uploading.set(false);
-        if (result !== null) {
-          this.loadProblem();
-        }
+        this.loadProblem();
       });
   }
 

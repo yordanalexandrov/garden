@@ -1,0 +1,40 @@
+.gallery-source {
+  display: none;
+}
+
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.thumb-btn {
+  all: unset;
+  cursor: pointer;
+  border-radius: 6px;
+  overflow: hidden;
+  aspect-ratio: 1;
+  display: block;
+  transition: opacity 0.15s ease;
+
+  &:hover,
+  &:focus-visible {
+    opacity: 0.85;
+    outline: 2px solid var(--mat-primary-color, #1976d2);
+    outline-offset: 2px;
+  }
+}
+
+.thumb-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.no-photos {
+  color: var(--mat-text-secondary-color, rgba(0, 0, 0, 0.6));
+  font-size: 0.875rem;
+  margin: 4px 0 0;
+}

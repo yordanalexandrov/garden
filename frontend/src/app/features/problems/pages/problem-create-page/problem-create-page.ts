@@ -194,7 +194,7 @@ export class ProblemCreatePage {
   private uploadPhotoIfNeeded(problemId: string, isProblem: boolean): void {
     const uploader = this.uploader();
 
-    if (!isProblem || uploader === undefined || !uploader.hasFile()) {
+    if (!isProblem || uploader === undefined || !uploader.hasFiles()) {
       this.saving.set(false);
       return;
     }

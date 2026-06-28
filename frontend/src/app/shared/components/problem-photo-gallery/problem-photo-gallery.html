@@ -1,0 +1,24 @@
+@if (photos().length > 0) {
+  <gallery [items]="galleryItems()" lightbox #lb="lightbox" class="gallery-source" />
+
+  <div class="photo-grid">
+    @for (photo of photos(); track photo.id; let i = $index) {
+      <button
+        type="button"
+        class="thumb-btn"
+        [lightboxFor]="lb"
+        [lightboxIndex]="i"
+        [attr.aria-label]="photo.originalFilename ?? 'Problem photo ' + (i + 1)"
+      >
+        <img
+          class="thumb-img"
+          [src]="photo.url"
+          [alt]="photo.originalFilename ?? 'Problem photo ' + (i + 1)"
+          loading="lazy"
+        />
+      </button>
+    }
+  </div>
+} @else {
+  <p class="no-photos">No photos attached.</p>
+}
