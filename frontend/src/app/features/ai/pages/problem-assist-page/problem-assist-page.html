@@ -100,7 +100,7 @@
             Отговорете на въпросите и натиснете „Прецизирай анализа" за по-конкретен резултат.
           </p>
 
-          @for (q of summary.followUpQuestions; track q.text; let i = $index) {
+          @for (q of summary.followUpQuestions; track $index; let i = $index) {
             <div class="ai-problem-summary__followup-item">
               <p class="ai-problem-summary__followup-question">{{ q.text }}</p>
 

@@ -136,7 +136,7 @@ export class ProblemAssistPage {
   }
 
   submitFollowUp(): void {
-    if (this.submitting()) return;
+    if (this.form.invalid || this.submitting()) return;
 
     const summary = this.currentSummaryPayload();
     const questions = summary?.followUpQuestions ?? [];

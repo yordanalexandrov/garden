@@ -29,10 +29,11 @@ export const problemAssistBodySchema = z
     followUpAnswers: z
       .array(
         z.object({
-          question: z.string().trim().min(1),
-          answer: z.string().trim().min(1),
+          question: z.string().trim().min(1).max(1000),
+          answer: z.string().trim().min(1).max(2000),
         }),
       )
+      .max(20)
       .optional(),
   })
   .refine((value) => value.problemId !== undefined || value.text !== undefined, {

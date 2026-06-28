@@ -11,6 +11,8 @@ import { AuditService } from "../audit/audit.service.js";
 import { hasAuthDecorator, requireActor } from "../auth/request-actor.js";
 import { KyselyBedsRepository } from "../beds/beds.repository.js";
 import type { StoragePort } from "../files/storage.port.js";
+import { TestStorageAdapter } from "../files/test-storage.adapter.js";
+import { SupabaseStorageAdapter } from "../files/supabase-storage.adapter.js";
 import { KyselyPlantsRepository } from "../plants/plants.repository.js";
 import { KyselyProblemsRepository } from "../problems/problems.repository.js";
 import { KyselyProductsRepository } from "../products/products.repository.js";
@@ -148,8 +150,24 @@ function createAiService(options: AiRouteOptions): AiService | undefined {
     db,
     auditService,
     new KyselyProblemsRepository(db),
-    options.storage
+    options.storage ?? createStoragePort(options.config)
   );
+}
+
+function createStoragePort(config: AppConfig | undefined): StoragePort {
+  if (config?.nodeEnv === "production") {
+    const storageUrl = config.integrations.supabaseStorageUrl;
+    const bucket = config.integrations.supabaseStorageBucketProblemPhotos;
+    const serviceRoleKey = config.backendOnly.supabaseServiceRoleKey;
+
+    if (storageUrl === undefined || bucket === undefined || serviceRoleKey === undefined) {
+      throw new Error("Production problem photo storage requires Supabase Storage URL, bucket, and backend service role key");
+    }
+
+    return new SupabaseStorageAdapter({ storageUrl, bucket, serviceRoleKey });
+  }
+
+  return new TestStorageAdapter();
 }
 
 function requireAiService(service: AiService | undefined): AiService {

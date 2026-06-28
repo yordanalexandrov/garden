@@ -256,7 +256,7 @@ export class AiService {
         if (this.storagePort !== undefined && detail.photos.length > 0) {
           const results = await Promise.allSettled(
             detail.photos.map((photo) =>
-              this.storagePort!.getSignedUrl({ storageKey: photo.storageKey, expiresInSeconds: 300 })
+              this.storagePort.getSignedUrl({ storageKey: photo.storageKey, expiresInSeconds: 300 })
             )
           );
           photoUrls = results
