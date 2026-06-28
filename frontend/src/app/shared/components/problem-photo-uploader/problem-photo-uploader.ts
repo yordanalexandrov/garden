@@ -17,15 +17,18 @@ import { mapApiError } from '../../../core/errors/api-error.mapper';
 import { ProblemsApiService } from '../../../features/problems/problems-api.service';
 import { ProblemPhotoMutationResult } from '../../../features/problems/problems.models';
 
-export type FileUploadItem = {
+export interface FileUploadItem {
   id: number;
   file: File;
   name: string;
   status: 'pending' | 'uploading' | 'done' | 'error';
   errorMsg?: string;
-};
+}
 
-export type UploadSummary = { succeeded: number; failed: number };
+export interface UploadSummary {
+  succeeded: number;
+  failed: number;
+}
 
 const DEFAULT_ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'] as const;
 const DEFAULT_MAX_BYTES = 5 * 1024 * 1024;
