@@ -6,7 +6,7 @@ import { StorageProviderError } from "../../src/modules/files/storage.port.js";
 import type { ProblemsRepository, ProblemDetailRecord } from "../../src/modules/problems/problems.types.js";
 import type { AiRepository, AiSession, AiSuggestion } from "../../src/modules/ai/ai.types.js";
 import { AiService } from "../../src/modules/ai/ai.service.js";
-import type { AuthenticatedActor } from "../../src/modules/auth/auth.types.js";
+import { createAuthenticatedActor } from "../../src/modules/auth/auth.types.js";
 
 function makeProblemDetail(photoKeys: string[]): ProblemDetailRecord {
   return {
@@ -37,10 +37,12 @@ function makeProblemDetail(photoKeys: string[]): ProblemDetailRecord {
   };
 }
 
-const ACTOR: AuthenticatedActor = {
+const ACTOR = createAuthenticatedActor({
   userId: "user-0000-0000-0000-000000000001",
   accountId: "acct-0000-0000-0000-000000000001",
-};
+  email: "test@example.test",
+  provider: "test",
+});
 
 const PROBLEM_ID = "prob-0000-0000-0000-000000000001";
 
