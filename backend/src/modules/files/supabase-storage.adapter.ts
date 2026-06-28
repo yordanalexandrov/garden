@@ -4,15 +4,18 @@ import type { GetSignedUrlInput, ProblemPhotoUploadInput, UploadedProblemPhoto }
 
 export type SupabaseStorageAdapterOptions = {
   storageUrl: string;
+  storagePublicUrl?: string;
   bucket: string;
   serviceRoleKey: string;
 };
 
 export class SupabaseStorageAdapter implements StoragePort {
   private readonly baseUrl: string;
+  private readonly publicBaseUrl: string;
 
   constructor(private readonly options: SupabaseStorageAdapterOptions) {
     this.baseUrl = options.storageUrl.replace(/\/+$/, "");
+    this.publicBaseUrl = (options.storagePublicUrl ?? options.storageUrl).replace(/\/+$/, "");
   }
 
   async uploadProblemPhoto(input: ProblemPhotoUploadInput): Promise<UploadedProblemPhoto> {
@@ -78,7 +81,7 @@ export class SupabaseStorageAdapter implements StoragePort {
       throw new StorageProviderError("Supabase Storage signed URL response was invalid");
     }
 
-    return signedPath.startsWith("http") ? signedPath : `${this.baseUrl}${signedPath}`;
+    return signedPath.startsWith("http") ? signedPath : `${this.publicBaseUrl}${signedPath}`;
   }
 
   private jsonHeaders(): Record<string, string> {
