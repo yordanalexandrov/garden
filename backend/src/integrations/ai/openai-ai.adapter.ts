@@ -399,22 +399,32 @@ Return only valid JSON. Do not include markdown fences.`,
 
     if (input.text !== undefined) parts.push(`Additional description: ${input.text}`);
 
+    if (input.followUpAnswers !== undefined && input.followUpAnswers.length > 0) {
+      parts.push("\nПотребителят отговори на уточняващите въпроси:");
+      for (const a of input.followUpAnswers) {
+        parts.push(`- ${a.question} → ${a.answer}`);
+      }
+    }
+
     const userContent = parts.join("\n");
 
-    const raw = await this.callJson(
-      `You are a gardening problem diagnostic assistant.
+    const systemPrompt = `You are a gardening problem diagnostic assistant.
 Analyze the described plant problem and provide advisory information only.
 You must NOT make definitive diagnoses — present possibilities, not conclusions.
 Base your analysis on the problem title, description, affected plant/target, severity, and any other context provided.
-Always write all free-text output (summary, followUpQuestions) in Bulgarian.
+Always write all free-text output (summary, followUpQuestions text) in Bulgarian.
 Return a JSON object with these fields:
 - summary: string — a brief, cautious advisory summary based on the specific problem described (in Bulgarian)
 - possibleCategories: string[] — possible problem categories (e.g. fungus, pest, nutrient_deficiency, environmental)
-- followUpQuestions: string[] — clarifying questions to narrow down the problem (in Bulgarian)
+- followUpQuestions: Array of { "text": string, "type": "yes_no" | "free_text" } — clarifying questions to narrow down the problem (text in Bulgarian). Use "yes_no" for questions answerable with yes/no, "free_text" for open questions.
 
-Return only valid JSON. Do not include markdown fences.`,
-      userContent,
-    );
+Return only valid JSON. Do not include markdown fences.`;
+
+    const photoUrls = input.photoUrls ?? [];
+    const raw =
+      photoUrls.length > 0
+        ? await this.callJsonWithImages(systemPrompt, userContent, photoUrls)
+        : await this.callJson(systemPrompt, userContent);
 
     const suggestions: NormalizedSuggestion[] = [
       {
@@ -424,7 +434,18 @@ Return only valid JSON. Do not include markdown fences.`,
           possibleCategories: Array.isArray(raw.possibleCategories)
             ? (raw.possibleCategories as string[])
             : [],
-          followUpQuestions: Array.isArray(raw.followUpQuestions) ? raw.followUpQuestions : [],
+          followUpQuestions: Array.isArray(raw.followUpQuestions)
+            ? raw.followUpQuestions.map((q) => ({
+                text:
+                  typeof (q as Record<string, unknown>)?.text === "string"
+                    ? ((q as Record<string, unknown>).text as string)
+                    : String(q),
+                type:
+                  (q as Record<string, unknown>)?.type === "yes_no"
+                    ? ("yes_no" as const)
+                    : ("free_text" as const),
+              }))
+            : [],
         },
       },
     ];
@@ -584,6 +605,38 @@ Return data that conforms to the provided JSON schema.`,
       });
 
       const content = response.output_text.length > 0 ? response.output_text : "{}";
+      return JSON.parse(content) as Record<string, unknown>;
+    } catch (error) {
+      throw this.mapError(error);
+    }
+  }
+
+  private async callJsonWithImages(
+    systemPrompt: string,
+    userContent: string,
+    imageUrls: string[],
+  ): Promise<Record<string, unknown>> {
+    try {
+      const response = await this.client.chat.completions.create({
+        model: this.model,
+        temperature: EXTRACTION_TEMPERATURE,
+        response_format: { type: "json_object" },
+        messages: [
+          { role: "system", content: systemPrompt },
+          {
+            role: "user",
+            content: [
+              { type: "text", text: userContent },
+              ...imageUrls.map((url) => ({
+                type: "image_url" as const,
+                image_url: { url },
+              })),
+            ],
+          },
+        ],
+      });
+
+      const content = response.choices[0]?.message?.content ?? "{}";
       return JSON.parse(content) as Record<string, unknown>;
     } catch (error) {
       throw this.mapError(error);

@@ -375,6 +375,125 @@ describe("OpenAiAdapter", () => {
       expect(p.summary).toBe("Possible fungal infection based on described symptoms.");
       expect(p.possibleCategories).toEqual(["fungus", "nutrient_deficiency"]);
     });
+
+    it("returns typed followUpQuestions with yes_no and free_text", async () => {
+      const payload = {
+        summary: "Possible fungal infection.",
+        possibleCategories: ["fungus"],
+        followUpQuestions: [
+          { text: "Влажни ли са петната?", type: "yes_no" },
+          { text: "Кога за последен път полихте?", type: "free_text" },
+        ],
+      };
+      mockCreate.mockResolvedValue(makeCompletionResponse(JSON.stringify(payload)));
+
+      const result = await adapter.assistProblem({ text: "Yellow spots" });
+      const p = result.suggestions[0]!.payload as Record<string, unknown>;
+      const questions = p.followUpQuestions as Array<{ text: string; type: string }>;
+
+      expect(questions).toHaveLength(2);
+      expect(questions[0]!.type).toBe("yes_no");
+      expect(questions[0]!.text).toBe("Влажни ли са петната?");
+      expect(questions[1]!.type).toBe("free_text");
+    });
+
+    it("defaults unknown question type to free_text", async () => {
+      const payload = {
+        summary: "Possible infection.",
+        possibleCategories: [],
+        followUpQuestions: [{ text: "Кога забелязахте?", type: "unknown_type" }],
+      };
+      mockCreate.mockResolvedValue(makeCompletionResponse(JSON.stringify(payload)));
+
+      const result = await adapter.assistProblem({ text: "Yellow spots" });
+      const p = result.suggestions[0]!.payload as Record<string, unknown>;
+      const questions = p.followUpQuestions as Array<{ text: string; type: string }>;
+
+      expect(questions[0]!.type).toBe("free_text");
+    });
+
+    it("handles legacy string question format with free_text type", async () => {
+      const payload = {
+        summary: "Possible infection.",
+        possibleCategories: [],
+        followUpQuestions: ["Кога забелязахте?"],
+      };
+      mockCreate.mockResolvedValue(makeCompletionResponse(JSON.stringify(payload)));
+
+      const result = await adapter.assistProblem({ text: "Yellow spots" });
+      const p = result.suggestions[0]!.payload as Record<string, unknown>;
+      const questions = p.followUpQuestions as Array<{ text: string; type: string }>;
+
+      expect(questions[0]!.type).toBe("free_text");
+      expect(questions[0]!.text).toBe("Кога забелязахте?");
+    });
+
+    it("sends image_url content blocks when photoUrls provided", async () => {
+      const payload = {
+        summary: "Possible infection.",
+        possibleCategories: ["fungus"],
+        followUpQuestions: [],
+      };
+      mockCreate.mockResolvedValue(makeCompletionResponse(JSON.stringify(payload)));
+
+      await adapter.assistProblem({
+        text: "Yellow spots",
+        photoUrls: ["https://example.com/photo1.jpg", "https://example.com/photo2.jpg"],
+      });
+
+      expect(mockCreate).toHaveBeenCalledOnce();
+      const call = mockCreate.mock.calls[0]![0] as {
+        messages: Array<{ role: string; content: unknown }>;
+      };
+      const userMsg = call.messages[1]!;
+      expect(Array.isArray(userMsg.content)).toBe(true);
+      const parts = userMsg.content as Array<{ type: string; image_url?: { url: string } }>;
+      const imageParts = parts.filter((c) => c.type === "image_url");
+      expect(imageParts).toHaveLength(2);
+      expect(imageParts[0]!.image_url!.url).toBe("https://example.com/photo1.jpg");
+    });
+
+    it("uses plain text message (not multimodal) when no photoUrls", async () => {
+      const payload = {
+        summary: "Possible infection.",
+        possibleCategories: [],
+        followUpQuestions: [],
+      };
+      mockCreate.mockResolvedValue(makeCompletionResponse(JSON.stringify(payload)));
+
+      await adapter.assistProblem({ text: "Yellow spots" });
+
+      const call = mockCreate.mock.calls[0]![0] as {
+        messages: Array<{ role: string; content: unknown }>;
+      };
+      const userContent = call.messages[1]!.content;
+      expect(typeof userContent).toBe("string");
+    });
+
+    it("appends followUpAnswers to user content when provided", async () => {
+      const payload = {
+        summary: "More specific advice.",
+        possibleCategories: ["fungus"],
+        followUpQuestions: [],
+      };
+      mockCreate.mockResolvedValue(makeCompletionResponse(JSON.stringify(payload)));
+
+      await adapter.assistProblem({
+        text: "Yellow spots",
+        followUpAnswers: [
+          { question: "Влажни ли са петната?", answer: "да" },
+          { question: "Кога забелязахте?", answer: "Преди 3 дни" },
+        ],
+      });
+
+      const call = mockCreate.mock.calls[0]![0] as {
+        messages: Array<{ role: string; content: unknown }>;
+      };
+      const userContent = call.messages[1]!.content as string;
+      expect(userContent).toContain("Влажни ли са петната?");
+      expect(userContent).toContain("да");
+      expect(userContent).toContain("Преди 3 дни");
+    });
   });
 
   describe("generateProductRules", () => {
