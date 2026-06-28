@@ -59,7 +59,7 @@ export class ProblemPhotoUploader {
     return this.selectedFile() !== null;
   }
 
-  onFileChange(event: Event): void {
+  async onFileChange(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0] ?? null;
     this.uploadError.set(null);
@@ -82,6 +82,11 @@ export class ProblemPhotoUploader {
     this.selectedFile.set(file);
     this.previewName.set(file.name);
     this.fileSelected.emit(file);
+
+    const compressed = await this.compressImage(file);
+    if (this.selectedFile() === file) {
+      this.selectedFile.set(compressed);
+    }
   }
 
   /**
@@ -129,6 +134,60 @@ export class ProblemPhotoUploader {
     this.uploadError.set(null);
     this.uploaded.set(null);
     this.uploading.set(false);
+  }
+
+  private compressImage(file: File): Promise<File> {
+    const MAX_DIMENSION = 1920;
+    const QUALITY = 0.85;
+
+    return new Promise<File>((resolve) => {
+      let url: string;
+      try {
+        url = URL.createObjectURL(file);
+      } catch {
+        resolve(file);
+        return;
+      }
+
+      const img = new Image();
+
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+
+        if (img.width <= MAX_DIMENSION && img.height <= MAX_DIMENSION) {
+          resolve(file);
+          return;
+        }
+
+        const ratio = Math.min(MAX_DIMENSION / img.width, MAX_DIMENSION / img.height);
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(img.width * ratio);
+        canvas.height = Math.round(img.height * ratio);
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          resolve(file);
+          return;
+        }
+
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+        // PNG stays lossless (resize only); JPEG/WebP use quality param.
+        const quality = file.type === 'image/png' ? undefined : QUALITY;
+        canvas.toBlob(
+          (blob) => resolve(blob ? new File([blob], file.name, { type: file.type }) : file),
+          file.type,
+          quality,
+        );
+      };
+
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        resolve(file);
+      };
+
+      img.src = url;
+    });
   }
 
   private clearSelection(): void {
