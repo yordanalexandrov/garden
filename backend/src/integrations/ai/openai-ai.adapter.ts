@@ -672,12 +672,20 @@ Return data that conforms to the provided JSON schema.`,
   }
 
   private mapError(error: unknown): unknown {
-    if (
-      error instanceof AuthenticationError ||
-      error instanceof RateLimitError ||
-      error instanceof APIConnectionError ||
-      error instanceof APIError
-    ) {
+    if (error instanceof AuthenticationError) {
+      console.error("[AI] OpenAI authentication error — check API key");
+      return new AiProviderError("AI provider request failed");
+    }
+    if (error instanceof RateLimitError) {
+      console.error("[AI] OpenAI rate limit exceeded");
+      return new AiProviderError("AI provider request failed");
+    }
+    if (error instanceof APIConnectionError) {
+      console.error("[AI] OpenAI connection error:", (error as Error).message);
+      return new AiProviderError("AI provider request failed");
+    }
+    if (error instanceof APIError) {
+      console.error("[AI] OpenAI API error:", { status: (error as APIError).status, type: (error as Error).name });
       return new AiProviderError("AI provider request failed");
     }
     return error;
