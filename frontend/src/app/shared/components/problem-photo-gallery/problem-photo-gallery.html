@@ -18,8 +18,8 @@
   </div>
 
   @if (currentPhoto(); as photo) {
-    <div class="lb-backdrop" (click)="close()" role="dialog" aria-modal="true" aria-label="Photo lightbox">
-      <div class="lb-panel" (click)="$event.stopPropagation()">
+    <div class="lb-backdrop" (click)="close()" (keydown.escape)="close()" role="dialog" aria-modal="true" aria-label="Photo lightbox">
+      <div class="lb-panel" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()" tabindex="-1">
         <img class="lb-img" [src]="photo.url" [alt]="photo.originalFilename ?? 'Photo'" />
         <button class="lb-close" type="button" (click)="close()" aria-label="Close">
           <mat-icon>close</mat-icon>
