@@ -85,7 +85,10 @@ export class ProblemAssistPage {
     this.problemsApi
       .list({ pageSize: 100 })
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((page) => this.problems.set(page.items));
+      .subscribe({
+        next: (page) => this.problems.set(page.items),
+        error: () => {},
+      });
 
     const problemId = this.route.snapshot.queryParamMap.get('problemId');
     if (problemId) {

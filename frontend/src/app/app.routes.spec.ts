@@ -7,6 +7,7 @@ import { provideAuthPortStub } from './core/auth/auth-port.testing';
 import { AppShell } from './core/layout/app-shell';
 import { ArchiveConfirmationService } from './shared/components/confirm-dialog/confirm-dialog';
 import { InventoryApiService } from './features/inventory/inventory-api.service';
+import { ProblemsApiService } from './features/problems/problems-api.service';
 import { ProductsApiService, ProductRulesApiService } from './features/products/products-api.service';
 import { PlantsApiService } from './features/plants/plants-api.service';
 import { ActivitiesApiService } from './features/activities/activities-api.service';
@@ -96,6 +97,13 @@ describe('app routes', () => {
         {
           provide: PlantsApiService,
           useValue: { list: () => of({ items: [], page: 1, pageSize: 20, total: 0 }) },
+        },
+        {
+          provide: ProblemsApiService,
+          useValue: {
+            list: () => of({ items: [], page: 1, pageSize: 100, total: 0 }),
+            get: () => of({ id: 'problem-1', type: 'problem', placeId: 'place-1', targetType: 'bed', targetId: 'bed-1', targetLabel: 'Bed A', title: 'Leaf spots', description: 'Dark spots', category: 'fungus', severity: 'medium', status: 'open', observedAt: '2026-05-13T07:00:00.000Z', photos: [], linkedActivity: null }),
+          },
         },
         { provide: ArchiveConfirmationService, useValue: { confirmArchive: () => of(false) } },
         { provide: SnackbarService, useValue: { showMessage: vi.fn(), showError: vi.fn() } },
