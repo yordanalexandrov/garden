@@ -52,6 +52,12 @@ export const BASELINE_MIGRATIONS = [
     label: "ai product rule generation session kind",
     filePath: resolve(docsDir, "007_ai_product_rule_generation.sql"),
     containsSeedData: false
+  },
+  {
+    id: "008",
+    label: "problem observations and resolve",
+    filePath: resolve(docsDir, "008_problem_observations_and_resolve.sql"),
+    containsSeedData: false
   }
 ] as const satisfies readonly BaselineMigration[];
 

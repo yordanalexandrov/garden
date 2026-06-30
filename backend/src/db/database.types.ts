@@ -243,6 +243,7 @@ export interface ProblemsTable {
   severity: NullableColumn<string>;
   status: string;
   observed_at: ColumnType<Timestamp, Timestamp | string, Timestamp | string>;
+  resolved_at: NullableTimestamp;
   linked_activity_id: NullableColumn<Uuid>;
   created_at: GeneratedTimestamp;
   updated_at: GeneratedTimestamp;
@@ -258,6 +259,16 @@ export interface ProblemPhotosTable {
   width_px: NullableColumn<number>;
   height_px: NullableColumn<number>;
   created_at: GeneratedTimestamp;
+}
+
+export interface ProblemObservationsTable {
+  id: GeneratedUuid;
+  problem_id: Uuid;
+  summary: string;
+  recommendation: NullableColumn<string>;
+  source: string;
+  created_at: GeneratedTimestamp;
+  updated_at: GeneratedTimestamp;
 }
 
 export interface TaskTargetsTable {
@@ -467,6 +478,7 @@ export interface Database {
   inventory_movements: InventoryMovementsTable;
   problems: ProblemsTable;
   problem_photos: ProblemPhotosTable;
+  problem_observations: ProblemObservationsTable;
   task_targets: TaskTargetsTable;
   task_reminders: TaskRemindersTable;
   quarantine_periods: QuarantinePeriodsTable;

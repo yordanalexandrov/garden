@@ -14,7 +14,7 @@ import { BASELINE_MIGRATIONS, SEED_MIGRATION } from "../../src/db/migrations/bas
 
 describe("baseline migration registration", () => {
   it("registers the provided SQL files in deterministic phase order", () => {
-    expect(BASELINE_MIGRATIONS.map((migration) => migration.id)).toEqual(["001", "002", "003", "004", "005", "006", "007"]);
+    expect(BASELINE_MIGRATIONS.map((migration) => migration.id)).toEqual(["001", "002", "003", "004", "005", "006", "007", "008"]);
     expect(BASELINE_MIGRATIONS.map((migration) => migration.filePath)).toEqual([
       expect.stringContaining("001_initial_schema_gardening_helper.sql"),
       expect.stringContaining("002_views_gardening_helper.sql"),
@@ -22,7 +22,8 @@ describe("baseline migration registration", () => {
       expect.stringContaining("004_guards_and_triggers_gardening_helper.sql"),
       expect.stringContaining("005_archive_activities.sql"),
       expect.stringContaining("006_ai_plant_ingestion.sql"),
-      expect.stringContaining("007_ai_product_rule_generation.sql")
+      expect.stringContaining("007_ai_product_rule_generation.sql"),
+      expect.stringContaining("008_problem_observations_and_resolve.sql")
     ]);
   });
 
