@@ -6,6 +6,7 @@ import { targetSummary, titleFromType } from "../../shared/formatting/read-model
 import type { UUID } from "../auth/auth.types.js";
 import type {
   CalendarActivityItem,
+  CalendarProblemItem,
   CalendarQuery,
   CalendarQuarantinePeriodItem,
   CalendarRepository,
@@ -199,6 +200,53 @@ export class KyselyCalendarRepository implements CalendarRepository {
       .execute();
 
     return rows.map((row) => row.date);
+  }
+
+  async listProblems(accountId: UUID, query: CalendarQuery, db: DbHandle = this.dbHandle): Promise<CalendarProblemItem[]> {
+    let observedBuilder = db.db
+      .selectFrom("problems as pr")
+      .select(["pr.id", "pr.title", "pr.status", "pr.place_id", sql<string>`pr.observed_at::date`.as("date")])
+      .select(sql<boolean>`false`.as("is_resolution_entry"))
+      .where("pr.account_id", "=", accountId)
+      .where(sql<boolean>`pr.observed_at::date >= ${query.from}::date`)
+      .where(sql<boolean>`pr.observed_at::date <= ${query.to}::date`);
+
+    if (query.placeId !== undefined) {
+      observedBuilder = observedBuilder.where("pr.place_id", "=", query.placeId);
+    }
+
+    let resolvedBuilder = db.db
+      .selectFrom("problems as pr")
+      .select(["pr.id", "pr.title", "pr.status", "pr.place_id", sql<string>`pr.resolved_at::date`.as("date")])
+      .select(sql<boolean>`true`.as("is_resolution_entry"))
+      .where("pr.account_id", "=", accountId)
+      .where("pr.status", "=", "resolved")
+      .where("pr.resolved_at", "is not", null)
+      .where(sql<boolean>`pr.resolved_at::date >= ${query.from}::date`)
+      .where(sql<boolean>`pr.resolved_at::date <= ${query.to}::date`);
+
+    if (query.placeId !== undefined) {
+      resolvedBuilder = resolvedBuilder.where("pr.place_id", "=", query.placeId);
+    }
+
+    const [observedRows, resolvedRows] = await Promise.all([
+      observedBuilder.execute(),
+      resolvedBuilder.execute()
+    ]);
+
+    type ProblemRow = { id: string; title: string; status: string; place_id: string | null; date: string; is_resolution_entry: boolean };
+
+    const toItem = (row: ProblemRow): CalendarProblemItem => ({
+      id: row.id,
+      type: "problem",
+      date: row.date,
+      title: row.title,
+      status: row.status as CalendarProblemItem["status"],
+      placeId: row.place_id,
+      isResolutionEntry: row.is_resolution_entry
+    });
+
+    return [...observedRows.map(toItem), ...resolvedRows.map(toItem)].sort((a, b) => a.date.localeCompare(b.date));
   }
 }
 

@@ -1,6 +1,7 @@
 import type {
   CalendarActivityItem,
   CalendarFeed,
+  CalendarProblemItem,
   CalendarQuarantinePeriodItem,
   CalendarTaskItem,
   CalendarWeatherEventItem
@@ -12,7 +13,8 @@ export function toCalendarFeedDto(feed: CalendarFeed): CalendarFeedDto {
     tasks: feed.tasks.map(toCalendarTaskDto),
     quarantinePeriods: feed.quarantinePeriods.map(toCalendarQuarantinePeriodDto),
     weatherEvents: feed.weatherEvents.map(toCalendarWeatherEventDto),
-    problemDates: feed.problemDates
+    problemDates: feed.problemDates,
+    problems: feed.problems.map((p) => ({ ...p }))
   };
 }
 
@@ -47,6 +49,7 @@ type CalendarActivityDto = Omit<CalendarActivityItem, "dateTime"> & {
 type CalendarTaskDto = CalendarTaskItem;
 type CalendarQuarantinePeriodDto = CalendarQuarantinePeriodItem;
 type CalendarWeatherEventDto = CalendarWeatherEventItem;
+type CalendarProblemDto = CalendarProblemItem;
 
 type CalendarFeedDto = {
   activities: CalendarActivityDto[];
@@ -54,4 +57,5 @@ type CalendarFeedDto = {
   quarantinePeriods: CalendarQuarantinePeriodDto[];
   weatherEvents: CalendarWeatherEventDto[];
   problemDates: string[];
+  problems: CalendarProblemDto[];
 };

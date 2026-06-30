@@ -23,7 +23,8 @@ export const Phase19Ids = {
   weatherA: "14141414-1414-4414-8414-141414141414",
   weatherB: "15151515-1515-4515-8515-151515151515",
   problemA: "16161616-1616-4616-8616-161616161616",
-  problemB: "17171717-1717-4717-8717-171717171717"
+  problemB: "17171717-1717-4717-8717-171717171717",
+  resolvedProblemA: "18181818-1818-4818-8818-181818181818"
 } as const;
 
 export async function insertCalendarDashboardFixture(pool: Pool): Promise<void> {
@@ -64,6 +65,14 @@ export async function insertCalendarDashboardFixture(pool: Pool): Promise<void> 
      values ($1, $2, 'problem', $3, 'bed', $4, 'Mildew', 'White spots', 'open', '2026-05-20T10:00:00.000Z'),
             ($5, $6, 'problem', $7, 'bed', $8, 'Pests', 'Pest pressure', 'open', '2026-05-20T10:00:00.000Z')`,
     [Phase19Ids.problemA, AccountFixtureIds.accountA, Phase19Ids.placeA, Phase19Ids.bedA, Phase19Ids.problemB, AccountFixtureIds.accountB, Phase19Ids.placeB, Phase19Ids.bedB]
+  );
+}
+
+export async function insertResolvedProblemFixture(pool: Pool): Promise<void> {
+  await pool.query(
+    `insert into problems (id, account_id, type, place_id, target_type, target_id, title, description, status, observed_at, resolved_at)
+     values ($1, $2, 'problem', $3, 'bed', $4, 'Resolved Issue', 'Was resolved', 'resolved', '2026-05-15T10:00:00.000Z', '2026-05-22T10:00:00.000Z')`,
+    [Phase19Ids.resolvedProblemA, AccountFixtureIds.accountA, Phase19Ids.placeA, Phase19Ids.bedA]
   );
 }
 
