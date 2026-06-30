@@ -83,6 +83,7 @@ export class CalendarPage {
   });
   readonly placeId = new FormControl<string | null>(null);
   readonly visibleMonth = signal(startOfMonth(new Date()));
+  readonly todayIso = formatDate(new Date());
 
   private readonly calendarApi = inject(CalendarApiService);
   private readonly placesApi = inject(PlacesApiService);
@@ -98,7 +99,14 @@ export class CalendarPage {
     this.placesApi
       .list({ page: 1, pageSize: 100 })
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((result) => this.places.set(result.items));
+      .subscribe((result) => {
+        this.places.set(result.items);
+        if (result.items.length === 1 && this.placeId.value === null) {
+          this.placeId.setValue(result.items[0].id);
+          this.forecastRequest$.next(result.items[0].id);
+          this.load();
+        }
+      });
 
     this.forecastRequest$
       .pipe(
@@ -202,11 +210,9 @@ export class CalendarPage {
 
   openQuarantine(period: CalendarQuarantinePeriodItem): void {
     this.openReadonlyDialog({
-      title: period.title,
+      title: `Карантина: ${period.productName}`,
       lines: [
-        `Read-only quarantine range: ${period.startsOn} to ${period.endsOn}.`,
-        `Related activity: ${period.activityId}.`,
-        `Product: ${period.productId}.`,
+        `Период: ${period.startsOn} — ${period.endsOn}`,
       ],
     });
   }

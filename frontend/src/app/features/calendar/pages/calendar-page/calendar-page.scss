@@ -80,6 +80,11 @@
   opacity: 0.55;
 }
 
+.calendar-day--today {
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: -2px;
+}
+
 .calendar-day__items {
   display: grid;
   gap: 4px;
@@ -111,7 +116,7 @@
 }
 
 .calendar-item--suggested {
-  background: transparent;
+  background: color-mix(in srgb, var(--mat-sys-tertiary-container) 72%, transparent);
   border-color: var(--mat-sys-tertiary);
 }
 
