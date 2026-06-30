@@ -78,7 +78,7 @@
           }
         </header>
         <div class="calendar-day__items">
-          @for (item of day.items; track item.type + item.id) {
+          @for (item of day.items; track trackCalendarItem(item)) {
             @if (item.type === 'activity') {
               <a [class]="itemClass(item)" [routerLink]="['/activities', item.id]">
                 <span>{{ item.title }}</span>
@@ -114,7 +114,7 @@
       <mat-card-title>Agenda</mat-card-title>
     </mat-card-header>
     <mat-card-content>
-      @for (item of agenda(); track item.type + item.id) {
+      @for (item of agenda(); track trackCalendarItem(item)) {
         <div class="agenda-row" [ngClass]="itemClass(item)">
           <span>{{ itemDate(item) | date: 'mediumDate' }}</span>
           @if (item.type === 'activity') {

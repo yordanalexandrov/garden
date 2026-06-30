@@ -232,6 +232,12 @@ export class CalendarPage {
     });
   }
 
+  protected trackCalendarItem(item: CalendarItem): string {
+    if (item.type === 'problem') {
+      return `problem:${item.id}:${item.isResolutionEntry}`;
+    }
+    return `${item.type}:${item.id}`;
+  }
 
   openWeather(event: CalendarWeatherEventItem): void {
     const observedRain =
