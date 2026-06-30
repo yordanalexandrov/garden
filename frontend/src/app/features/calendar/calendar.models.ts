@@ -36,6 +36,7 @@ export interface CalendarQuarantinePeriodItem {
   readonly title: string;
   readonly activityId: string;
   readonly productId: string;
+  readonly productName: string;
   readonly placeId: string | null;
 }
 

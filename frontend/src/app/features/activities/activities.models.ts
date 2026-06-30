@@ -81,6 +81,7 @@ export interface ActivityProductUsageRequest {
 
 export interface ActivityProductUsage extends ActivityProductUsageRequest {
   readonly id: string;
+  readonly productName: string;
   readonly productUsageRuleId: string | null;
   readonly createdStockMovement: boolean;
   readonly createdQuarantine: boolean;
@@ -91,6 +92,7 @@ export interface ActivityProductUsage extends ActivityProductUsageRequest {
 export interface InventoryEffect {
   readonly movementId: string;
   readonly productId: string;
+  readonly productName: string;
   readonly inventoryLotId: string | null;
   readonly direction?: string;
   readonly quantity: number;
@@ -100,6 +102,7 @@ export interface InventoryEffect {
 export interface QuarantinePeriodSummary {
   readonly id: string;
   readonly productId: string;
+  readonly productName: string;
   readonly startsOn: string;
   readonly endsOn: string;
 }
