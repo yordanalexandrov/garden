@@ -42,6 +42,7 @@ export class OpenMeteoWeatherAdapter implements WeatherPort {
     url.searchParams.set("longitude", String(input.longitude));
     url.searchParams.set("daily", "temperature_2m_max,temperature_2m_min,precipitation_probability_max");
     url.searchParams.set("forecast_days", "7");
+    url.searchParams.set("past_days", "14");
 
     if (input.timezone !== null && input.timezone.trim().length > 0) {
       url.searchParams.set("timezone", input.timezone);
