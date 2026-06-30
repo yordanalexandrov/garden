@@ -94,6 +94,7 @@ export class ProblemDetailPage {
   resolve(): void {
     const problem = this.problem();
     if (!problem || this.resolving()) return;
+    this.error.set(null);
     this.resolving.set(true);
     this.problemsApi
       .resolve(problem.id)
@@ -103,7 +104,8 @@ export class ProblemDetailPage {
           this.resolving.set(false);
           this.loadProblem();
         },
-        error: () => {
+        error: (err) => {
+          this.error.set(mapApiError(err));
           this.resolving.set(false);
         },
       });
@@ -112,6 +114,7 @@ export class ProblemDetailPage {
   reopen(): void {
     const problem = this.problem();
     if (!problem || this.resolving()) return;
+    this.error.set(null);
     this.resolving.set(true);
     this.problemsApi
       .reopen(problem.id)
@@ -121,7 +124,8 @@ export class ProblemDetailPage {
           this.resolving.set(false);
           this.loadProblem();
         },
-        error: () => {
+        error: (err) => {
+          this.error.set(mapApiError(err));
           this.resolving.set(false);
         },
       });
@@ -130,6 +134,7 @@ export class ProblemDetailPage {
   addObservation(): void {
     const problem = this.problem();
     if (!problem) return;
+    this.error.set(null);
 
     this.dialog
       .open<ObservationDialog, ObservationDialogData, ObservationDialogResult>(ObservationDialog, {
@@ -145,7 +150,10 @@ export class ProblemDetailPage {
             recommendation: result.recommendation,
           });
         }),
-        catchError(() => EMPTY),
+        catchError((err) => {
+          this.error.set(mapApiError(err));
+          return EMPTY;
+        }),
       )
       .subscribe(() => this.loadProblem());
   }
@@ -153,6 +161,7 @@ export class ProblemDetailPage {
   editObservation(obs: ProblemObservation): void {
     const problem = this.problem();
     if (!problem) return;
+    this.error.set(null);
 
     this.dialog
       .open<ObservationDialog, ObservationDialogData, ObservationDialogResult>(ObservationDialog, {
@@ -168,7 +177,10 @@ export class ProblemDetailPage {
             recommendation: result.recommendation,
           });
         }),
-        catchError(() => EMPTY),
+        catchError((err) => {
+          this.error.set(mapApiError(err));
+          return EMPTY;
+        }),
       )
       .subscribe(() => this.loadProblem());
   }
@@ -176,6 +188,7 @@ export class ProblemDetailPage {
   deleteObservation(obs: ProblemObservation): void {
     const problem = this.problem();
     if (!problem) return;
+    this.error.set(null);
 
     this.dialog
       .open<ConfirmDialog, ConfirmDialogData, boolean>(ConfirmDialog, {
@@ -192,7 +205,10 @@ export class ProblemDetailPage {
           if (!confirmed) return EMPTY;
           return this.problemsApi.deleteObservation(problem.id, obs.id);
         }),
-        catchError(() => EMPTY),
+        catchError((err) => {
+          this.error.set(mapApiError(err));
+          return EMPTY;
+        }),
       )
       .subscribe(() => this.loadProblem());
   }
