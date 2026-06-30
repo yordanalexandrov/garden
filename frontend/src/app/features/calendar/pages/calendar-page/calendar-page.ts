@@ -29,6 +29,7 @@ import {
   CalendarQuarantinePeriodItem,
   CalendarWeatherEventItem,
 } from '../../calendar.models';
+import { ProblemsApiService } from '../../../problems/problems-api.service';
 import { CalendarLegend } from '../../components/calendar-legend/calendar-legend';
 import { LoadingIndicator } from '../../../../shared/components/loading-indicator/loading-indicator';
 import {
@@ -41,6 +42,7 @@ const emptyFeed = (): CalendarFeed => ({
   tasks: [],
   quarantinePeriods: [],
   weatherEvents: [],
+  problemDates: [],
 });
 
 @Component({
@@ -81,6 +83,8 @@ export class CalendarPage {
     if (!weather) return new Map<string, WeatherForecastItem>();
     return new Map(weather.forecast.map((day) => [day.date, day]));
   });
+  readonly problemDatesSet = computed(() => new Set(this.feed().problemDates));
+  readonly problemsLoading = signal(false);
   readonly placeId = new FormControl<string | null>(null);
   readonly visibleMonth = signal(startOfMonth(new Date()));
   readonly todayIso = formatDate(new Date());
@@ -88,6 +92,7 @@ export class CalendarPage {
   private readonly calendarApi = inject(CalendarApiService);
   private readonly placesApi = inject(PlacesApiService);
   private readonly weatherApi = inject(WeatherApiService);
+  private readonly problemsApi = inject(ProblemsApiService);
   private readonly route = inject(ActivatedRoute);
   private readonly dialog = inject(MatDialog);
   private readonly destroyRef = inject(DestroyRef);
@@ -234,6 +239,27 @@ export class CalendarPage {
         `Observed rain: ${observedRain}.`,
       ],
     });
+  }
+
+  openProblemsDialog(date: string): void {
+    const placeId = this.placeId.value;
+    if (!placeId) return;
+
+    this.problemsLoading.set(true);
+    this.problemsApi
+      .list({ placeId, from: date, to: date, page: 1, pageSize: 50 })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (result) => {
+          this.problemsLoading.set(false);
+          const lines = result.items.map(
+            (p) =>
+              `${p.title} (${p.category ?? 'без категория'}, ${p.status})${p.targetLabel ? ' — ' + p.targetLabel : ''}`
+          );
+          this.openReadonlyDialog({ title: `Проблеми за ${date}`, lines });
+        },
+        error: () => this.problemsLoading.set(false),
+      });
   }
 
   private openReadonlyDialog(data: CalendarReadonlyDialogData): void {

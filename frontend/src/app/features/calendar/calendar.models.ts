@@ -55,6 +55,7 @@ export interface CalendarFeed {
   readonly tasks: readonly CalendarTaskItem[];
   readonly quarantinePeriods: readonly CalendarQuarantinePeriodItem[];
   readonly weatherEvents: readonly CalendarWeatherEventItem[];
+  readonly problemDates: readonly string[];
 }
 
 export type CalendarItem =

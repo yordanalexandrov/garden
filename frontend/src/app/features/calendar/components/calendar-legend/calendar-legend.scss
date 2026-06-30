@@ -40,3 +40,9 @@
 .calendar-legend__marker--weather {
   background: var(--mat-sys-secondary);
 }
+
+.calendar-legend__marker--problem {
+  background: transparent;
+  border: none;
+  color: var(--mat-sys-error);
+}
