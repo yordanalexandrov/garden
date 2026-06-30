@@ -42,7 +42,5 @@
 }
 
 .calendar-legend__marker--problem {
-  background: transparent;
-  border: none;
-  color: var(--mat-sys-error);
+  background: var(--mat-sys-error);
 }

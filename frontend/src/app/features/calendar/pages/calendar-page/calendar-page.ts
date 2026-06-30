@@ -108,7 +108,6 @@ export class CalendarPage {
         this.places.set(result.items);
         if (result.items.length === 1 && this.placeId.value === null) {
           this.placeId.setValue(result.items[0].id);
-          this.forecastRequest$.next(result.items[0].id);
           this.load();
         }
       });
@@ -247,7 +246,7 @@ export class CalendarPage {
 
     this.problemsLoading.set(true);
     this.problemsApi
-      .list({ placeId, from: date, to: date, page: 1, pageSize: 50 })
+      .list({ placeId, from: `${date}T00:00:00Z`, to: `${date}T23:59:59.999Z`, page: 1, pageSize: 50 })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (result) => {
