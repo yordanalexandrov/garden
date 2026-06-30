@@ -44,3 +44,7 @@
 .calendar-legend__marker--problem {
   background: var(--mat-sys-error);
 }
+
+.calendar-legend__marker--problem-resolved {
+  background: var(--mat-sys-tertiary);
+}

@@ -91,6 +91,10 @@
               <button [class]="itemClass(item)" type="button" (click)="openQuarantine(item)">
                 <span>{{ item.title }}</span>
               </button>
+            } @else if (item.type === 'problem') {
+              <a [class]="itemClass(item)" [routerLink]="['/problems', item.id]">
+                <span>{{ item.title }}</span>
+              </a>
             } @else {
               <button [class]="itemClass(item)" type="button" (click)="openWeather(item)">
                 <span>{{ item.eventType }}</span>
@@ -119,6 +123,8 @@
             <a [routerLink]="['/tasks', item.id]">{{ item.title }} ({{ item.status }})</a>
           } @else if (item.type === 'quarantine') {
             <button type="button" (click)="openQuarantine(item)">{{ item.title }}</button>
+          } @else if (item.type === 'problem') {
+            <a [routerLink]="['/problems', item.id]">{{ item.title }}</a>
           } @else {
             <button type="button" (click)="openWeather(item)">
               {{ item.eventType }}

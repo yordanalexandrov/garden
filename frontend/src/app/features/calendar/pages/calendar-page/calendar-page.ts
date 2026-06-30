@@ -43,6 +43,7 @@ const emptyFeed = (): CalendarFeed => ({
   quarantinePeriods: [],
   weatherEvents: [],
   problemDates: [],
+  problems: [],
 });
 
 @Component({
@@ -201,12 +202,22 @@ export class CalendarPage {
       return item.startsOn;
     }
 
+    if (item.type === 'problem') {
+      return item.date;
+    }
+
     return item.date;
   }
 
   itemClass(item: CalendarItem): string {
     if (item.type === 'task') {
       return `calendar-item calendar-item--task calendar-item--${item.status}`;
+    }
+
+    if (item.type === 'problem') {
+      return item.isResolutionEntry
+        ? 'calendar-item calendar-item--problem calendar-item--problem-resolved'
+        : 'calendar-item calendar-item--problem';
     }
 
     return `calendar-item calendar-item--${item.type}`;
@@ -303,6 +314,7 @@ const buildAgenda = (feed: CalendarFeed): readonly CalendarItem[] =>
     ...feed.tasks,
     ...feed.quarantinePeriods,
     ...feed.weatherEvents,
+    ...feed.problems,
   ].sort((left, right) => compareCalendarItems(left, right));
 
 const compareCalendarItems = (left: CalendarItem, right: CalendarItem): number =>
@@ -328,6 +340,10 @@ const dateKey = (item: CalendarItem): string => {
 
   if (item.type === 'quarantine') {
     return item.startsOn;
+  }
+
+  if (item.type === 'problem') {
+    return item.date;
   }
 
   return item.date;

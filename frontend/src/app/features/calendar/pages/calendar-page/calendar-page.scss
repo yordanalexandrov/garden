@@ -150,6 +150,17 @@
   background: color-mix(in srgb, var(--mat-sys-secondary-container) 72%, transparent);
 }
 
+.calendar-item--problem {
+  background-color: var(--mat-sys-error-container);
+  border-left: 3px solid var(--mat-sys-error);
+  color: var(--mat-sys-on-error-container);
+}
+
+.calendar-item--problem-resolved {
+  background-color: var(--mat-sys-tertiary-container);
+  border-left: 3px solid var(--mat-sys-tertiary);
+  color: var(--mat-sys-on-tertiary-container);
+}
 
 .calendar-page__agenda {
   display: none;
