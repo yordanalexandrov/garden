@@ -540,6 +540,7 @@ export class ActivitiesService {
       inventoryEffects.push({
         id: movement.id,
         productId: movement.productId,
+        productName: "", // not used from create result — detail comes from getDetail
         inventoryLotId: movement.inventoryLotId,
         movementType: "consumption",
         quantity: movement.quantity,

@@ -28,6 +28,7 @@ export function toCorrectActivityResultDto(result: CorrectActivityResult): Corre
     correctionMovements: result.correctionMovements.map((movement) => ({
       movementId: movement.id,
       productId: movement.productId,
+      productName: "", // correction movements do not carry product names
       inventoryLotId: movement.inventoryLotId,
       direction: movement.direction,
       quantity: movement.quantity,
@@ -71,6 +72,7 @@ function toActivityProductUsageDto(usage: ActivityProductUsage): ActivityProduct
   return {
     id: usage.id,
     productId: usage.productId,
+    productName: usage.productName,
     productUsageRuleId: usage.productUsageRuleId,
     quantityUsed: usage.quantityUsed,
     unit: usage.unit,
@@ -85,6 +87,7 @@ function toInventoryMovementEffectDto(movement: InventoryMovementSummary): Inven
   return {
     movementId: movement.id,
     productId: movement.productId,
+    productName: movement.productName,
     inventoryLotId: movement.inventoryLotId,
     quantity: movement.quantity,
     unit: movement.unit
@@ -95,6 +98,7 @@ function toQuarantinePeriodDto(period: QuarantinePeriod): QuarantinePeriodDto {
   return {
     id: period.id,
     productId: period.productId,
+    productName: period.productName,
     startsOn: period.startsOn,
     endsOn: period.endsOn
   };
@@ -116,6 +120,7 @@ type ActivityListItemDto = Omit<ActivityListItem, "performedAt"> & {
 type ActivityProductUsageDto = {
   id: string;
   productId: string;
+  productName: string;
   productUsageRuleId: string | null;
   quantityUsed: number;
   unit: string;
@@ -128,6 +133,7 @@ type ActivityProductUsageDto = {
 type InventoryEffectDto = {
   movementId: string;
   productId: string;
+  productName: string;
   inventoryLotId: string | null;
   direction?: string;
   quantity: number;
@@ -137,6 +143,7 @@ type InventoryEffectDto = {
 type QuarantinePeriodDto = {
   id: string;
   productId: string;
+  productName: string;
   startsOn: string;
   endsOn: string;
 };
