@@ -21,6 +21,7 @@ describe("problems DTO mapping", () => {
       severity: "medium",
       status: "open",
       observedAt: "2026-05-13T07:00:00.000Z",
+      resolvedAt: null,
       photosCount: 0
     });
   });
@@ -56,6 +57,7 @@ function createProblem(): Problem {
     severity: "medium",
     status: "open",
     observedAt,
+    resolvedAt: null,
     linkedActivityId: "423e4567-e89b-42d3-a456-426614174000",
     createdAt,
     updatedAt
@@ -75,6 +77,7 @@ function createProblemListItem(): ProblemListItem {
     severity: "medium",
     status: "open",
     observedAt,
+    resolvedAt: null,
     photosCount: 0
   };
 }
@@ -84,6 +87,7 @@ function createProblemDetail(): ProblemDetail {
     ...createProblem(),
     targetLabel: "Bed A",
     photos: [],
+    observations: [],
     linkedActivity: {
       id: "423e4567-e89b-42d3-a456-426614174000",
       type: "treatment",

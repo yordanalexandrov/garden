@@ -69,7 +69,9 @@ type ProblemDetailResponse = {
     severity: string | null;
     status: string;
     observedAt: string;
+    resolvedAt: string | null;
     photos: Array<{ id: string; url: string; mimeType: string | null; originalFilename?: string | null; fileSizeBytes?: number | null }>;
+    observations: Array<{ id: string; problemId: string; summary: string; recommendation: string | null; source: string; createdAt: string; updatedAt: string }>;
     linkedActivity: { id: string; type: string; performedAt: string } | null;
   };
 };
@@ -465,6 +467,26 @@ describeDatabase("Problems routes with database", () => {
     expect(parseJsonResponse<{ error: { code: string } }>(observationUpload)).toMatchObject({ error: { code: "BUSINESS_RULE_VIOLATION" } });
     expect(crossAccount.statusCode).toBe(404);
     expect(storage.objects.size).toBe(0);
+  });
+
+  it("GET /:problemId returns empty observations array on a freshly created problem", async () => {
+    const createRes = await app!.inject({
+      method: "POST",
+      url: "/api/v1/problems",
+      headers: accountAAuthHeaders(),
+      payload: validCreatePayload()
+    });
+    const { data: { id: problemId } } = parseJsonResponse<CreateProblemResponse>(createRes);
+
+    const res = await app!.inject({
+      method: "GET",
+      url: `/api/v1/problems/${problemId}`,
+      headers: accountAAuthHeaders()
+    });
+    expect(res.statusCode).toBe(200);
+    const body = parseJsonResponse<ProblemDetailResponse>(res);
+    expect(body.data.observations).toEqual([]);
+    expect(body.data.resolvedAt).toBeNull();
   });
 
   it("maps storage provider upload failures without creating metadata", async () => {
