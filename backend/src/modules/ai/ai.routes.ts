@@ -157,6 +157,7 @@ function createAiService(options: AiRouteOptions): AiService | undefined {
 function createStoragePort(config: AppConfig | undefined): StoragePort {
   if (config?.nodeEnv === "production") {
     const storageUrl = config.integrations.supabaseStorageUrl;
+    const storagePublicUrl = config.integrations.supabaseStoragePublicUrl;
     const bucket = config.integrations.supabaseStorageBucketProblemPhotos;
     const serviceRoleKey = config.backendOnly.supabaseServiceRoleKey;
 
@@ -164,7 +165,12 @@ function createStoragePort(config: AppConfig | undefined): StoragePort {
       throw new Error("Production problem photo storage requires Supabase Storage URL, bucket, and backend service role key");
     }
 
-    return new SupabaseStorageAdapter({ storageUrl, bucket, serviceRoleKey });
+    return new SupabaseStorageAdapter({
+      storageUrl,
+      bucket,
+      serviceRoleKey,
+      ...(storagePublicUrl !== undefined ? { storagePublicUrl } : {})
+    });
   }
 
   return new TestStorageAdapter();
