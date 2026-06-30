@@ -71,6 +71,16 @@ export class KyselyAiRepository implements AiRepository {
     return row === undefined ? null : toAiSession(row);
   }
 
+  async findSessionById(sessionId: UUID, db: DbHandle = this.dbHandle): Promise<AiSession | null> {
+    const row = await db.db
+      .selectFrom("ai_sessions")
+      .select(AI_SESSION_COLUMNS)
+      .where("id", "=", sessionId)
+      .executeTakeFirst();
+
+    return row === undefined ? null : toAiSession(row);
+  }
+
   async addSuggestions(sessionId: UUID, suggestions: AddAiSuggestionInput[], db: DbHandle = this.dbHandle): Promise<AiSuggestion[]> {
     if (suggestions.length === 0) {
       return [];

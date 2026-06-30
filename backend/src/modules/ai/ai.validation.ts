@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { uuidSchema } from "../../shared/validation/common-schemas.js";
+import { PROBLEM_CATEGORIES } from "../problems/problems.types.js";
 
 export const suggestionParamsSchema = z.object({
   suggestionId: uuidSchema
@@ -50,7 +51,9 @@ export const productRuleGenerationBodySchema = z.object({
 });
 
 export const acceptSuggestionBodySchema = z.object({
-  editedPayload: z.record(z.string(), z.unknown()).optional()
+  editedPayload: z.record(z.string(), z.unknown()).optional(),
+  problemId: uuidSchema.optional(),
+  acceptedCategory: z.enum(PROBLEM_CATEGORIES).optional()
 });
 
 export const rejectSuggestionBodySchema = z.object({});
