@@ -52,6 +52,7 @@ const calendarFeed = () => ({
       title: 'Copper quarantine',
       activityId: 'activity-1',
       productId: 'product-1',
+      productName: 'Copper fungicide',
       placeId: 'place-1',
     },
   ],
@@ -66,6 +67,7 @@ const calendarFeed = () => ({
       placeId: 'place-1',
     },
   ],
+  problemDates: [],
 });
 
 describe('Phase 20 calendar page', () => {
