@@ -478,7 +478,10 @@ export class AiService {
         suggestion.suggestionType,
         finalPayload,
         trx,
-        { resolvedProblemId, acceptedCategory: context?.acceptedCategory }
+        {
+          ...(resolvedProblemId !== undefined ? { resolvedProblemId } : {}),
+          ...(context?.acceptedCategory !== undefined ? { acceptedCategory: context.acceptedCategory } : {})
+        }
       );
 
       const marked = await this.aiRepository.markAccepted(suggestionId, trx);

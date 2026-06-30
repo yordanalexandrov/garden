@@ -263,7 +263,7 @@ describe("AiService.acceptSuggestion – problem_summary", () => {
     const chain = makeSelectChain(problemExistsForAccount ? { id: "prob-001" } : undefined);
     const mockDb = { selectFrom: () => chain };
 
-    const aiRepository: AiRepository = {
+    const aiRepository = {
       createSession: vi.fn(),
       updateSessionStatus: vi.fn(),
       addSuggestions: vi.fn(),
@@ -272,9 +272,9 @@ describe("AiService.acceptSuggestion – problem_summary", () => {
       listSessionSuggestions: vi.fn(),
       markAccepted: markAcceptedMock,
       markRejected: vi.fn(),
-    };
+    } as unknown as AiRepository;
 
-    const problemsRepository: ProblemsRepository = {
+    const problemsRepository = {
       create: vi.fn(),
       list: vi.fn(),
       getDetail: vi.fn(),
@@ -288,7 +288,7 @@ describe("AiService.acceptSuggestion – problem_summary", () => {
       listObservations: vi.fn(),
       updateObservation: vi.fn(),
       deleteObservation: vi.fn(),
-    };
+    } as unknown as ProblemsRepository;
 
     const dbClient = {
       db: mockDb as unknown as never,
