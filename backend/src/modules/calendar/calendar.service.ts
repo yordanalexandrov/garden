@@ -9,18 +9,20 @@ export class CalendarService {
       await this.calendarRepository.ensurePlaceBelongsToAccount(actor.accountId, input.placeId);
     }
 
-    const [activities, tasks, quarantinePeriods, weatherEvents] = await Promise.all([
+    const [activities, tasks, quarantinePeriods, weatherEvents, problemDates] = await Promise.all([
       this.calendarRepository.listActivities(actor.accountId, input),
       this.calendarRepository.listTasks(actor.accountId, input),
       this.calendarRepository.listQuarantinePeriods(actor.accountId, input),
-      this.calendarRepository.listWeatherEvents(actor.accountId, input)
+      this.calendarRepository.listWeatherEvents(actor.accountId, input),
+      this.calendarRepository.listProblemDates(actor.accountId, input)
     ]);
 
     return {
       activities,
       tasks,
       quarantinePeriods,
-      weatherEvents
+      weatherEvents,
+      problemDates
     };
   }
 }

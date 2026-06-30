@@ -182,5 +182,23 @@ export class KyselyCalendarRepository implements CalendarRepository {
       placeId: row.place_id
     }));
   }
+
+  async listProblemDates(accountId: UUID, query: CalendarQuery, db: DbHandle = this.dbHandle): Promise<string[]> {
+    if (query.placeId === undefined) {
+      return [];
+    }
+
+    const rows = await db.db
+      .selectFrom("problems")
+      .select(sql<string>`distinct (observed_at::date)::text`.as("date"))
+      .where("account_id", "=", accountId)
+      .where("place_id", "=", query.placeId)
+      .where(sql<boolean>`observed_at::date >= ${query.from}::date`)
+      .where(sql<boolean>`observed_at::date <= ${query.to}::date`)
+      .orderBy("date", "asc")
+      .execute();
+
+    return rows.map((row) => row.date);
+  }
 }
 

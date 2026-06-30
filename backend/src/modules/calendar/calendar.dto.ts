@@ -11,7 +11,8 @@ export function toCalendarFeedDto(feed: CalendarFeed): CalendarFeedDto {
     activities: feed.activities.map(toCalendarActivityDto),
     tasks: feed.tasks.map(toCalendarTaskDto),
     quarantinePeriods: feed.quarantinePeriods.map(toCalendarQuarantinePeriodDto),
-    weatherEvents: feed.weatherEvents.map(toCalendarWeatherEventDto)
+    weatherEvents: feed.weatherEvents.map(toCalendarWeatherEventDto),
+    problemDates: feed.problemDates
   };
 }
 
@@ -52,4 +53,5 @@ type CalendarFeedDto = {
   tasks: CalendarTaskDto[];
   quarantinePeriods: CalendarQuarantinePeriodDto[];
   weatherEvents: CalendarWeatherEventDto[];
+  problemDates: string[];
 };
