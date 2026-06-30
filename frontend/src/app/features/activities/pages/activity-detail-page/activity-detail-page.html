@@ -55,7 +55,10 @@
         <mat-card-header><mat-card-title>Product Usage</mat-card-title></mat-card-header>
         <mat-card-content>
           @for (usage of item.productUsages; track usage.id) {
-            <p>{{ usage.quantityUsed }} {{ usage.unit }} of {{ usage.productId }}</p>
+            <p>{{ usage.quantityUsed }} {{ usage.unit }} of {{ usage.productName }}</p>
+            @if (usage.notes) {
+              <p class="usage-note">{{ usage.notes }}</p>
+            }
           } @empty {
             <p>No products used.</p>
           }
@@ -67,14 +70,14 @@
         <mat-card-content>
           <h3>Inventory</h3>
           @for (effect of item.inventoryMovements; track effect.movementId) {
-            <p>{{ effect.quantity }} {{ effect.unit }} - product {{ effect.productId }}</p>
+            <p>{{ effect.quantity }} {{ effect.unit }} — {{ effect.productName }}</p>
           } @empty {
             <p>No inventory movements.</p>
           }
 
           <h3>Quarantine</h3>
           @for (period of item.quarantinePeriods; track period.id) {
-            <p>{{ period.startsOn }} to {{ period.endsOn }}</p>
+            <p>{{ period.productName }}: {{ period.startsOn }} до {{ period.endsOn }}</p>
           } @empty {
             <p>No quarantine periods.</p>
           }
