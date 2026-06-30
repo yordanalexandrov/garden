@@ -55,6 +55,7 @@ export type ActivityProductUsage = {
   id: UUID;
   activityId: UUID;
   productId: UUID;
+  productName: string;
   productUsageRuleId: UUID | null;
   quantityUsed: number;
   unit: SimpleUnit;
@@ -72,6 +73,7 @@ export type QuarantinePeriod = {
   activityId: UUID;
   activityProductUsageId: UUID;
   productId: UUID;
+  productName: string;
   startsOn: string;
   endsOn: string;
   notes: string | null;
@@ -174,6 +176,7 @@ export type ActivityDetail = Activity & {
 export type InventoryMovementSummary = {
   id: UUID;
   productId: UUID;
+  productName: string;
   inventoryLotId: UUID | null;
   movementType: "consumption";
   quantity: number;

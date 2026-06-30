@@ -4,7 +4,6 @@ import type {
   ActivitiesTable,
   ActivityProductUsagesTable,
   ActivityTargetsTable,
-  InventoryMovementsTable,
   QuarantinePeriodsTable,
   TasksTable
 } from "../../db/database.types.js";
@@ -62,19 +61,6 @@ const ACTIVITY_PRODUCT_USAGE_COLUMNS = [
   "created_at"
 ] as const;
 
-const INVENTORY_MOVEMENT_COLUMNS = [
-  "id",
-  "product_id",
-  "inventory_lot_id",
-  "movement_type",
-  "quantity",
-  "unit",
-  "activity_id",
-  "occurred_at",
-  "notes",
-  "created_at"
-] as const;
-
 const QUARANTINE_COLUMNS = [
   "id",
   "account_id",
@@ -109,7 +95,6 @@ type SelectedActivityProductUsage = Pick<
   Selectable<ActivityProductUsagesTable>,
   (typeof ACTIVITY_PRODUCT_USAGE_COLUMNS)[number]
 >;
-type SelectedInventoryMovement = Pick<Selectable<InventoryMovementsTable>, (typeof INVENTORY_MOVEMENT_COLUMNS)[number]>;
 type SelectedQuarantinePeriod = Pick<Selectable<QuarantinePeriodsTable>, (typeof QUARANTINE_COLUMNS)[number]>;
 type SelectedTask = Pick<Selectable<TasksTable>, (typeof TASK_COLUMNS)[number]>;
 type CountRow = { count: string | number | bigint };
@@ -429,36 +414,113 @@ export class KyselyActivitiesRepository implements ActivitiesRepository {
 
   private async listProductUsages(activityId: UUID, db: DbHandle): Promise<ActivityProductUsage[]> {
     const rows = await db.db
-      .selectFrom("activity_product_usages")
-      .select(ACTIVITY_PRODUCT_USAGE_COLUMNS)
-      .where("activity_id", "=", activityId)
-      .orderBy("created_at", "asc")
+      .selectFrom("activity_product_usages as apu")
+      .innerJoin("products as p", "p.id", "apu.product_id")
+      .select([
+        "apu.id",
+        "apu.activity_id",
+        "apu.product_id",
+        "p.name as product_name",
+        "apu.product_usage_rule_id",
+        "apu.quantity_used",
+        "apu.unit",
+        "apu.created_stock_movement",
+        "apu.created_quarantine",
+        "apu.created_followup_suggestion",
+        "apu.notes",
+        "apu.created_at"
+      ])
+      .where("apu.activity_id", "=", activityId)
+      .orderBy("apu.created_at", "asc")
       .execute();
 
-    return rows.map(toActivityProductUsage);
+    return rows.map((row) => ({
+      id: row.id,
+      activityId: row.activity_id,
+      productId: row.product_id,
+      productName: row.product_name,
+      productUsageRuleId: row.product_usage_rule_id,
+      quantityUsed: Number(row.quantity_used),
+      unit: row.unit as SimpleUnit,
+      createdStockMovement: row.created_stock_movement,
+      createdQuarantine: row.created_quarantine,
+      createdFollowupSuggestion: row.created_followup_suggestion,
+      notes: row.notes,
+      createdAt: row.created_at
+    }));
   }
 
   private async listInventoryMovements(activityId: UUID, db: DbHandle): Promise<InventoryMovementSummary[]> {
     const rows = await db.db
-      .selectFrom("inventory_movements")
-      .select(INVENTORY_MOVEMENT_COLUMNS)
-      .where("activity_id", "=", activityId)
-      .where("movement_type", "=", "consumption")
-      .orderBy("created_at", "asc")
+      .selectFrom("inventory_movements as im")
+      .innerJoin("products as p", "p.id", "im.product_id")
+      .select([
+        "im.id",
+        "im.product_id",
+        "p.name as product_name",
+        "im.inventory_lot_id",
+        "im.movement_type",
+        "im.quantity",
+        "im.unit",
+        "im.activity_id",
+        "im.occurred_at",
+        "im.notes",
+        "im.created_at"
+      ])
+      .where("im.activity_id", "=", activityId)
+      .where("im.movement_type", "=", "consumption")
+      .orderBy("im.created_at", "asc")
       .execute();
 
-    return rows.map(toInventoryMovementSummary);
+    return rows.map((row) => ({
+      id: row.id,
+      productId: row.product_id,
+      productName: row.product_name,
+      inventoryLotId: row.inventory_lot_id,
+      movementType: "consumption" as const,
+      quantity: Number(row.quantity),
+      unit: row.unit as SimpleUnit,
+      activityId: row.activity_id,
+      occurredAt: row.occurred_at,
+      notes: row.notes,
+      createdAt: row.created_at
+    }));
   }
 
   private async listQuarantinePeriods(activityId: UUID, db: DbHandle): Promise<QuarantinePeriod[]> {
     const rows = await db.db
-      .selectFrom("quarantine_periods")
-      .select(QUARANTINE_COLUMNS)
-      .where("activity_id", "=", activityId)
-      .orderBy("created_at", "asc")
+      .selectFrom("quarantine_periods as qp")
+      .innerJoin("products as p", "p.id", "qp.product_id")
+      .select([
+        "qp.id",
+        "qp.account_id",
+        "qp.place_id",
+        "qp.activity_id",
+        "qp.activity_product_usage_id",
+        "qp.product_id",
+        "p.name as product_name",
+        "qp.starts_on",
+        "qp.ends_on",
+        "qp.notes",
+        "qp.created_at"
+      ])
+      .where("qp.activity_id", "=", activityId)
+      .orderBy("qp.created_at", "asc")
       .execute();
 
-    return rows.map(toQuarantinePeriod);
+    return rows.map((row) => ({
+      id: row.id,
+      accountId: row.account_id,
+      placeId: row.place_id,
+      activityId: row.activity_id,
+      activityProductUsageId: row.activity_product_usage_id,
+      productId: row.product_id,
+      productName: row.product_name,
+      startsOn: row.starts_on,
+      endsOn: row.ends_on,
+      notes: row.notes,
+      createdAt: row.created_at
+    }));
   }
 
   private async listSuggestedTasks(accountId: UUID, activityId: UUID, db: DbHandle): Promise<SuggestedTask[]> {
@@ -634,6 +696,7 @@ function toActivityProductUsage(row: SelectedActivityProductUsage): ActivityProd
     id: row.id,
     activityId: row.activity_id,
     productId: row.product_id,
+    productName: "", // not used from create result — detail comes from getDetail
     productUsageRuleId: row.product_usage_rule_id,
     quantityUsed: Number(row.quantity_used),
     unit: row.unit as SimpleUnit,
@@ -645,20 +708,6 @@ function toActivityProductUsage(row: SelectedActivityProductUsage): ActivityProd
   };
 }
 
-function toInventoryMovementSummary(row: SelectedInventoryMovement): InventoryMovementSummary {
-  return {
-    id: row.id,
-    productId: row.product_id,
-    inventoryLotId: row.inventory_lot_id,
-    movementType: "consumption",
-    quantity: Number(row.quantity),
-    unit: row.unit as SimpleUnit,
-    activityId: row.activity_id,
-    occurredAt: row.occurred_at,
-    notes: row.notes,
-    createdAt: row.created_at
-  };
-}
 
 function toQuarantinePeriod(row: SelectedQuarantinePeriod): QuarantinePeriod {
   return {
@@ -668,6 +717,7 @@ function toQuarantinePeriod(row: SelectedQuarantinePeriod): QuarantinePeriod {
     activityId: row.activity_id,
     activityProductUsageId: row.activity_product_usage_id,
     productId: row.product_id,
+    productName: "", // not used from create result
     startsOn: row.starts_on,
     endsOn: row.ends_on,
     notes: row.notes,
