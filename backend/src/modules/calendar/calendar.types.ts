@@ -56,6 +56,7 @@ export type CalendarFeed = {
   tasks: CalendarTaskItem[];
   quarantinePeriods: CalendarQuarantinePeriodItem[];
   weatherEvents: CalendarWeatherEventItem[];
+  problemDates: string[];
 };
 
 export interface CalendarRepository {
@@ -64,4 +65,5 @@ export interface CalendarRepository {
   listTasks(accountId: UUID, query: CalendarQuery, db?: DbHandle): Promise<CalendarTaskItem[]>;
   listQuarantinePeriods(accountId: UUID, query: CalendarQuery, db?: DbHandle): Promise<CalendarQuarantinePeriodItem[]>;
   listWeatherEvents(accountId: UUID, query: CalendarQuery, db?: DbHandle): Promise<CalendarWeatherEventItem[]>;
+  listProblemDates(accountId: UUID, query: CalendarQuery, db?: DbHandle): Promise<string[]>;
 }
