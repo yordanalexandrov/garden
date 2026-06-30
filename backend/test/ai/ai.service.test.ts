@@ -108,19 +108,13 @@ describe("AiService.assistProblem – photo signed URL fetching", () => {
 
   function makeService(storage?: StoragePort): AiService {
     // productsService, bedsRepository, plantsRepository, dbClient are not exercised by assistProblem.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment
-    const unused = {} as any;
     return new AiService(
       aiRepository,
       aiPort,
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-      unused, // productsService
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-      unused, // bedsRepository
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-      unused, // plantsRepository
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-      unused, // dbClient
+      null as never, // productsService
+      null as never, // bedsRepository
+      null as never, // plantsRepository
+      null as never, // dbClient
       undefined, // auditService
       problemsRepository,
       storage,
@@ -301,14 +295,12 @@ describe("AiService.acceptSuggestion – problem_summary", () => {
       transaction: vi.fn().mockImplementation(async (fn: (t: unknown) => Promise<unknown>) => fn({})),
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
-    const unused = {} as any;
     return new AiService(
       aiRepository,
-      unused as AiPort,
-      unused, // productsService
-      unused, // bedsRepository
-      unused, // plantsRepository
+      null as never, // aiPort
+      null as never, // productsService
+      null as never, // bedsRepository
+      null as never, // plantsRepository
       dbClient as never,
       undefined, // auditService
       problemsRepository,
