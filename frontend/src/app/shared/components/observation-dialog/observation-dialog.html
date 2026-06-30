@@ -1,0 +1,20 @@
+<h2 mat-dialog-title>{{ data.existing ? 'Редактирай наблюдение' : 'Добави наблюдение' }}</h2>
+<mat-dialog-content>
+  <form [formGroup]="form" class="obs-form">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Резюме</mat-label>
+      <textarea matInput formControlName="summary" rows="3" placeholder="Опиши наблюдението..."></textarea>
+      <mat-error>Полето е задължително</mat-error>
+    </mat-form-field>
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Препоръка (незадължително)</mat-label>
+      <textarea matInput formControlName="recommendation" rows="2" placeholder="Предложи действие..."></textarea>
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button type="button" (click)="cancel()">Откажи</button>
+  <button mat-flat-button type="button" color="primary" (click)="submit()" [disabled]="form.invalid">
+    {{ data.existing ? 'Запази' : 'Добави' }}
+  </button>
+</mat-dialog-actions>

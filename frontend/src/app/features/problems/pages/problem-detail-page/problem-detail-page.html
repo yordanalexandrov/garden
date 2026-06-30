@@ -70,6 +70,55 @@
         </mat-card-content>
       </mat-card>
 
+      <!-- Resolve / Reopen -->
+      <div class="resolve-section">
+        @if (item.status !== 'resolved') {
+          <button mat-flat-button color="primary" (click)="resolve()" [disabled]="resolving()">
+            Разреши проблема
+          </button>
+        } @else {
+          <p class="resolved-label">Разрешен на: {{ item.resolvedAt | date:'dd.MM.yyyy' }}</p>
+          <button mat-stroked-button (click)="reopen()" [disabled]="resolving()">
+            Върни към отворен
+          </button>
+        }
+      </div>
+
+      <!-- Observations -->
+      <section class="observations-section">
+        <div class="section-header">
+          <h3>Наблюдения</h3>
+          <button mat-stroked-button (click)="addObservation()">+ Добави</button>
+        </div>
+
+        @if (item.observations.length === 0) {
+          <p class="no-observations">Няма наблюдения.</p>
+        }
+
+        @for (obs of item.observations; track obs.id) {
+          <mat-card class="observation-card">
+            <mat-card-content>
+              <div class="obs-meta">
+                <mat-chip [class.obs-chip--ai]="obs.source === 'ai'">{{ obs.source === 'ai' ? 'AI' : 'Ръчно' }}</mat-chip>
+                <span class="obs-date">{{ obs.createdAt | date:'dd.MM.yyyy' }}</span>
+              </div>
+              <p class="obs-summary">{{ obs.summary }}</p>
+              @if (obs.recommendation) {
+                <p class="obs-recommendation"><strong>Препоръка:</strong> {{ obs.recommendation }}</p>
+              }
+            </mat-card-content>
+            <mat-card-actions align="end">
+              <button mat-icon-button (click)="editObservation(obs)" aria-label="Редактирай">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-icon-button color="warn" (click)="deleteObservation(obs)" aria-label="Изтрий">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </mat-card-actions>
+          </mat-card>
+        }
+      </section>
+
       @if (item.type === 'problem') {
         <mat-card>
           <mat-card-header><mat-card-title>AI Assist</mat-card-title></mat-card-header>
