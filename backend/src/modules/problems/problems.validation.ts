@@ -52,3 +52,27 @@ export type ProblemParams = z.infer<typeof problemParamsSchema>;
 export type ProblemListQuery = z.infer<typeof problemListQuerySchema>;
 export type CreateProblemBody = z.infer<typeof createProblemBodySchema>;
 export type UpdateProblemBody = z.infer<typeof updateProblemBodySchema>;
+
+export const observationParamsSchema = z.object({
+  problemId: uuidSchema,
+  obsId: uuidSchema
+});
+
+export const createObservationBodySchema = z
+  .object({
+    summary: z.string().trim().min(1),
+    recommendation: z.string().trim().min(1).nullable().optional()
+  })
+  .strict();
+
+export const updateObservationBodySchema = z
+  .object({
+    summary: z.string().trim().min(1).optional(),
+    recommendation: z.string().trim().min(1).nullable().optional()
+  })
+  .strict()
+  .refine((body) => Object.keys(body).length > 0, { message: "At least one field must be provided" });
+
+export type ObservationParams = z.infer<typeof observationParamsSchema>;
+export type CreateObservationBody = z.infer<typeof createObservationBodySchema>;
+export type UpdateObservationBody = z.infer<typeof updateObservationBodySchema>;

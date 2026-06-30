@@ -520,6 +520,181 @@ describeDatabase("Problems routes with database", () => {
   });
 });
 
+describeDatabase("Observation CRUD and resolve/reopen", () => {
+  let pool: Pool;
+  let dbClient: DbClient;
+  let app: FastifyInstance | undefined;
+
+  beforeEach(async () => {
+    pool = createTestPool();
+    await resetAndApplyBaseline(pool);
+    await insertAuthAccountFixtures(pool);
+    await insertProblemsFixture(pool);
+    dbClient = createDbClient(
+      loadConfig({
+        NODE_ENV: "test",
+        DATABASE_URL: process.env.TEST_DATABASE_URL ?? process.env.DATABASE_URL
+      })
+    );
+    app = await createTestApp({
+      db: dbClient,
+      storage: new TestStorageAdapter(),
+      auth: {
+        authPort: new TestAuthAdapter(),
+        accountsRepository: new KyselyAccountsRepository(dbClient)
+      }
+    });
+  });
+
+  afterEach(async () => {
+    await app?.close();
+    app = undefined;
+    await dbClient.destroy();
+    await pool.end();
+  });
+
+  async function createProblem(): Promise<string> {
+    const res = await app!.inject({
+      method: "POST",
+      url: "/api/v1/problems",
+      headers: accountAAuthHeaders(),
+      payload: validCreatePayload()
+    });
+    return (parseJsonResponse<CreateProblemResponse>(res)).data.id;
+  }
+
+  it("POST /observations → 201, appears in GET detail", async () => {
+    const problemId = await createProblem();
+
+    const postRes = await app!.inject({
+      method: "POST",
+      url: `/api/v1/problems/${problemId}/observations`,
+      headers: accountAAuthHeaders(),
+      payload: { summary: "Fungal spots", recommendation: "Treat with copper" }
+    });
+    expect(postRes.statusCode).toBe(201);
+    const obs = (parseJsonResponse<{ data: { id: string; summary: string; recommendation: string | null } }>(postRes)).data;
+    expect(obs.summary).toBe("Fungal spots");
+    expect(obs.recommendation).toBe("Treat with copper");
+
+    const detailRes = await app!.inject({ method: "GET", url: `/api/v1/problems/${problemId}`, headers: accountAAuthHeaders() });
+    const detail = parseJsonResponse<{ data: { observations: unknown[] } }>(detailRes);
+    expect(detail.data.observations).toHaveLength(1);
+  });
+
+  it("PATCH /observations/:obsId → 200 updated", async () => {
+    const problemId = await createProblem();
+
+    const createRes = await app!.inject({
+      method: "POST",
+      url: `/api/v1/problems/${problemId}/observations`,
+      headers: accountAAuthHeaders(),
+      payload: { summary: "Initial" }
+    });
+    const obsId = (parseJsonResponse<{ data: { id: string } }>(createRes)).data.id;
+
+    const patchRes = await app!.inject({
+      method: "PATCH",
+      url: `/api/v1/problems/${problemId}/observations/${obsId}`,
+      headers: accountAAuthHeaders(),
+      payload: { summary: "Updated" }
+    });
+    expect(patchRes.statusCode).toBe(200);
+    expect((parseJsonResponse<{ data: { summary: string } }>(patchRes)).data.summary).toBe("Updated");
+  });
+
+  it("PATCH /observations/:obsId with empty body → 400", async () => {
+    const problemId = await createProblem();
+
+    const createRes = await app!.inject({
+      method: "POST",
+      url: `/api/v1/problems/${problemId}/observations`,
+      headers: accountAAuthHeaders(),
+      payload: { summary: "Initial" }
+    });
+    const obsId = (parseJsonResponse<{ data: { id: string } }>(createRes)).data.id;
+
+    const patchRes = await app!.inject({
+      method: "PATCH",
+      url: `/api/v1/problems/${problemId}/observations/${obsId}`,
+      headers: accountAAuthHeaders(),
+      payload: {}
+    });
+    expect(patchRes.statusCode).toBe(400);
+  });
+
+  it("DELETE /observations/:obsId → 204", async () => {
+    const problemId = await createProblem();
+
+    const createRes = await app!.inject({
+      method: "POST",
+      url: `/api/v1/problems/${problemId}/observations`,
+      headers: accountAAuthHeaders(),
+      payload: { summary: "To delete" }
+    });
+    const obsId = (parseJsonResponse<{ data: { id: string } }>(createRes)).data.id;
+
+    const delRes = await app!.inject({
+      method: "DELETE",
+      url: `/api/v1/problems/${problemId}/observations/${obsId}`,
+      headers: accountAAuthHeaders()
+    });
+    expect(delRes.statusCode).toBe(204);
+  });
+
+  it("POST /resolve → 200, status=resolved, resolvedAt set", async () => {
+    const problemId = await createProblem();
+
+    const res = await app!.inject({ method: "POST", url: `/api/v1/problems/${problemId}/resolve`, headers: accountAAuthHeaders() });
+    expect(res.statusCode).toBe(200);
+
+    const detail = await app!.inject({ method: "GET", url: `/api/v1/problems/${problemId}`, headers: accountAAuthHeaders() });
+    const data = (parseJsonResponse<{ data: { status: string; resolvedAt: string | null } }>(detail)).data;
+    expect(data.status).toBe("resolved");
+    expect(data.resolvedAt).not.toBeNull();
+  });
+
+  it("POST /resolve twice → 409", async () => {
+    const problemId = await createProblem();
+
+    await app!.inject({ method: "POST", url: `/api/v1/problems/${problemId}/resolve`, headers: accountAAuthHeaders() });
+    const res = await app!.inject({ method: "POST", url: `/api/v1/problems/${problemId}/resolve`, headers: accountAAuthHeaders() });
+    expect(res.statusCode).toBe(409);
+  });
+
+  it("POST /reopen after resolve → 200, status=open, resolvedAt=null", async () => {
+    const problemId = await createProblem();
+
+    await app!.inject({ method: "POST", url: `/api/v1/problems/${problemId}/resolve`, headers: accountAAuthHeaders() });
+    const res = await app!.inject({ method: "POST", url: `/api/v1/problems/${problemId}/reopen`, headers: accountAAuthHeaders() });
+    expect(res.statusCode).toBe(200);
+
+    const detail = await app!.inject({ method: "GET", url: `/api/v1/problems/${problemId}`, headers: accountAAuthHeaders() });
+    const data = (parseJsonResponse<{ data: { status: string; resolvedAt: string | null } }>(detail)).data;
+    expect(data.status).toBe("open");
+    expect(data.resolvedAt).toBeNull();
+  });
+
+  it("POST /reopen on open problem → 409", async () => {
+    const problemId = await createProblem();
+
+    const res = await app!.inject({ method: "POST", url: `/api/v1/problems/${problemId}/reopen`, headers: accountAAuthHeaders() });
+    expect(res.statusCode).toBe(409);
+  });
+
+  it("scope: account B cannot add observation to account A problem → 404", async () => {
+    const problemId = await createProblem();
+
+    const res = await app!.inject({
+      method: "POST",
+      url: `/api/v1/problems/${problemId}/observations`,
+      headers: accountBAuthHeaders(),
+      payload: { summary: "Attacker" }
+    });
+    expect(res.statusCode).toBe(404);
+  });
+});
+
 function validCreatePayload(overrides: Record<string, unknown> = {}): Record<string, unknown> {
   return {
     type: "problem",

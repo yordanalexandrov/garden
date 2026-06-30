@@ -50,7 +50,7 @@ export function toProblemMutationDto(problem: Problem): ProblemMutationDto {
   return { id: problem.id };
 }
 
-function toObservationDto(obs: ProblemObservation): ObservationDto {
+export function toObservationDto(obs: ProblemObservation): ObservationDto {
   return {
     id: obs.id,
     problemId: obs.problemId,

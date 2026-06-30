@@ -12,6 +12,7 @@ import type {
   PaginatedProblems,
   Problem,
   ProblemDetail,
+  ProblemObservation,
   ProblemsRepository,
   UpdateProblemRequest,
   UploadProblemPhotoRequest,
@@ -143,6 +144,105 @@ export class ProblemsService {
         throw new AppError("NOT_FOUND", "Problem not found");
       }
 
+      return updated;
+    });
+  }
+
+  async addObservation(
+    actor: AuthenticatedActor,
+    problemId: UUID,
+    input: { summary: string; recommendation?: string | null }
+  ): Promise<ProblemObservation> {
+    const problem = await this.problemsRepository.getDetail(actor.accountId, problemId);
+    if (problem === null) {
+      throw new AppError("NOT_FOUND", "Problem not found");
+    }
+
+    return this.problemsRepository.createObservation({
+      problemId,
+      summary: input.summary,
+      ...(input.recommendation !== undefined ? { recommendation: input.recommendation } : {}),
+      source: "user"
+    });
+  }
+
+  async editObservation(
+    actor: AuthenticatedActor,
+    problemId: UUID,
+    obsId: UUID,
+    patch: { summary?: string; recommendation?: string | null }
+  ): Promise<ProblemObservation> {
+    if (patch.summary === undefined && patch.recommendation === undefined) {
+      throw new AppError("VALIDATION_ERROR", "At least one field must be provided");
+    }
+
+    const problem = await this.problemsRepository.getDetail(actor.accountId, problemId);
+    if (problem === null) {
+      throw new AppError("NOT_FOUND", "Problem not found");
+    }
+
+    const updated = await this.problemsRepository.updateObservation(problemId, obsId, patch);
+    if (updated === null) {
+      throw new AppError("NOT_FOUND", "Observation not found");
+    }
+
+    return updated;
+  }
+
+  async removeObservation(actor: AuthenticatedActor, problemId: UUID, obsId: UUID): Promise<void> {
+    const problem = await this.problemsRepository.getDetail(actor.accountId, problemId);
+    if (problem === null) {
+      throw new AppError("NOT_FOUND", "Problem not found");
+    }
+
+    const deleted = await this.problemsRepository.deleteObservation(problemId, obsId);
+    if (!deleted) {
+      throw new AppError("NOT_FOUND", "Observation not found");
+    }
+  }
+
+  async resolveProblem(actor: AuthenticatedActor, problemId: UUID): Promise<Problem> {
+    return this.dbClient.transaction(async (trx) => {
+      const existing = await this.problemsRepository.getDetail(actor.accountId, problemId, trx);
+      if (existing === null) {
+        throw new AppError("NOT_FOUND", "Problem not found");
+      }
+      if (existing.status === "resolved") {
+        throw new AppError("CONFLICT", "Problem is already resolved");
+      }
+
+      const updated = await this.problemsRepository.update(
+        actor.accountId,
+        problemId,
+        { status: "resolved", resolvedAt: new Date() },
+        trx
+      );
+      if (updated === null) {
+        throw new AppError("NOT_FOUND", "Problem not found");
+      }
+      return updated;
+    });
+  }
+
+  async reopenProblem(actor: AuthenticatedActor, problemId: UUID): Promise<Problem> {
+    return this.dbClient.transaction(async (trx) => {
+      const existing = await this.problemsRepository.getDetail(actor.accountId, problemId, trx);
+      if (existing === null) {
+        throw new AppError("NOT_FOUND", "Problem not found");
+      }
+      if (existing.status !== "resolved") {
+        throw new AppError("CONFLICT", "Problem is not resolved");
+      }
+
+      const updated = await this.problemsRepository.update(
+        actor.accountId,
+        problemId,
+        { status: "open", resolvedAt: null },
+        trx
+      );
+      if (updated === null) {
+        throw new AppError("NOT_FOUND", "Problem not found");
+      }
       return updated;
     });
   }
