@@ -144,6 +144,7 @@ export class KyselyCalendarRepository implements CalendarRepository {
       title: `Quarantine: ${row.product_name}`,
       activityId: row.activity_id,
       productId: row.product_id,
+      productName: row.product_name,
       placeId: row.place_id
     }));
   }

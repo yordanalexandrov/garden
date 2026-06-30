@@ -38,6 +38,7 @@ export type CalendarQuarantinePeriodItem = {
   title: string;
   activityId: UUID;
   productId: UUID;
+  productName: string;
   placeId: UUID | null;
 };
 
