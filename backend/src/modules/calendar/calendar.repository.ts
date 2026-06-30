@@ -45,6 +45,7 @@ export class KyselyCalendarRepository implements CalendarRepository {
           .as("target_count")
       ])
       .where("a.account_id", "=", accountId)
+      .where("a.is_archived", "=", false)
       .where(sql<boolean>`a.performed_at >= ${query.from}::date`)
       .where(sql<boolean>`a.performed_at < (${query.to}::date + interval '1 day')`)
       .orderBy("a.performed_at", "asc")
