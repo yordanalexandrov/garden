@@ -76,6 +76,21 @@
   font-size: 0.65rem;
 }
 
+.calendar-day__problems-btn {
+  background: transparent;
+  border: none;
+  color: var(--mat-sys-error);
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+
+  mat-icon {
+    font-size: 14px;
+    height: 14px;
+    width: 14px;
+  }
+}
+
 .calendar-day--outside {
   opacity: 0.55;
 }

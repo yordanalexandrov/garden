@@ -65,6 +65,17 @@
               }
             </span>
           }
+          @if (problemDatesSet().has(day.date)) {
+            <button
+              class="calendar-day__problems-btn"
+              type="button"
+              [disabled]="problemsLoading()"
+              (click)="openProblemsDialog(day.date)"
+              [attr.aria-label]="'Проблеми за ' + day.date"
+            >
+              <mat-icon aria-hidden="true" fontIcon="pest_control" />
+            </button>
+          }
         </header>
         <div class="calendar-day__items">
           @for (item of day.items; track item.type + item.id) {
