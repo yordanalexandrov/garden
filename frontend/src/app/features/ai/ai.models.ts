@@ -91,6 +91,8 @@ export interface PlantSuggestionPayload {
 
 export interface AcceptSuggestionRequest {
   readonly editedPayload?: unknown;
+  readonly problemId?: string;
+  readonly acceptedCategory?: string;
 }
 
 export interface ProductSuggestionPayload {
