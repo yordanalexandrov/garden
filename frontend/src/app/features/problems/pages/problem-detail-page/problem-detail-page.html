@@ -5,10 +5,14 @@
     subtitle="Backend problem or observation record"
     icon="bug_report"
   >
-    <button mat-button type="button" color="warn" page-actions [disabled]="archiving()" (click)="archive()">
-      <mat-icon aria-hidden="true">archive</mat-icon>
-      Архивирай
-    </button>
+    @if (problem(); as headerProblem) {
+      @if (!headerProblem.archivedAt) {
+        <button mat-button type="button" color="warn" page-actions [disabled]="archiving()" (click)="archive()">
+          <mat-icon aria-hidden="true">archive</mat-icon>
+          Архивирай
+        </button>
+      }
+    }
   </app-page-header>
 
   <app-api-error-summary [error]="error()" />

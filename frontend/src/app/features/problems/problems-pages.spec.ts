@@ -482,6 +482,18 @@ describe('Phase 17 problem pages', () => {
     expect(navigateSpy).toHaveBeenCalledWith(['/problems']);
   });
 
+  it('hides the archive button when the problem is already archived', () => {
+    problemsApi.get.mockReturnValue(of({ ...detail, archivedAt: '2026-06-01T00:00:00.000Z' }));
+    const fixture = TestBed.createComponent(ProblemDetailPage);
+    fixture.detectChanges();
+
+    const buttons = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll('button'),
+    );
+    const archiveButton = buttons.find((b) => b.textContent?.includes('Архивирай'));
+    expect(archiveButton).toBeUndefined();
+  });
+
   it('does not archive when the confirmation dialog is dismissed', () => {
     const fixture = TestBed.createComponent(ProblemDetailPage);
     const component = fixture.componentInstance;
