@@ -15,7 +15,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatOptionModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 
 import { ApiError } from '../../../../core/errors/api-error';
 import { mapApiError } from '../../../../core/errors/api-error.mapper';
@@ -38,7 +38,6 @@ import {
   PROBLEM_STATUSES,
   PROBLEM_TYPES,
   ProblemCategory,
-  ProblemMutationResult,
   ProblemStatus,
   ProblemType,
 } from '../../problems.models';
@@ -78,7 +77,6 @@ export class ProblemCreatePage {
   readonly targetIntent = signal<ProblemTargetIntent | null>(null);
   readonly saving = signal(false);
   readonly error = signal<ApiError | null>(null);
-  readonly created = signal<ProblemMutationResult | null>(null);
 
   readonly uploader = viewChild(ProblemPhotoUploader);
 
@@ -106,6 +104,7 @@ export class ProblemCreatePage {
   private readonly problemsApi = inject(ProblemsApiService);
   private readonly placesApi = inject(PlacesApiService);
   private readonly activitiesApi = inject(ActivitiesApiService);
+  private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
   constructor() {
@@ -160,8 +159,7 @@ export class ProblemCreatePage {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (result) => {
-          this.created.set(result);
-          this.uploadPhotoIfNeeded(result.id, isProblem);
+          this.uploadPhotoThenNavigate(result.id, isProblem);
         },
         error: (error: unknown) => {
           const apiError = mapApiError(error);
@@ -191,18 +189,20 @@ export class ProblemCreatePage {
     };
   }
 
-  private uploadPhotoIfNeeded(problemId: string, isProblem: boolean): void {
+  private uploadPhotoThenNavigate(problemId: string, isProblem: boolean): void {
     const uploader = this.uploader();
 
     if (!isProblem || uploader === undefined || !uploader.hasFiles()) {
-      this.saving.set(false);
+      void this.router.navigate(['/problems', problemId]);
       return;
     }
 
     uploader
       .upload(problemId)
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => this.saving.set(false));
+      .subscribe(() => {
+        void this.router.navigate(['/problems', problemId]);
+      });
   }
 
   private loadActivities(placeId: string): void {
