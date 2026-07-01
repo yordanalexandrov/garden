@@ -1329,6 +1329,7 @@ Query:
 - `category`
 - `from`
 - `to`
+- `includeArchived` (boolean, default `false`)
 - pagination
 
 Response:
@@ -1350,6 +1351,7 @@ Response:
         "status": "open",
         "observedAt": "2026-05-13T10:00:00+03:00",
         "resolvedAt": null,
+        "archivedAt": null,
         "photosCount": 2
       }
     ],
@@ -1447,6 +1449,7 @@ Response:
     "status": "open",
     "observedAt": "2026-05-13T10:00:00+03:00",
     "resolvedAt": null,
+    "archivedAt": null,
     "photos": [
       {
         "id": "uuid",
@@ -1547,6 +1550,12 @@ Response (200): same mutation shape as 18.2, `{ "data": { "id": "uuid" } }`. Fet
 Sets `status = "open"` and `resolvedAt = null`.
 
 Response (200): same mutation shape as 18.7. 404 if not found/owned. 409 if not currently resolved.
+
+## 18.9 POST /problems/:problemId/archive
+
+Archives the problem or observation regardless of its current `status`. The record remains fully readable via `GET /problems/:problemId` afterward (problems are historical records per domain rule 13.1); it is excluded from `GET /problems` unless `includeArchived=true` is passed. Archiving is one-way — there is no unarchive/restore action.
+
+Response (200): `{ "data": { "archived": true } }`. 404 if not found/owned or already archived.
 
 ---
 
