@@ -154,7 +154,15 @@ const findFrontendBoundaryViolations = (relativePath, content) => {
     );
   }
 
-  if (isFeatureApiServiceFile(relativePath) && featureApiDeletePattern.test(content)) {
+  // Problem observations are comment-like notes, not historical business truth records
+  // (unlike activities/inventory movements), so real deletion is allowed for them.
+  const deleteExemptFiles = ['src/app/features/problems/problems-api.service.ts'];
+
+  if (
+    isFeatureApiServiceFile(relativePath) &&
+    featureApiDeletePattern.test(content) &&
+    !deleteExemptFiles.includes(relativePath)
+  ) {
     violations.push(
       `Feature API services must archive historical records through POST /archive, not DELETE, in ${relativePath}.`,
     );
