@@ -75,14 +75,14 @@ describeDatabase("phase 2 database migration integrity", () => {
     );
   });
 
-  // Count equals the number of registered baseline migrations (001-008), all of
+  // Count equals the number of registered baseline migrations (001-009), all of
   // which resetAndApplyBaseline records in the migrations table.
   it("skips already applied baseline migrations on rerun", async () => {
     const applied = await applyBaselineMigrations(pool);
     const migrationRecords = await pool.query<{ count: string }>(`select count(*) from ${MIGRATIONS_TABLE_NAME}`);
 
     expect(applied).toEqual([]);
-    expect(firstRow(migrationRecords).count).toBe("8");
+    expect(firstRow(migrationRecords).count).toBe("9");
   });
 
   it("serializes concurrent baseline migration runs with an advisory lock", async () => {
@@ -91,8 +91,8 @@ describeDatabase("phase 2 database migration integrity", () => {
     const [first, second] = await Promise.all([applyBaselineMigrations(pool), applyBaselineMigrations(pool)]);
     const migrationRecords = await pool.query<{ count: string }>(`select count(*) from ${MIGRATIONS_TABLE_NAME}`);
 
-    expect([first.length, second.length].sort()).toEqual([0, 8]);
-    expect(firstRow(migrationRecords).count).toBe("8");
+    expect([first.length, second.length].sort()).toEqual([0, 9]);
+    expect(firstRow(migrationRecords).count).toBe("9");
   });
 
   it("applies seed data deterministically for local/dev/test use", async () => {
