@@ -85,4 +85,11 @@ export class ProblemsApiService {
       {},
     );
   }
+
+  archive(problemId: string): Observable<{ archived: boolean }> {
+    return this.api.post<{ archived: boolean }>(
+      `/problems/${encodeURIComponent(problemId)}/archive`,
+      {},
+    );
+  }
 }
