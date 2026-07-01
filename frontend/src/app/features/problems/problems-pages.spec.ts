@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
+import { MatDialog } from '@angular/material/dialog';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
-import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
+import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 
 import { ApiError } from '../../core/errors/api-error';
@@ -51,6 +52,7 @@ describe('Phase 17 problem pages', () => {
     create: vi.fn(),
     update: vi.fn(),
     uploadPhoto: vi.fn(),
+    archive: vi.fn(),
   };
   const placesApi = { list: vi.fn() };
   const activitiesApi = { list: vi.fn() };
@@ -400,5 +402,39 @@ describe('Phase 17 problem pages', () => {
     const obsLinks = (obsFixture.nativeElement as HTMLElement).querySelectorAll('a');
     const obsAiLink = Array.from(obsLinks).find((a) => a.textContent?.trim().includes('Get AI Suggestions'));
     expect(obsAiLink).toBeUndefined();
+  });
+
+  it('archives the problem after confirmation and navigates to the problems list', () => {
+    problemsApi.archive.mockReturnValue(of({ archived: true }));
+    const fixture = TestBed.createComponent(ProblemDetailPage);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    const router = TestBed.inject(Router);
+    const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+    const dialog = TestBed.inject(MatDialog);
+    vi.spyOn(dialog, 'open').mockReturnValue({
+      afterClosed: () => of(true),
+    } as ReturnType<MatDialog['open']>);
+
+    component.archive();
+
+    expect(problemsApi.archive).toHaveBeenCalledWith('problem-1');
+    expect(navigateSpy).toHaveBeenCalledWith(['/problems']);
+  });
+
+  it('does not archive when the confirmation dialog is dismissed', () => {
+    const fixture = TestBed.createComponent(ProblemDetailPage);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    const dialog = TestBed.inject(MatDialog);
+    vi.spyOn(dialog, 'open').mockReturnValue({
+      afterClosed: () => of(false),
+    } as ReturnType<MatDialog['open']>);
+
+    component.archive();
+
+    expect(problemsApi.archive).not.toHaveBeenCalled();
   });
 });

@@ -4,7 +4,12 @@
     titleId="problem-detail-title"
     subtitle="Backend problem or observation record"
     icon="bug_report"
-  />
+  >
+    <button mat-button type="button" color="warn" page-actions [disabled]="archiving()" (click)="archive()">
+      <mat-icon aria-hidden="true">archive</mat-icon>
+      Архивирай
+    </button>
+  </app-page-header>
 
   <app-api-error-summary [error]="error()" />
 
@@ -21,6 +26,9 @@
         </mat-card-header>
         <mat-card-content>
           <p>{{ item.description }}</p>
+          @if (item.archivedAt) {
+            <p class="archived-label">Архивиран на: {{ item.archivedAt | date: 'dd.MM.yyyy' }}</p>
+          }
           <p>Status: {{ item.status }}</p>
           @if (item.category) {
             <p>Category: {{ item.category.replaceAll('_', ' ') }}</p>

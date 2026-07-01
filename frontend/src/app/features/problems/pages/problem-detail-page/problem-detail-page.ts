@@ -13,11 +13,12 @@ import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { EMPTY, catchError, switchMap } from 'rxjs';
 
 import { ApiError } from '../../../../core/errors/api-error';
 import { mapApiError } from '../../../../core/errors/api-error.mapper';
+import { SnackbarService } from '../../../../core/notifications/snackbar.service';
 import { ProblemPhotoGallery } from '../../../../shared/components/problem-photo-gallery/problem-photo-gallery';
 import { ProblemPhotoUploader } from '../../../../shared/components/problem-photo-uploader/problem-photo-uploader';
 import { PageHeader } from '../../../../shared/components/page-header/page-header';
@@ -60,6 +61,7 @@ export class ProblemDetailPage {
   readonly error = signal<ApiError | null>(null);
   readonly uploading = signal(false);
   readonly resolving = signal(false);
+  readonly archiving = signal(false);
 
   readonly uploader = viewChild(ProblemPhotoUploader);
 
@@ -67,6 +69,8 @@ export class ProblemDetailPage {
   private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
   private readonly dialog = inject(MatDialog);
+  private readonly router = inject(Router);
+  private readonly snackbar = inject(SnackbarService);
 
   constructor() {
     this.loadProblem();
@@ -128,6 +132,41 @@ export class ProblemDetailPage {
           this.error.set(mapApiError(err));
           this.resolving.set(false);
         },
+      });
+  }
+
+  archive(): void {
+    const problem = this.problem();
+    if (!problem || this.archiving()) return;
+    this.error.set(null);
+
+    this.dialog
+      .open<ConfirmDialog, ConfirmDialogData, boolean>(ConfirmDialog, {
+        data: {
+          title: 'Архивирай проблема',
+          message:
+            'Сигурен ли си, че искаш да архивираш този запис? Той ще остане видим в историята, но ще изчезне от списъка по подразбиране.',
+          confirmLabel: 'Архивирай',
+        },
+      })
+      .afterClosed()
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        switchMap((confirmed) => {
+          if (!confirmed) return EMPTY;
+          this.archiving.set(true);
+          return this.problemsApi.archive(problem.id);
+        }),
+        catchError((err) => {
+          this.archiving.set(false);
+          this.error.set(mapApiError(err));
+          return EMPTY;
+        }),
+      )
+      .subscribe(() => {
+        this.archiving.set(false);
+        this.snackbar.showMessage('Проблемът е архивиран.');
+        void this.router.navigate(['/problems']);
       });
   }
 
