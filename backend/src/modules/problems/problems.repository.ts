@@ -37,6 +37,7 @@ const PROBLEM_COLUMNS = [
   "status",
   "observed_at",
   "resolved_at",
+  "archived_at",
   "linked_activity_id",
   "created_at",
   "updated_at"
@@ -87,7 +88,8 @@ export class KyselyProblemsRepository implements ProblemsRepository {
         "pr.severity",
         "pr.status",
         "pr.observed_at",
-        "pr.resolved_at"
+        "pr.resolved_at",
+        "pr.archived_at"
       ])
       .select((eb) => [
         targetLabelExpression().as("target_label"),
@@ -111,6 +113,11 @@ export class KyselyProblemsRepository implements ProblemsRepository {
     if (filters.placeId !== undefined) {
       itemsQuery = itemsQuery.where("pr.place_id", "=", filters.placeId);
       countQuery = countQuery.where("pr.place_id", "=", filters.placeId);
+    }
+
+    if (!filters.includeArchived) {
+      itemsQuery = itemsQuery.where("pr.archived_at", "is", null);
+      countQuery = countQuery.where("pr.archived_at", "is", null);
     }
 
     if (filters.type !== undefined) {
@@ -155,6 +162,7 @@ export class KyselyProblemsRepository implements ProblemsRepository {
         status: row.status as ProblemStatus,
         observedAt: row.observed_at,
         resolvedAt: row.resolved_at,
+        archivedAt: row.archived_at,
         photosCount: toCount({ count: row.photos_count ?? 0 })
       })),
       page: filters.page,
@@ -180,6 +188,7 @@ export class KyselyProblemsRepository implements ProblemsRepository {
         "pr.status",
         "pr.observed_at",
         "pr.resolved_at",
+        "pr.archived_at",
         "pr.linked_activity_id",
         "pr.created_at",
         "pr.updated_at"
@@ -299,6 +308,18 @@ export class KyselyProblemsRepository implements ProblemsRepository {
       .set({ archived_at: new Date() })
       .where("id", "=", obsId)
       .where("problem_id", "=", problemId)
+      .where("archived_at", "is", null)
+      .executeTakeFirst();
+
+    return (result.numUpdatedRows ?? 0n) > 0n;
+  }
+
+  async archive(accountId: UUID, problemId: UUID, db: DbHandle = this.dbHandle): Promise<boolean> {
+    const result = await db.db
+      .updateTable("problems")
+      .set({ archived_at: new Date() })
+      .where("account_id", "=", accountId)
+      .where("id", "=", problemId)
       .where("archived_at", "is", null)
       .executeTakeFirst();
 
@@ -540,6 +561,7 @@ function toProblem(row: SelectedProblem): Problem {
     status: row.status as ProblemStatus,
     observedAt: row.observed_at,
     resolvedAt: row.resolved_at,
+    archivedAt: row.archived_at,
     linkedActivityId: row.linked_activity_id,
     createdAt: row.created_at,
     updatedAt: row.updated_at

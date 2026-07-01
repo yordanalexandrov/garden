@@ -73,10 +73,12 @@ describe("problems validation", () => {
       category: "fungus",
       from: "2026-05-01T00:00:00.000Z",
       to: "2026-05-31T23:59:59.000Z",
+      includeArchived: false,
       page: 2,
       pageSize: 10
     });
-    expect(problemListQuerySchema.parse({})).toMatchObject({ page: 1, pageSize: 20 });
+    expect(problemListQuerySchema.parse({})).toMatchObject({ page: 1, pageSize: 20, includeArchived: false });
+    expect(problemListQuerySchema.parse({ includeArchived: "true" })).toMatchObject({ includeArchived: true });
     expect(problemListQuerySchema.safeParse({ pageSize: "101" }).success).toBe(false);
   });
 

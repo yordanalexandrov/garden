@@ -23,6 +23,7 @@ function makeProblemDetail(photoKeys: string[]): ProblemDetailRecord {
     status: "open",
     observedAt: new Date("2026-06-01"),
     resolvedAt: null,
+    archivedAt: null,
     linkedActivityId: null,
     targetLabel: "Bed A",
     photos: photoKeys.map((key, idx) => ({

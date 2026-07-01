@@ -14,6 +14,7 @@ export function toProblemListItemDto(item: ProblemListItem): ProblemListItemDto 
     status: item.status,
     observedAt: item.observedAt.toISOString(),
     resolvedAt: item.resolvedAt ? item.resolvedAt.toISOString() : null,
+    archivedAt: item.archivedAt ? item.archivedAt.toISOString() : null,
     photosCount: item.photosCount
   };
 }
@@ -33,6 +34,7 @@ export function toProblemDetailDto(problem: ProblemDetail): ProblemDetailDto {
     status: problem.status,
     observedAt: problem.observedAt.toISOString(),
     resolvedAt: problem.resolvedAt ? problem.resolvedAt.toISOString() : null,
+    archivedAt: problem.archivedAt ? problem.archivedAt.toISOString() : null,
     photos: problem.photos,
     observations: problem.observations.map(toObservationDto),
     linkedActivity:
@@ -76,14 +78,16 @@ type ObservationDto = {
   updatedAt: string;
 };
 
-type ProblemListItemDto = Omit<ProblemListItem, "observedAt" | "resolvedAt"> & {
+type ProblemListItemDto = Omit<ProblemListItem, "observedAt" | "resolvedAt" | "archivedAt"> & {
   observedAt: string;
   resolvedAt: string | null;
+  archivedAt: string | null;
 };
 
-type ProblemDetailDto = Omit<ProblemDetail, "observedAt" | "resolvedAt" | "linkedActivity" | "linkedActivityId" | "observations"> & {
+type ProblemDetailDto = Omit<ProblemDetail, "observedAt" | "resolvedAt" | "archivedAt" | "linkedActivity" | "linkedActivityId" | "observations"> & {
   observedAt: string;
   resolvedAt: string | null;
+  archivedAt: string | null;
   linkedActivity: { id: string; type: string; performedAt: string } | null;
   observations: ObservationDto[];
 };

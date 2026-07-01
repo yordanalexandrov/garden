@@ -201,6 +201,13 @@ export class ProblemsService {
     }
   }
 
+  async archiveProblem(actor: AuthenticatedActor, problemId: UUID): Promise<void> {
+    const archived = await this.problemsRepository.archive(actor.accountId, problemId);
+    if (!archived) {
+      throw new AppError("NOT_FOUND", "Problem not found");
+    }
+  }
+
   async resolveProblem(actor: AuthenticatedActor, problemId: UUID): Promise<Problem> {
     return this.dbClient.transaction(async (trx) => {
       const existing = await this.problemsRepository.findStatus(actor.accountId, problemId, trx);

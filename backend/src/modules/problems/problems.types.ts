@@ -37,6 +37,7 @@ export type Problem = {
   status: ProblemStatus;
   observedAt: Date;
   resolvedAt: Date | null;
+  archivedAt: Date | null;
   linkedActivityId: UUID | null;
   createdAt: Date;
   updatedAt: Date;
@@ -144,6 +145,7 @@ export type ListProblemsFilters = {
   category?: ProblemCategory;
   from?: Date;
   to?: Date;
+  includeArchived?: boolean;
   page: number;
   pageSize: number;
 };
@@ -217,4 +219,5 @@ export interface ProblemsRepository {
   listObservations(problemId: UUID, db?: DbHandle): Promise<ProblemObservation[]>;
   updateObservation(problemId: UUID, obsId: UUID, patch: UpdateObservationInput, db?: DbHandle): Promise<ProblemObservation | null>;
   archiveObservation(problemId: UUID, obsId: UUID, db?: DbHandle): Promise<boolean>;
+  archive(accountId: UUID, problemId: UUID, db?: DbHandle): Promise<boolean>;
 }
