@@ -185,7 +185,7 @@ export class ProblemDetailPage {
       .subscribe(() => this.loadProblem());
   }
 
-  deleteObservation(obs: ProblemObservation): void {
+  archiveObservation(obs: ProblemObservation): void {
     const problem = this.problem();
     if (!problem) return;
     this.error.set(null);
@@ -193,9 +193,9 @@ export class ProblemDetailPage {
     this.dialog
       .open<ConfirmDialog, ConfirmDialogData, boolean>(ConfirmDialog, {
         data: {
-          title: 'Изтрий наблюдение',
-          message: 'Сигурен ли си, че искаш да изтриеш това наблюдение?',
-          confirmLabel: 'Изтрий',
+          title: 'Архивирай наблюдение',
+          message: 'Сигурен ли си, че искаш да архивираш това наблюдение?',
+          confirmLabel: 'Архивирай',
         },
       })
       .afterClosed()
@@ -203,7 +203,7 @@ export class ProblemDetailPage {
         takeUntilDestroyed(this.destroyRef),
         switchMap((confirmed) => {
           if (!confirmed) return EMPTY;
-          return this.problemsApi.deleteObservation(problem.id, obs.id);
+          return this.problemsApi.archiveObservation(problem.id, obs.id);
         }),
         catchError((err) => {
           this.error.set(mapApiError(err));

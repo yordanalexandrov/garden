@@ -189,14 +189,14 @@ export class ProblemsService {
     return updated;
   }
 
-  async removeObservation(actor: AuthenticatedActor, problemId: UUID, obsId: UUID): Promise<void> {
+  async archiveObservation(actor: AuthenticatedActor, problemId: UUID, obsId: UUID): Promise<void> {
     const problem = await this.problemsRepository.getDetail(actor.accountId, problemId);
     if (problem === null) {
       throw new AppError("NOT_FOUND", "Problem not found");
     }
 
-    const deleted = await this.problemsRepository.deleteObservation(problemId, obsId);
-    if (!deleted) {
+    const archived = await this.problemsRepository.archiveObservation(problemId, obsId);
+    if (!archived) {
       throw new AppError("NOT_FOUND", "Observation not found");
     }
   }

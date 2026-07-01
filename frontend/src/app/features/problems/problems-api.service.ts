@@ -65,9 +65,10 @@ export class ProblemsApiService {
     );
   }
 
-  deleteObservation(problemId: string, obsId: string): Observable<void> {
-    return this.api.delete<void>(
-      `/problems/${encodeURIComponent(problemId)}/observations/${encodeURIComponent(obsId)}`,
+  archiveObservation(problemId: string, obsId: string): Observable<{ archived: boolean }> {
+    return this.api.post<{ archived: boolean }>(
+      `/problems/${encodeURIComponent(problemId)}/observations/${encodeURIComponent(obsId)}/archive`,
+      {},
     );
   }
 

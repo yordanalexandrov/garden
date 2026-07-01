@@ -185,7 +185,7 @@ class FakeProblemsRepository implements ProblemsRepository {
     throw new Error("not implemented");
   }
 
-  deleteObservation(): never {
+  archiveObservation(): never {
     throw new Error("not implemented");
   }
 }

@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS problem_observations (
   summary        text NOT NULL CHECK (char_length(summary) >= 1),
   recommendation text,
   source         text NOT NULL CHECK (source IN ('user', 'ai')),
+  archived_at    timestamptz,
   created_at     timestamptz NOT NULL DEFAULT now(),
   updated_at     timestamptz NOT NULL DEFAULT now()
 );

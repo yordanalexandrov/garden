@@ -262,6 +262,7 @@ export class KyselyProblemsRepository implements ProblemsRepository {
       .selectFrom("problem_observations")
       .select(["id", "problem_id", "summary", "recommendation", "source", "created_at", "updated_at"])
       .where("problem_id", "=", problemId)
+      .where("archived_at", "is", null)
       .orderBy("created_at", "asc")
       .orderBy("id", "asc")
       .execute();
@@ -285,20 +286,23 @@ export class KyselyProblemsRepository implements ProblemsRepository {
       .set(update)
       .where("id", "=", obsId)
       .where("problem_id", "=", problemId)
+      .where("archived_at", "is", null)
       .returning(["id", "problem_id", "summary", "recommendation", "source", "created_at", "updated_at"])
       .executeTakeFirst();
 
     return row === undefined ? null : toProblemObservation(row);
   }
 
-  async deleteObservation(problemId: UUID, obsId: UUID, db: DbHandle = this.dbHandle): Promise<boolean> {
+  async archiveObservation(problemId: UUID, obsId: UUID, db: DbHandle = this.dbHandle): Promise<boolean> {
     const result = await db.db
-      .deleteFrom("problem_observations")
+      .updateTable("problem_observations")
+      .set({ archived_at: new Date() })
       .where("id", "=", obsId)
       .where("problem_id", "=", problemId)
+      .where("archived_at", "is", null)
       .executeTakeFirst();
 
-    return (result.numDeletedRows ?? 0n) > 0n;
+    return (result.numUpdatedRows ?? 0n) > 0n;
   }
 
   async findPlace(accountId: UUID, placeId: UUID, db: DbHandle = this.dbHandle): Promise<{ id: UUID } | null> {

@@ -127,11 +127,11 @@ export const registerProblemsRoutes: FastifyPluginCallback<ProblemsRouteOptions>
     return successEnvelope(toObservationDto(obs));
   });
 
-  app.delete("/:problemId/observations/:obsId", protectedRoute, async (request, reply) => {
+  app.post("/:problemId/observations/:obsId/archive", protectedRoute, async (request) => {
     const actor = requireActor(request);
     const { params } = validateRequest(request, { params: observationParamsSchema });
-    await requireProblemsService(problemsService).removeObservation(actor, params.problemId, params.obsId);
-    return reply.code(204).send();
+    await requireProblemsService(problemsService).archiveObservation(actor, params.problemId, params.obsId);
+    return successEnvelope({ archived: true });
   });
 
   // Resolve / reopen

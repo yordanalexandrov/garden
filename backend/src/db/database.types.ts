@@ -267,6 +267,7 @@ export interface ProblemObservationsTable {
   summary: string;
   recommendation: NullableColumn<string>;
   source: string;
+  archived_at: NullableTimestamp;
   created_at: GeneratedTimestamp;
   updated_at: GeneratedTimestamp;
 }

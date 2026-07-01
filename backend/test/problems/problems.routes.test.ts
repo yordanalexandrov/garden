@@ -623,23 +623,55 @@ describeDatabase("Observation CRUD and resolve/reopen", () => {
     expect(patchRes.statusCode).toBe(400);
   });
 
-  it("DELETE /observations/:obsId → 204", async () => {
+  it("POST /observations/:obsId/archive → 200, no longer appears in GET detail", async () => {
     const problemId = await createProblem();
 
     const createRes = await app!.inject({
       method: "POST",
       url: `/api/v1/problems/${problemId}/observations`,
       headers: accountAAuthHeaders(),
-      payload: { summary: "To delete" }
+      payload: { summary: "To archive" }
     });
     const obsId = (parseJsonResponse<{ data: { id: string } }>(createRes)).data.id;
 
-    const delRes = await app!.inject({
-      method: "DELETE",
-      url: `/api/v1/problems/${problemId}/observations/${obsId}`,
+    const archiveRes = await app!.inject({
+      method: "POST",
+      url: `/api/v1/problems/${problemId}/observations/${obsId}/archive`,
       headers: accountAAuthHeaders()
     });
-    expect(delRes.statusCode).toBe(204);
+    expect(archiveRes.statusCode).toBe(200);
+
+    const detail = await app!.inject({
+      method: "GET",
+      url: `/api/v1/problems/${problemId}`,
+      headers: accountAAuthHeaders()
+    });
+    const data = (parseJsonResponse<{ data: { observations: unknown[] } }>(detail)).data;
+    expect(data.observations).toEqual([]);
+  });
+
+  it("POST /observations/:obsId/archive twice → 404 on the second call", async () => {
+    const problemId = await createProblem();
+
+    const createRes = await app!.inject({
+      method: "POST",
+      url: `/api/v1/problems/${problemId}/observations`,
+      headers: accountAAuthHeaders(),
+      payload: { summary: "To archive" }
+    });
+    const obsId = (parseJsonResponse<{ data: { id: string } }>(createRes)).data.id;
+
+    await app!.inject({
+      method: "POST",
+      url: `/api/v1/problems/${problemId}/observations/${obsId}/archive`,
+      headers: accountAAuthHeaders()
+    });
+    const secondRes = await app!.inject({
+      method: "POST",
+      url: `/api/v1/problems/${problemId}/observations/${obsId}/archive`,
+      headers: accountAAuthHeaders()
+    });
+    expect(secondRes.statusCode).toBe(404);
   });
 
   it("POST /resolve → 200, status=resolved, resolvedAt set", async () => {

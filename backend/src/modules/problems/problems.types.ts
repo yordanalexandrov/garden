@@ -216,5 +216,5 @@ export interface ProblemsRepository {
   createObservation(input: CreateObservationInput, db?: DbHandle): Promise<ProblemObservation>;
   listObservations(problemId: UUID, db?: DbHandle): Promise<ProblemObservation[]>;
   updateObservation(problemId: UUID, obsId: UUID, patch: UpdateObservationInput, db?: DbHandle): Promise<ProblemObservation | null>;
-  deleteObservation(problemId: UUID, obsId: UUID, db?: DbHandle): Promise<boolean>;
+  archiveObservation(problemId: UUID, obsId: UUID, db?: DbHandle): Promise<boolean>;
 }

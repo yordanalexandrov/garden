@@ -287,7 +287,7 @@ describe("AiService.acceptSuggestion – problem_summary", () => {
       createObservation: createObservationMock,
       listObservations: vi.fn(),
       updateObservation: vi.fn(),
-      deleteObservation: vi.fn(),
+      archiveObservation: vi.fn(),
     } as unknown as ProblemsRepository;
 
     const dbClient = {
