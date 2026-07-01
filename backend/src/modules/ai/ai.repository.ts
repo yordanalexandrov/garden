@@ -71,11 +71,12 @@ export class KyselyAiRepository implements AiRepository {
     return row === undefined ? null : toAiSession(row);
   }
 
-  async findSessionById(sessionId: UUID, db: DbHandle = this.dbHandle): Promise<AiSession | null> {
+  async findSessionById(accountId: UUID, sessionId: UUID, db: DbHandle = this.dbHandle): Promise<AiSession | null> {
     const row = await db.db
       .selectFrom("ai_sessions")
       .select(AI_SESSION_COLUMNS)
       .where("id", "=", sessionId)
+      .where("account_id", "=", accountId)
       .executeTakeFirst();
 
     return row === undefined ? null : toAiSession(row);

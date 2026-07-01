@@ -214,6 +214,17 @@ export class KyselyProblemsRepository implements ProblemsRepository {
     };
   }
 
+  async findStatus(accountId: UUID, problemId: UUID, db: DbHandle = this.dbHandle): Promise<{ status: ProblemStatus } | null> {
+    const row = await db.db
+      .selectFrom("problems")
+      .select("status")
+      .where("account_id", "=", accountId)
+      .where("id", "=", problemId)
+      .executeTakeFirst();
+
+    return row === undefined ? null : { status: row.status as ProblemStatus };
+  }
+
   async update(
     accountId: UUID,
     problemId: UUID,

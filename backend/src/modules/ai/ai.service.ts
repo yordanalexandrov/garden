@@ -458,7 +458,7 @@ export class AiService {
     // Resolve problemId before the transaction (keep transactions lean)
     let resolvedProblemId: UUID | undefined = context?.problemId;
     if (resolvedProblemId === undefined && suggestion.suggestionType === "problem_summary") {
-      const session = await this.aiRepository.findSessionById(suggestion.aiSessionId);
+      const session = await this.aiRepository.findSessionById(actor.accountId, suggestion.aiSessionId);
       if (session?.relatedEntityId !== null && session?.relatedEntityId !== undefined) {
         resolvedProblemId = session.relatedEntityId;
       }
@@ -657,11 +657,22 @@ export class AiService {
         const { resolvedProblemId, acceptedCategory } = context;
         const p = payload as Record<string, unknown>;
 
+        const summary = typeof p.summary === "string" ? p.summary.trim() : "";
+
+        if (summary.length === 0) {
+          throw new AppError("VALIDATION_ERROR", "Invalid problem_summary payload: summary is required", {
+            fields: ["summary"]
+          });
+        }
+
+        const recommendationRaw = typeof p.recommendation === "string" ? p.recommendation.trim() : "";
+        const recommendation = recommendationRaw.length > 0 ? recommendationRaw : null;
+
         const obs = await this.problemsRepository.createObservation(
           {
             problemId: resolvedProblemId,
-            summary: typeof p.summary === "string" ? p.summary : "(no summary)",
-            recommendation: typeof p.recommendation === "string" ? p.recommendation : null,
+            summary,
+            recommendation,
             source: "ai"
           },
           db

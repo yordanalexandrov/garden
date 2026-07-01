@@ -58,7 +58,7 @@ export interface AiRepository {
   updateSessionStatus(sessionId: UUID, status: AiSessionStatus, db?: DbHandle): Promise<AiSession | null>;
   addSuggestions(sessionId: UUID, suggestions: AddAiSuggestionInput[], db?: DbHandle): Promise<AiSuggestion[]>;
   findSuggestionById(accountId: UUID, suggestionId: UUID, db?: DbHandle): Promise<AiSuggestion | null>;
-  findSessionById(sessionId: UUID, db?: DbHandle): Promise<AiSession | null>;
+  findSessionById(accountId: UUID, sessionId: UUID, db?: DbHandle): Promise<AiSession | null>;
   listSessionSuggestions(accountId: UUID, sessionId: UUID, db?: DbHandle): Promise<AiSuggestion[]>;
   markAccepted(suggestionId: UUID, db?: DbHandle): Promise<AiSuggestion | null>;
   markRejected(suggestionId: UUID, db?: DbHandle): Promise<AiSuggestion | null>;

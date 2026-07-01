@@ -206,6 +206,7 @@ export interface ProblemsRepository {
   create(input: CreateProblemInput, db?: DbHandle): Promise<Problem>;
   list(accountId: UUID, filters: ListProblemsFilters, db?: DbHandle): Promise<PaginatedProblems>;
   getDetail(accountId: UUID, problemId: UUID, db?: DbHandle): Promise<ProblemDetailRecord | null>;
+  findStatus(accountId: UUID, problemId: UUID, db?: DbHandle): Promise<{ status: ProblemStatus } | null>;
   update(accountId: UUID, problemId: UUID, patch: UpdateProblemInput, db?: DbHandle): Promise<Problem | null>;
   findPlace(accountId: UUID, placeId: UUID, db?: DbHandle): Promise<{ id: UUID } | null>;
   findTarget(accountId: UUID, targetType: TargetType, targetId: UUID, db?: DbHandle): Promise<ProblemTargetLookup | null>;

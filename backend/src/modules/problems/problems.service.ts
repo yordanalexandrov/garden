@@ -203,7 +203,7 @@ export class ProblemsService {
 
   async resolveProblem(actor: AuthenticatedActor, problemId: UUID): Promise<Problem> {
     return this.dbClient.transaction(async (trx) => {
-      const existing = await this.problemsRepository.getDetail(actor.accountId, problemId, trx);
+      const existing = await this.problemsRepository.findStatus(actor.accountId, problemId, trx);
       if (existing === null) {
         throw new AppError("NOT_FOUND", "Problem not found");
       }
@@ -226,7 +226,7 @@ export class ProblemsService {
 
   async reopenProblem(actor: AuthenticatedActor, problemId: UUID): Promise<Problem> {
     return this.dbClient.transaction(async (trx) => {
-      const existing = await this.problemsRepository.getDetail(actor.accountId, problemId, trx);
+      const existing = await this.problemsRepository.findStatus(actor.accountId, problemId, trx);
       if (existing === null) {
         throw new AppError("NOT_FOUND", "Problem not found");
       }

@@ -311,7 +311,7 @@ describe("AiService.acceptSuggestion – problem_summary", () => {
     const service = makeService();
     const result = await service.acceptSuggestion(ACCEPT_ACTOR, "sugg-001", undefined, {});
 
-    expect(findSessionMock).toHaveBeenCalledWith("sess-001");
+    expect(findSessionMock).toHaveBeenCalledWith("acct-0000-0000-0000-000000000001", "sess-001");
     expect(createObservationMock).toHaveBeenCalledWith(
       expect.objectContaining({ problemId: "prob-001", summary: "Yellow spots", source: "ai" }),
       expect.anything(),

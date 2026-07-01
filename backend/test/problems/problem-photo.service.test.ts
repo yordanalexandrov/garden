@@ -153,6 +153,10 @@ class FakeProblemsRepository implements ProblemsRepository {
     throw new Error("not implemented");
   }
 
+  findStatus(): never {
+    throw new Error("not implemented");
+  }
+
   update(): never {
     throw new Error("not implemented");
   }
