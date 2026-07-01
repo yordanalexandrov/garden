@@ -186,3 +186,15 @@ svg {
     margin: 0 0 0.5rem;
   }
 }
+
+.snackbar-success {
+  --mat-snack-bar-container-color: var(--mat-sys-primary-container);
+  --mat-snack-bar-supporting-text-color: var(--mat-sys-on-primary-container);
+  --mat-snack-bar-button-color: var(--mat-sys-on-primary-container);
+}
+
+.snackbar-error {
+  --mat-snack-bar-container-color: var(--mat-sys-error-container);
+  --mat-snack-bar-supporting-text-color: var(--mat-sys-on-error-container);
+  --mat-snack-bar-button-color: var(--mat-sys-on-error-container);
+}
