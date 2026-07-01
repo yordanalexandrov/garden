@@ -376,6 +376,21 @@ describe("OpenAiAdapter", () => {
       expect(p.possibleCategories).toEqual(["fungus", "nutrient_deficiency"]);
     });
 
+    it("filters out categories not in the valid enum", async () => {
+      const payload = {
+        summary: "Possible pest or environmental issue.",
+        possibleCategories: ["fungus", "pest", "environmental", "unknown"],
+        followUpQuestions: [],
+      };
+
+      mockCreate.mockResolvedValue(makeCompletionResponse(JSON.stringify(payload)));
+
+      const result = await adapter.assistProblem({ text: "Yellow spots on leaves" });
+      const p = result.suggestions[0]!.payload as Record<string, unknown>;
+
+      expect(p.possibleCategories).toEqual(["fungus", "unknown"]);
+    });
+
     it("returns typed followUpQuestions with yes_no and free_text", async () => {
       const payload = {
         summary: "Possible fungal infection.",

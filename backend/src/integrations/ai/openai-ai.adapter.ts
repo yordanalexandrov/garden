@@ -1,5 +1,6 @@
 import OpenAI, { APIConnectionError, APIError, AuthenticationError, RateLimitError } from "openai";
 
+import { PROBLEM_CATEGORIES } from "../../modules/problems/problems.types.js";
 import { AiProviderError, type AiPort } from "./ai.port.js";
 import type {
   AssistProblemInput,
@@ -420,7 +421,7 @@ ${hasFollowUpAnswers ? `The user has already answered some follow-up questions. 
 - If you still need clarification, ask DIFFERENT follow-up questions that are more specific than before. Never repeat questions the user already answered.
 ` : ""}Return a JSON object with these fields:
 - summary: string — a brief, cautious advisory summary based on the specific problem described (in Bulgarian)
-- possibleCategories: string[] — possible problem categories (e.g. fungus, pest, nutrient_deficiency, environmental)
+- possibleCategories: string[] — possible problem categories. Each value MUST be exactly one of: ${PROBLEM_CATEGORIES.join(", ")}. Do not invent other category values.
 - followUpQuestions: Array of { "text": string, "type": "yes_no" | "free_text" } — clarifying questions to narrow down the problem (text in Bulgarian). Use "yes_no" for questions answerable with yes/no, "free_text" for open questions. Set to empty array if you have enough information.
 - recommendation: string — concrete, specific guidance in Bulgarian: what the grower should do (e.g. treatment approach, product type to consider, timing, preventive measures). Be actionable and specific, but cautious — this is advisory, not a guarantee.
 
@@ -438,7 +439,9 @@ Return only valid JSON. Do not include markdown fences.`;
         payload: {
           summary: typeof raw.summary === "string" ? raw.summary : "",
           possibleCategories: Array.isArray(raw.possibleCategories)
-            ? (raw.possibleCategories as string[])
+            ? (raw.possibleCategories as string[]).filter((c): c is (typeof PROBLEM_CATEGORIES)[number] =>
+                (PROBLEM_CATEGORIES as readonly string[]).includes(c)
+              )
             : [],
           followUpQuestions: Array.isArray(raw.followUpQuestions)
             ? raw.followUpQuestions.map((q) => ({
