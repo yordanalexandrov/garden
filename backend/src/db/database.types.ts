@@ -247,6 +247,7 @@ export interface ProblemsTable {
   linked_activity_id: NullableColumn<Uuid>;
   created_at: GeneratedTimestamp;
   updated_at: GeneratedTimestamp;
+  archived_at: NullableTimestamp;
 }
 
 export interface ProblemPhotosTable {
