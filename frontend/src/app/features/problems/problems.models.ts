@@ -40,6 +40,7 @@ export interface ProblemListItem {
   readonly status: ProblemStatus;
   readonly observedAt: string;
   readonly resolvedAt: string | null;
+  readonly archivedAt: string | null;
   readonly photosCount: number;
 }
 
@@ -91,6 +92,7 @@ export interface ProblemDetail {
   readonly status: ProblemStatus;
   readonly observedAt: string;
   readonly resolvedAt: string | null;
+  readonly archivedAt: string | null;
   readonly photos: readonly ProblemPhoto[];
   readonly observations: readonly ProblemObservation[];
   readonly linkedActivity: ProblemLinkedActivity | null;
@@ -136,6 +138,7 @@ export interface ListProblemsFilters extends PagedFilter {
   readonly category?: ProblemCategory;
   readonly from?: string;
   readonly to?: string;
+  readonly includeArchived?: boolean;
 }
 
 export type ProblemsPage = ApiListData<ProblemListItem>;

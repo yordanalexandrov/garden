@@ -89,4 +89,13 @@ describe('Phase 17 problems API service', () => {
     expect(body).toBeInstanceOf(FormData);
     expect((body as FormData).get('file')).toBe(file);
   });
+
+  it('archives a problem', () => {
+    api.post.mockReturnValue(of({ archived: true }));
+    const service = TestBed.inject(ProblemsApiService);
+
+    service.archive('problem-1').subscribe();
+
+    expect(api.post).toHaveBeenCalledWith('/problems/problem-1/archive', {});
+  });
 });
