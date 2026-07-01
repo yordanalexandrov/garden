@@ -57,7 +57,14 @@ describe('app routes', () => {
           provide: CalendarApiService,
           useValue: {
             getCalendar: () =>
-              of({ activities: [], tasks: [], quarantinePeriods: [], weatherEvents: [] }),
+              of({
+                activities: [],
+                tasks: [],
+                quarantinePeriods: [],
+                weatherEvents: [],
+                problemDates: [],
+                problems: [],
+              }),
           },
         },
         {
@@ -102,7 +109,7 @@ describe('app routes', () => {
           provide: ProblemsApiService,
           useValue: {
             list: () => of({ items: [], page: 1, pageSize: 100, total: 0 }),
-            get: () => of({ id: 'problem-1', type: 'problem', placeId: 'place-1', targetType: 'bed', targetId: 'bed-1', targetLabel: 'Bed A', title: 'Leaf spots', description: 'Dark spots', category: 'fungus', severity: 'medium', status: 'open', observedAt: '2026-05-13T07:00:00.000Z', photos: [], linkedActivity: null }),
+            get: () => of({ id: 'problem-1', type: 'problem', placeId: 'place-1', targetType: 'bed', targetId: 'bed-1', targetLabel: 'Bed A', title: 'Leaf spots', description: 'Dark spots', category: 'fungus', severity: 'medium', status: 'open', observedAt: '2026-05-13T07:00:00.000Z', resolvedAt: null, photos: [], observations: [], linkedActivity: null }),
           },
         },
         { provide: ArchiveConfirmationService, useValue: { confirmArchive: () => of(false) } },

@@ -32,6 +32,7 @@ describe('Phase 17 problem pages', () => {
     severity: 'medium',
     status: 'open',
     observedAt: '2026-05-13T07:00:00.000Z',
+    resolvedAt: null,
     photos: [
       {
         id: 'photo-1',
@@ -41,6 +42,7 @@ describe('Phase 17 problem pages', () => {
         fileSizeBytes: 1234,
       },
     ],
+    observations: [],
     linkedActivity: null,
   };
   const problemsApi = {
@@ -167,7 +169,7 @@ describe('Phase 17 problem pages', () => {
     problemFixture.detectChanges();
 
     const uploadButton = (problemFixture.nativeElement as HTMLElement).querySelector(
-      'button[mat-stroked-button]',
+      '.photo-upload button[mat-stroked-button]',
     );
     expect(uploadButton).not.toBeNull();
     expect(uploadButton?.textContent?.trim()).toContain('Upload Photos');
@@ -179,7 +181,7 @@ describe('Phase 17 problem pages', () => {
     observationFixture.detectChanges();
 
     const obsUploadButton = (observationFixture.nativeElement as HTMLElement).querySelector(
-      'button[mat-stroked-button]',
+      '.photo-upload button[mat-stroked-button]',
     );
     expect(obsUploadButton).toBeNull();
   });
@@ -189,7 +191,7 @@ describe('Phase 17 problem pages', () => {
     fixture.detectChanges();
 
     const button = (fixture.nativeElement as HTMLElement).querySelector(
-      'button[mat-stroked-button]',
+      '.photo-upload button[mat-stroked-button]',
     ) as HTMLButtonElement | null;
     expect(button?.disabled).toBe(true);
 
