@@ -148,6 +148,64 @@
           </div>
         </div>
       }
+      @if (state.status === 'unaccepted' || state.status === 'accepting' || state.status === 'error') {
+        <div class="ai-problem-summary__section ai-problem-summary__accept-section">
+          <h3>Запиши в проблем</h3>
+
+          <mat-form-field appearance="outline" class="ai-page__field">
+            <mat-label>Проблем (незадължително)</mat-label>
+            <mat-select [value]="acceptProblemId()" (valueChange)="selectAcceptProblem($event)">
+              <mat-option [value]="null">— не записвай —</mat-option>
+              @for (p of problems(); track p.id) {
+                <mat-option [value]="p.id">{{ p.title }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          @if (acceptProblemId()) {
+            @if (selectedProblem()) {
+              <p class="ai-problem-summary__current-category">
+                Текуща категория: <strong>{{ selectedProblem()!.category ?? '—' }}</strong>
+              </p>
+            }
+            @if (summary.possibleCategories && summary.possibleCategories.length > 0) {
+              <mat-form-field appearance="outline" class="ai-page__field">
+                <mat-label>Промени категория (незадължително)</mat-label>
+                <mat-select [value]="acceptCategory()" (valueChange)="acceptCategory.set($event)">
+                  <mat-option [value]="null">— без промяна —</mat-option>
+                  @for (cat of summary.possibleCategories; track cat) {
+                    <mat-option [value]="cat">{{ cat }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            }
+          }
+
+          @if (state.status === 'error') {
+            <p class="ai-problem-summary__error">Грешка при приемане. Опитайте отново.</p>
+          }
+
+          <div class="ai-page__actions">
+            <button
+              mat-flat-button
+              color="primary"
+              (click)="onAccept({ suggestionId: state.suggestion.id })"
+              [disabled]="state.status === 'accepting'"
+            >
+              @if (state.status === 'accepting') {
+                <mat-spinner diameter="18" />
+                Записване…
+              } @else {
+                Приеми
+              }
+            </button>
+          </div>
+        </div>
+      }
+
+      @if (state.status === 'accepted') {
+        <p class="ai-problem-summary__accepted">Прието успешно.</p>
+      }
     </section>
   } @else {
     <app-ai-suggestion-card

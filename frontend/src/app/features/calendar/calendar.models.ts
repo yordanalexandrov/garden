@@ -50,19 +50,31 @@ export interface CalendarWeatherEventItem {
   readonly placeId: string;
 }
 
+export interface CalendarProblemItem {
+  readonly id: string;
+  readonly type: 'problem';
+  readonly date: string;
+  readonly title: string;
+  readonly status: string;
+  readonly placeId: string | null;
+  readonly isResolutionEntry: boolean;
+}
+
 export interface CalendarFeed {
   readonly activities: readonly CalendarActivityItem[];
   readonly tasks: readonly CalendarTaskItem[];
   readonly quarantinePeriods: readonly CalendarQuarantinePeriodItem[];
   readonly weatherEvents: readonly CalendarWeatherEventItem[];
   readonly problemDates: readonly string[];
+  readonly problems: readonly CalendarProblemItem[];
 }
 
 export type CalendarItem =
   | CalendarActivityItem
   | CalendarTaskItem
   | CalendarQuarantinePeriodItem
-  | CalendarWeatherEventItem;
+  | CalendarWeatherEventItem
+  | CalendarProblemItem;
 
 export interface CalendarDay {
   readonly date: string;

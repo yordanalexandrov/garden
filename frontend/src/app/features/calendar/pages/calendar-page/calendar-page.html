@@ -78,7 +78,7 @@
           }
         </header>
         <div class="calendar-day__items">
-          @for (item of day.items; track item.type + item.id) {
+          @for (item of day.items; track trackCalendarItem(item)) {
             @if (item.type === 'activity') {
               <a [class]="itemClass(item)" [routerLink]="['/activities', item.id]">
                 <span>{{ item.title }}</span>
@@ -91,6 +91,10 @@
               <button [class]="itemClass(item)" type="button" (click)="openQuarantine(item)">
                 <span>{{ item.title }}</span>
               </button>
+            } @else if (item.type === 'problem') {
+              <a [class]="itemClass(item)" [routerLink]="['/problems', item.id]">
+                <span>{{ item.title }}</span>
+              </a>
             } @else {
               <button [class]="itemClass(item)" type="button" (click)="openWeather(item)">
                 <span>{{ item.eventType }}</span>
@@ -110,7 +114,7 @@
       <mat-card-title>Agenda</mat-card-title>
     </mat-card-header>
     <mat-card-content>
-      @for (item of agenda(); track item.type + item.id) {
+      @for (item of agenda(); track trackCalendarItem(item)) {
         <div class="agenda-row" [ngClass]="itemClass(item)">
           <span>{{ itemDate(item) | date: 'mediumDate' }}</span>
           @if (item.type === 'activity') {
@@ -119,6 +123,8 @@
             <a [routerLink]="['/tasks', item.id]">{{ item.title }} ({{ item.status }})</a>
           } @else if (item.type === 'quarantine') {
             <button type="button" (click)="openQuarantine(item)">{{ item.title }}</button>
+          } @else if (item.type === 'problem') {
+            <a [routerLink]="['/problems', item.id]">{{ item.title }}</a>
           } @else {
             <button type="button" (click)="openWeather(item)">
               {{ item.eventType }}

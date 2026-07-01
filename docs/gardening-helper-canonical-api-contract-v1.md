@@ -1349,6 +1349,7 @@ Response:
         "severity": "medium",
         "status": "open",
         "observedAt": "2026-05-13T10:00:00+03:00",
+        "resolvedAt": null,
         "photosCount": 2
       }
     ],
@@ -1445,11 +1446,23 @@ Response:
     "severity": "medium",
     "status": "open",
     "observedAt": "2026-05-13T10:00:00+03:00",
+    "resolvedAt": null,
     "photos": [
       {
         "id": "uuid",
         "url": "signed-or-api-url",
         "mimeType": "image/jpeg"
+      }
+    ],
+    "observations": [
+      {
+        "id": "uuid",
+        "problemId": "uuid",
+        "summary": "Spots are spreading to upper leaves",
+        "recommendation": "Increase spacing for airflow",
+        "source": "user",
+        "createdAt": "2026-05-14T09:00:00+03:00",
+        "updatedAt": "2026-05-14T09:00:00+03:00"
       }
     ],
     "linkedActivity": null
@@ -1460,6 +1473,80 @@ Response:
 ## 18.5 PATCH /problems/:problemId
 
 Update problem/observation fields.
+
+## 18.6 Problem observations
+
+Observations are comment-like follow-up notes attached to a problem or observation record, created either manually by the user or automatically when accepting an AI `problem_summary` suggestion (see 22.4). They are not historical business truth in the same sense as activities or inventory movements, so they use a dedicated archive action rather than the archive-first pattern used for other domain records — an archived observation is excluded from `GET /problems/:problemId` but the row is retained for audit purposes.
+
+### 18.6.1 POST /problems/:problemId/observations
+
+Add a manual observation. `source` is always `"user"` for this endpoint.
+
+Request:
+
+```json
+{
+  "summary": "string (required, min length 1)",
+  "recommendation": "string (optional)"
+}
+```
+
+Response (201):
+
+```json
+{
+  "data": {
+    "id": "uuid",
+    "problemId": "uuid",
+    "summary": "Spots are spreading to upper leaves",
+    "recommendation": "Increase spacing for airflow",
+    "source": "user",
+    "createdAt": "2026-05-14T09:00:00+03:00",
+    "updatedAt": "2026-05-14T09:00:00+03:00"
+  }
+}
+```
+
+404 if the problem does not exist or is not owned by the account.
+
+### 18.6.2 PATCH /problems/:problemId/observations/:obsId
+
+Edit an existing observation. At least one field required.
+
+Request:
+
+```json
+{
+  "summary": "string (optional, min length 1)",
+  "recommendation": "string | null (optional)"
+}
+```
+
+Response (200): same shape as 18.6.1. 404 if the problem or observation does not exist, is not owned by the account, or the observation is already archived.
+
+### 18.6.3 POST /problems/:problemId/observations/:obsId/archive
+
+Archives the observation (excludes it from future `GET /problems/:problemId` responses). Idempotent guard: returns 404 if already archived.
+
+Response (200):
+
+```json
+{
+  "data": { "archived": true }
+}
+```
+
+## 18.7 POST /problems/:problemId/resolve
+
+Sets `status = "resolved"` and `resolvedAt = now()`.
+
+Response (200): same mutation shape as 18.2, `{ "data": { "id": "uuid" } }`. Fetch `GET /problems/:problemId` for the updated `status`/`resolvedAt`. 404 if not found/owned. 409 if already resolved.
+
+## 18.8 POST /problems/:problemId/reopen
+
+Sets `status = "open"` and `resolvedAt = null`.
+
+Response (200): same mutation shape as 18.7. 404 if not found/owned. 409 if not currently resolved.
 
 ---
 
@@ -1904,13 +1991,17 @@ Rule:
 
 Accept suggestion and create/update business records.
 
-Request optional edit payload:
+Request (all fields optional):
 
 ```json
 {
-  "editedPayload": {}
+  "editedPayload": {},
+  "problemId": "uuid",
+  "acceptedCategory": "fungus"
 }
 ```
+
+For `suggestionType: "problem_summary"`, `problemId` targets which problem the observation is attached to (falls back to the AI session's `relatedEntityId` when omitted; if neither resolves, the suggestion is accepted without creating an observation). `acceptedCategory` optionally updates the target problem's category in the same transaction.
 
 Response:
 

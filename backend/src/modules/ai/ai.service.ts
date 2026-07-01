@@ -16,7 +16,7 @@ import type {
   GenerateProductRulesPlant
 } from "../../integrations/ai/ai.types.js";
 import type { StoragePort } from "../files/storage.port.js";
-import type { ProblemsRepository } from "../problems/problems.types.js";
+import type { ProblemCategory, ProblemsRepository } from "../problems/problems.types.js";
 import type {
   AcceptSuggestionResult,
   AiRepository,
@@ -436,7 +436,8 @@ export class AiService {
   async acceptSuggestion(
     actor: AuthenticatedActor,
     suggestionId: UUID,
-    editedPayload?: Record<string, unknown>
+    editedPayload?: Record<string, unknown>,
+    context?: { problemId?: UUID; acceptedCategory?: ProblemCategory }
   ): Promise<AcceptSuggestionResult> {
     const suggestion = await this.aiRepository.findSuggestionById(actor.accountId, suggestionId);
 
@@ -454,8 +455,34 @@ export class AiService {
 
     const finalPayload = mergePayload(suggestion.payload, editedPayload);
 
+    // Resolve problemId before the transaction (keep transactions lean)
+    let resolvedProblemId: UUID | undefined = context?.problemId;
+    if (resolvedProblemId === undefined && suggestion.suggestionType === "problem_summary") {
+      const session = await this.aiRepository.findSessionById(actor.accountId, suggestion.aiSessionId);
+      if (session?.relatedEntityId !== null && session?.relatedEntityId !== undefined) {
+        resolvedProblemId = session.relatedEntityId;
+      }
+    }
+
+    // Pre-validate problem ownership outside the transaction
+    if (resolvedProblemId !== undefined && suggestion.suggestionType === "problem_summary") {
+      const exists = await this.findProblemForAccount(actor.accountId, resolvedProblemId);
+      if (!exists) {
+        throw new AppError("NOT_FOUND", "Problem not found");
+      }
+    }
+
     return this.dbClient.transaction(async (trx) => {
-      const result = await this.createBusinessRecordsForSuggestion(actor, suggestion.suggestionType, finalPayload, trx);
+      const result = await this.createBusinessRecordsForSuggestion(
+        actor,
+        suggestion.suggestionType,
+        finalPayload,
+        trx,
+        {
+          ...(resolvedProblemId !== undefined ? { resolvedProblemId } : {}),
+          ...(context?.acceptedCategory !== undefined ? { acceptedCategory: context.acceptedCategory } : {})
+        }
+      );
 
       const marked = await this.aiRepository.markAccepted(suggestionId, trx);
 
@@ -512,7 +539,8 @@ export class AiService {
     actor: AuthenticatedActor,
     suggestionType: string,
     payload: unknown,
-    db: DbHandle
+    db: DbHandle,
+    context?: { resolvedProblemId?: UUID; acceptedCategory?: ProblemCategory }
   ): Promise<{ createdEntities: Array<{ entityType: string; entityId: UUID }>; updatedEntities: Array<{ entityType: string; entityId: UUID }> }> {
     if (suggestionType === "product") {
       const parsed = acceptedProductPayloadSchema.safeParse(payload);
@@ -618,8 +646,51 @@ export class AiService {
       };
     }
 
-    // Guidance-only suggestion types: mark accepted but create no business records
-    if (suggestionType === "bed_plan" || suggestionType === "problem_summary" || suggestionType === "followup_questions") {
+    // bed_plan and followup_questions: guidance-only, no business records
+    if (suggestionType === "bed_plan" || suggestionType === "followup_questions") {
+      return { createdEntities: [], updatedEntities: [] };
+    }
+
+    // problem_summary: create an observation on the linked problem (if resolved) and optionally update category
+    if (suggestionType === "problem_summary") {
+      if (context?.resolvedProblemId !== undefined && this.problemsRepository !== undefined) {
+        const { resolvedProblemId, acceptedCategory } = context;
+        const p = payload as Record<string, unknown>;
+
+        const summary = typeof p.summary === "string" ? p.summary.trim() : "";
+
+        if (summary.length === 0) {
+          throw new AppError("VALIDATION_ERROR", "Invalid problem_summary payload: summary is required", {
+            fields: ["summary"]
+          });
+        }
+
+        const recommendationRaw = typeof p.recommendation === "string" ? p.recommendation.trim() : "";
+        const recommendation = recommendationRaw.length > 0 ? recommendationRaw : null;
+
+        const obs = await this.problemsRepository.createObservation(
+          {
+            problemId: resolvedProblemId,
+            summary,
+            recommendation,
+            source: "ai"
+          },
+          db
+        );
+
+        const createdEntities: Array<{ entityType: string; entityId: UUID }> = [
+          { entityType: "problem_observation", entityId: obs.id }
+        ];
+        const updatedEntities: Array<{ entityType: string; entityId: UUID }> = [];
+
+        if (acceptedCategory !== undefined) {
+          await this.problemsRepository.update(actor.accountId, resolvedProblemId, { category: acceptedCategory }, db);
+          updatedEntities.push({ entityType: "problem", entityId: resolvedProblemId });
+        }
+
+        return { createdEntities, updatedEntities };
+      }
+
       return { createdEntities: [], updatedEntities: [] };
     }
 

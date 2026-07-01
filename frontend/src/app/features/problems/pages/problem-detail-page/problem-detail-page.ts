@@ -10,7 +10,11 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatDialog } from '@angular/material/dialog';
+import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { EMPTY, catchError, switchMap } from 'rxjs';
 
 import { ApiError } from '../../../../core/errors/api-error';
 import { mapApiError } from '../../../../core/errors/api-error.mapper';
@@ -18,9 +22,18 @@ import { ProblemPhotoGallery } from '../../../../shared/components/problem-photo
 import { ProblemPhotoUploader } from '../../../../shared/components/problem-photo-uploader/problem-photo-uploader';
 import { PageHeader } from '../../../../shared/components/page-header/page-header';
 import { ApiErrorSummary } from '../../../../shared/forms/api-error-summary/api-error-summary';
-import { ProblemsApiService } from '../../problems-api.service';
-import { ProblemDetail } from '../../problems.models';
 import { LoadingIndicator } from '../../../../shared/components/loading-indicator/loading-indicator';
+import {
+  ConfirmDialog,
+  ConfirmDialogData,
+} from '../../../../shared/components/confirm-dialog/confirm-dialog';
+import {
+  ObservationDialog,
+  ObservationDialogData,
+  ObservationDialogResult,
+} from '../../../../shared/components/observation-dialog/observation-dialog';
+import { ProblemsApiService } from '../../problems-api.service';
+import { ProblemDetail, ProblemObservation } from '../../problems.models';
 
 @Component({
   selector: 'app-problem-detail-page',
@@ -30,6 +43,8 @@ import { LoadingIndicator } from '../../../../shared/components/loading-indicato
     DatePipe,
     MatButtonModule,
     MatCardModule,
+    MatChipsModule,
+    MatIconModule,
     PageHeader,
     ProblemPhotoGallery,
     ProblemPhotoUploader,
@@ -44,12 +59,14 @@ export class ProblemDetailPage {
   readonly loading = signal(false);
   readonly error = signal<ApiError | null>(null);
   readonly uploading = signal(false);
+  readonly resolving = signal(false);
 
   readonly uploader = viewChild(ProblemPhotoUploader);
 
   private readonly problemsApi = inject(ProblemsApiService);
   private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly dialog = inject(MatDialog);
 
   constructor() {
     this.loadProblem();
@@ -72,6 +89,128 @@ export class ProblemDetailPage {
         this.uploading.set(false);
         this.loadProblem();
       });
+  }
+
+  resolve(): void {
+    const problem = this.problem();
+    if (!problem || this.resolving()) return;
+    this.error.set(null);
+    this.resolving.set(true);
+    this.problemsApi
+      .resolve(problem.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.resolving.set(false);
+          this.loadProblem();
+        },
+        error: (err) => {
+          this.error.set(mapApiError(err));
+          this.resolving.set(false);
+        },
+      });
+  }
+
+  reopen(): void {
+    const problem = this.problem();
+    if (!problem || this.resolving()) return;
+    this.error.set(null);
+    this.resolving.set(true);
+    this.problemsApi
+      .reopen(problem.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.resolving.set(false);
+          this.loadProblem();
+        },
+        error: (err) => {
+          this.error.set(mapApiError(err));
+          this.resolving.set(false);
+        },
+      });
+  }
+
+  addObservation(): void {
+    const problem = this.problem();
+    if (!problem) return;
+    this.error.set(null);
+
+    this.dialog
+      .open<ObservationDialog, ObservationDialogData, ObservationDialogResult>(ObservationDialog, {
+        data: {},
+      })
+      .afterClosed()
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        switchMap((result) => {
+          if (!result) return EMPTY;
+          return this.problemsApi.addObservation(problem.id, {
+            summary: result.summary,
+            recommendation: result.recommendation,
+          });
+        }),
+        catchError((err) => {
+          this.error.set(mapApiError(err));
+          return EMPTY;
+        }),
+      )
+      .subscribe(() => this.loadProblem());
+  }
+
+  editObservation(obs: ProblemObservation): void {
+    const problem = this.problem();
+    if (!problem) return;
+    this.error.set(null);
+
+    this.dialog
+      .open<ObservationDialog, ObservationDialogData, ObservationDialogResult>(ObservationDialog, {
+        data: { existing: obs },
+      })
+      .afterClosed()
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        switchMap((result) => {
+          if (!result) return EMPTY;
+          return this.problemsApi.updateObservation(problem.id, obs.id, {
+            summary: result.summary,
+            recommendation: result.recommendation,
+          });
+        }),
+        catchError((err) => {
+          this.error.set(mapApiError(err));
+          return EMPTY;
+        }),
+      )
+      .subscribe(() => this.loadProblem());
+  }
+
+  archiveObservation(obs: ProblemObservation): void {
+    const problem = this.problem();
+    if (!problem) return;
+    this.error.set(null);
+
+    this.dialog
+      .open<ConfirmDialog, ConfirmDialogData, boolean>(ConfirmDialog, {
+        data: {
+          title: 'Архивирай наблюдение',
+          message: 'Сигурен ли си, че искаш да архивираш това наблюдение?',
+          confirmLabel: 'Архивирай',
+        },
+      })
+      .afterClosed()
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        switchMap((confirmed) => {
+          if (!confirmed) return EMPTY;
+          return this.problemsApi.archiveObservation(problem.id, obs.id);
+        }),
+        catchError((err) => {
+          this.error.set(mapApiError(err));
+          return EMPTY;
+        }),
+      )
+      .subscribe(() => this.loadProblem());
   }
 
   private loadProblem(): void {

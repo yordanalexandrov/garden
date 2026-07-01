@@ -68,6 +68,7 @@ const calendarFeed = () => ({
     },
   ],
   problemDates: [],
+  problems: [],
 });
 
 describe('Phase 20 calendar page', () => {

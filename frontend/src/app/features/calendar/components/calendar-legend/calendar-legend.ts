@@ -13,6 +13,7 @@ export class CalendarLegend {
     { label: 'Suggested tasks', className: 'calendar-legend__marker--suggested' },
     { label: 'Quarantine', className: 'calendar-legend__marker--quarantine' },
     { label: 'Weather markers', className: 'calendar-legend__marker--weather' },
-    { label: 'Проблеми', className: 'calendar-legend__marker--problem' },
+    { label: 'Problem', className: 'calendar-legend__marker--problem' },
+    { label: 'Resolved problem', className: 'calendar-legend__marker--problem-resolved' },
   ] as const;
 }

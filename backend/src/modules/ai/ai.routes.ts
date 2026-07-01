@@ -103,7 +103,10 @@ export const registerAiRoutes: FastifyPluginCallback<AiRouteOptions> = (app, opt
       params: suggestionParamsSchema,
       body: acceptSuggestionBodySchema
     });
-    const result = await requireAiService(aiService).acceptSuggestion(actor, params.suggestionId, body.editedPayload);
+    const result = await requireAiService(aiService).acceptSuggestion(actor, params.suggestionId, body.editedPayload, {
+      ...(body.problemId !== undefined ? { problemId: body.problemId } : {}),
+      ...(body.acceptedCategory !== undefined ? { acceptedCategory: body.acceptedCategory } : {})
+    });
 
     return successEnvelope(toAcceptResponseDto(result));
   });

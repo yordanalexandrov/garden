@@ -122,6 +122,7 @@ class FakeProblemsRepository implements ProblemsRepository {
       severity: null,
       status: "open" as const,
       observedAt: new Date(),
+      resolvedAt: null,
       linkedActivityId: null,
       targetLabel: "Place",
       photos:
@@ -139,6 +140,7 @@ class FakeProblemsRepository implements ProblemsRepository {
               }
             ]
           : [],
+      observations: [],
       linkedActivity: null
     };
   }
@@ -148,6 +150,10 @@ class FakeProblemsRepository implements ProblemsRepository {
   }
 
   list(): never {
+    throw new Error("not implemented");
+  }
+
+  findStatus(): never {
     throw new Error("not implemented");
   }
 
@@ -164,6 +170,22 @@ class FakeProblemsRepository implements ProblemsRepository {
   }
 
   findLinkedActivity(): never {
+    throw new Error("not implemented");
+  }
+
+  createObservation(): never {
+    throw new Error("not implemented");
+  }
+
+  listObservations(): never {
+    throw new Error("not implemented");
+  }
+
+  updateObservation(): never {
+    throw new Error("not implemented");
+  }
+
+  archiveObservation(): never {
     throw new Error("not implemented");
   }
 }

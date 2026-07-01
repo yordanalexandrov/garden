@@ -13,7 +13,7 @@ import { createTestPool, hasTestDatabase, resetAndApplyBaseline } from "../db/he
 import { AccountFixtureIds, insertAuthAccountFixtures } from "../helpers/accounts.js";
 import { createTestApp } from "../helpers/app.js";
 import { accountAAuthHeaders, accountBAuthHeaders } from "../helpers/auth.js";
-import { insertCalendarDashboardFixture, Phase19Ids } from "../fixtures/phase-19.js";
+import { insertCalendarDashboardFixture, insertResolvedProblemFixture, Phase19Ids } from "../fixtures/phase-19.js";
 
 const describeDatabase = hasTestDatabase() ? describe : describe.skip;
 
@@ -24,6 +24,7 @@ type CalendarResponse = {
     tasks: Array<{ id: string; type: string; taskType: string; dueDate: string; status: string; placeId: string; targetSummary: string }>;
     quarantinePeriods: Array<{ id: string; type: string; startsOn: string; endsOn: string; activityId: string; productId: string }>;
     weatherEvents: Array<{ id: string; type: string; date: string; eventType: string; userConfirmationStatus: string | null }>;
+    problems: Array<{ id: string; type: string; date: string; title: string; status: string; placeId: string | null; isResolutionEntry: boolean }>;
   };
 };
 
@@ -113,6 +114,29 @@ describeDatabase("Calendar routes with database", () => {
     ]);
 
     expect(parseJsonResponse<CalendarResponse>(accountB).data.activities.map((item) => item.id)).toEqual([Phase19Ids.activityB]);
+  });
+
+  it("includes unresolved problem at observedAt only, and resolved problem at both observedAt and resolvedAt", async () => {
+    await insertResolvedProblemFixture(pool);
+
+    const response = await app!.inject({
+      method: "GET",
+      url: "/api/v1/calendar?from=2026-05-01&to=2026-05-31",
+      headers: accountAAuthHeaders()
+    });
+
+    expect(response.statusCode).toBe(200);
+    const body = parseJsonResponse<CalendarResponse>(response).data;
+    const openItems = body.problems.filter((p) => p.id === Phase19Ids.problemA);
+    const resolvedItems = body.problems.filter((p) => p.id === Phase19Ids.resolvedProblemA);
+
+    expect(openItems).toHaveLength(1);
+    expect(openItems[0]).toMatchObject({ isResolutionEntry: false, status: "open" });
+
+    expect(resolvedItems).toHaveLength(2);
+    expect(resolvedItems.some((p) => !p.isResolutionEntry)).toBe(true);
+    expect(resolvedItems.some((p) => p.isResolutionEntry)).toBe(true);
+    expect(resolvedItems.find((p) => p.isResolutionEntry)?.status).toBe("resolved");
   });
 
   it("applies place filters through account-scoped authorization and does not mutate source tables", async () => {

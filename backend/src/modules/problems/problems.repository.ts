@@ -1,10 +1,11 @@
 import { sql, type Selectable, type Updateable } from "kysely";
 
-import type { ProblemPhotosTable, ProblemsTable } from "../../db/database.types.js";
+import type { ProblemObservationsTable, ProblemPhotosTable, ProblemsTable } from "../../db/database.types.js";
 import type { DbHandle } from "../../db/transaction.js";
 import type { UUID } from "../auth/auth.types.js";
 import type { TargetType } from "../targets/target-resolver.types.js";
 import type {
+  CreateObservationInput,
   CreateProblemInput,
   CreateProblemPhotoMetadataInput,
   LinkedActivityLookup,
@@ -13,9 +14,11 @@ import type {
   Problem,
   ProblemDetailRecord,
   ProblemForPhotoUpload,
+  ProblemObservation,
   ProblemPhotoMetadata,
   ProblemsRepository,
   ProblemTargetLookup,
+  UpdateObservationInput,
   UpdateProblemInput
 } from "./problems.types.js";
 import type { ProblemCategory, ProblemStatus, ProblemType } from "./problems.types.js";
@@ -33,6 +36,7 @@ const PROBLEM_COLUMNS = [
   "severity",
   "status",
   "observed_at",
+  "resolved_at",
   "linked_activity_id",
   "created_at",
   "updated_at"
@@ -82,7 +86,8 @@ export class KyselyProblemsRepository implements ProblemsRepository {
         "pr.category",
         "pr.severity",
         "pr.status",
-        "pr.observed_at"
+        "pr.observed_at",
+        "pr.resolved_at"
       ])
       .select((eb) => [
         targetLabelExpression().as("target_label"),
@@ -149,6 +154,7 @@ export class KyselyProblemsRepository implements ProblemsRepository {
         severity: row.severity,
         status: row.status as ProblemStatus,
         observedAt: row.observed_at,
+        resolvedAt: row.resolved_at,
         photosCount: toCount({ count: row.photos_count ?? 0 })
       })),
       page: filters.page,
@@ -173,6 +179,7 @@ export class KyselyProblemsRepository implements ProblemsRepository {
         "pr.severity",
         "pr.status",
         "pr.observed_at",
+        "pr.resolved_at",
         "pr.linked_activity_id",
         "pr.created_at",
         "pr.updated_at"
@@ -189,11 +196,13 @@ export class KyselyProblemsRepository implements ProblemsRepository {
     const linkedActivity =
       row.linked_activity_id === null ? null : await this.findLinkedActivity(accountId, row.linked_activity_id, db);
     const photos = await this.listPhotoMetadata(row.id, db);
+    const observations = await this.listObservations(row.id, db);
 
     return {
       ...toProblem(row),
       targetLabel: row.target_label,
       photos,
+      observations,
       linkedActivity:
         linkedActivity === null
           ? null
@@ -203,6 +212,17 @@ export class KyselyProblemsRepository implements ProblemsRepository {
               performedAt: linkedActivity.performedAt
             }
     };
+  }
+
+  async findStatus(accountId: UUID, problemId: UUID, db: DbHandle = this.dbHandle): Promise<{ status: ProblemStatus } | null> {
+    const row = await db.db
+      .selectFrom("problems")
+      .select("status")
+      .where("account_id", "=", accountId)
+      .where("id", "=", problemId)
+      .executeTakeFirst();
+
+    return row === undefined ? null : { status: row.status as ProblemStatus };
   }
 
   async update(
@@ -220,6 +240,69 @@ export class KyselyProblemsRepository implements ProblemsRepository {
       .executeTakeFirst();
 
     return row === undefined ? null : toProblem(row);
+  }
+
+  async createObservation(input: CreateObservationInput, db: DbHandle = this.dbHandle): Promise<ProblemObservation> {
+    const row = await db.db
+      .insertInto("problem_observations")
+      .values({
+        problem_id: input.problemId,
+        summary: input.summary,
+        recommendation: input.recommendation ?? null,
+        source: input.source
+      })
+      .returning(["id", "problem_id", "summary", "recommendation", "source", "created_at", "updated_at"])
+      .executeTakeFirstOrThrow();
+
+    return toProblemObservation(row);
+  }
+
+  async listObservations(problemId: UUID, db: DbHandle = this.dbHandle): Promise<ProblemObservation[]> {
+    const rows = await db.db
+      .selectFrom("problem_observations")
+      .select(["id", "problem_id", "summary", "recommendation", "source", "created_at", "updated_at"])
+      .where("problem_id", "=", problemId)
+      .where("archived_at", "is", null)
+      .orderBy("created_at", "asc")
+      .orderBy("id", "asc")
+      .execute();
+
+    return rows.map(toProblemObservation);
+  }
+
+  async updateObservation(
+    problemId: UUID,
+    obsId: UUID,
+    patch: UpdateObservationInput,
+    db: DbHandle = this.dbHandle
+  ): Promise<ProblemObservation | null> {
+    const update: Updateable<ProblemObservationsTable> = { updated_at: new Date() };
+
+    if (patch.summary !== undefined) update.summary = patch.summary;
+    if (patch.recommendation !== undefined) update.recommendation = patch.recommendation;
+
+    const row = await db.db
+      .updateTable("problem_observations")
+      .set(update)
+      .where("id", "=", obsId)
+      .where("problem_id", "=", problemId)
+      .where("archived_at", "is", null)
+      .returning(["id", "problem_id", "summary", "recommendation", "source", "created_at", "updated_at"])
+      .executeTakeFirst();
+
+    return row === undefined ? null : toProblemObservation(row);
+  }
+
+  async archiveObservation(problemId: UUID, obsId: UUID, db: DbHandle = this.dbHandle): Promise<boolean> {
+    const result = await db.db
+      .updateTable("problem_observations")
+      .set({ archived_at: new Date() })
+      .where("id", "=", obsId)
+      .where("problem_id", "=", problemId)
+      .where("archived_at", "is", null)
+      .executeTakeFirst();
+
+    return (result.numUpdatedRows ?? 0n) > 0n;
   }
 
   async findPlace(accountId: UUID, placeId: UUID, db: DbHandle = this.dbHandle): Promise<{ id: UUID } | null> {
@@ -456,6 +539,7 @@ function toProblem(row: SelectedProblem): Problem {
     severity: row.severity,
     status: row.status as ProblemStatus,
     observedAt: row.observed_at,
+    resolvedAt: row.resolved_at,
     linkedActivityId: row.linked_activity_id,
     createdAt: row.created_at,
     updatedAt: row.updated_at
@@ -487,6 +571,10 @@ function toProblemUpdate(patch: UpdateProblemInput): Updateable<ProblemsTable> {
 
   if (patch.observedAt !== undefined) {
     update.observed_at = patch.observedAt;
+  }
+
+  if (patch.resolvedAt !== undefined) {
+    update.resolved_at = patch.resolvedAt;
   }
 
   if (patch.linkedActivityId !== undefined) {
@@ -552,5 +640,25 @@ function toProblemPhotoMetadata(row: SelectedProblemPhoto): ProblemPhotoMetadata
     widthPx: row.width_px,
     heightPx: row.height_px,
     createdAt: row.created_at
+  };
+}
+
+function toProblemObservation(row: {
+  id: string;
+  problem_id: string;
+  summary: string;
+  recommendation: string | null;
+  source: string;
+  created_at: Date;
+  updated_at: Date;
+}): ProblemObservation {
+  return {
+    id: row.id,
+    problemId: row.problem_id,
+    summary: row.summary,
+    recommendation: row.recommendation,
+    source: row.source as 'user' | 'ai',
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
   };
 }

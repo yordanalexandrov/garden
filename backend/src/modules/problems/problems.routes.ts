@@ -8,15 +8,18 @@ import { hasAuthDecorator, requireActor } from "../auth/request-actor.js";
 import type { StoragePort } from "../files/storage.port.js";
 import { TestStorageAdapter } from "../files/test-storage.adapter.js";
 import { SupabaseStorageAdapter } from "../files/supabase-storage.adapter.js";
-import { toProblemDetailDto, toProblemListItemDto, toProblemMutationDto, toProblemPhotoMutationDto } from "./problems.dto.js";
+import { toProblemDetailDto, toProblemListItemDto, toProblemMutationDto, toProblemPhotoMutationDto, toObservationDto } from "./problems.dto.js";
 import { KyselyProblemsRepository } from "./problems.repository.js";
 import { ProblemsService } from "./problems.service.js";
 import { validateProblemPhotoMultipart } from "./problem-photo.validation.js";
 import type { CreateProblemRequest, ListProblemsFilters, UpdateProblemRequest } from "./problems.types.js";
 import {
+  createObservationBodySchema,
   createProblemBodySchema,
+  observationParamsSchema,
   problemListQuerySchema,
   problemParamsSchema,
+  updateObservationBodySchema,
   updateProblemBodySchema,
   type CreateProblemBody,
   type ProblemListQuery,
@@ -89,6 +92,60 @@ export const registerProblemsRoutes: FastifyPluginCallback<ProblemsRouteOptions>
       toUpdateProblemRequest(body)
     );
 
+    return successEnvelope(toProblemMutationDto(result));
+  });
+
+  // Observation routes
+  app.post("/:problemId/observations", protectedRoute, async (request, reply) => {
+    const actor = requireActor(request);
+    const { params, body } = validateRequest(request, {
+      params: problemParamsSchema,
+      body: createObservationBodySchema
+    });
+    const obs = await requireProblemsService(problemsService).addObservation(actor, params.problemId, {
+      summary: body.summary,
+      ...(body.recommendation !== undefined ? { recommendation: body.recommendation } : {})
+    });
+    return reply.code(201).send(successEnvelope(toObservationDto(obs)));
+  });
+
+  app.patch("/:problemId/observations/:obsId", protectedRoute, async (request) => {
+    const actor = requireActor(request);
+    const { params, body } = validateRequest(request, {
+      params: observationParamsSchema,
+      body: updateObservationBodySchema
+    });
+    const obs = await requireProblemsService(problemsService).editObservation(
+      actor,
+      params.problemId,
+      params.obsId,
+      {
+        ...(body.summary !== undefined ? { summary: body.summary } : {}),
+        ...(body.recommendation !== undefined ? { recommendation: body.recommendation } : {})
+      }
+    );
+    return successEnvelope(toObservationDto(obs));
+  });
+
+  app.post("/:problemId/observations/:obsId/archive", protectedRoute, async (request) => {
+    const actor = requireActor(request);
+    const { params } = validateRequest(request, { params: observationParamsSchema });
+    await requireProblemsService(problemsService).archiveObservation(actor, params.problemId, params.obsId);
+    return successEnvelope({ archived: true });
+  });
+
+  // Resolve / reopen
+  app.post("/:problemId/resolve", protectedRoute, async (request) => {
+    const actor = requireActor(request);
+    const { params } = validateRequest(request, { params: problemParamsSchema });
+    const result = await requireProblemsService(problemsService).resolveProblem(actor, params.problemId);
+    return successEnvelope(toProblemMutationDto(result));
+  });
+
+  app.post("/:problemId/reopen", protectedRoute, async (request) => {
+    const actor = requireActor(request);
+    const { params } = validateRequest(request, { params: problemParamsSchema });
+    const result = await requireProblemsService(problemsService).reopenProblem(actor, params.problemId);
     return successEnvelope(toProblemMutationDto(result));
   });
 

@@ -36,6 +36,7 @@ export type Problem = {
   severity: string | null;
   status: ProblemStatus;
   observedAt: Date;
+  resolvedAt: Date | null;
   linkedActivityId: UUID | null;
   createdAt: Date;
   updatedAt: Date;
@@ -71,10 +72,33 @@ export type ProblemPhotoSummary = {
   fileSizeBytes: number | null;
 };
 
+export type ProblemObservation = {
+  id: UUID;
+  problemId: UUID;
+  summary: string;
+  recommendation: string | null;
+  source: 'user' | 'ai';
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export type CreateObservationInput = {
+  problemId: UUID;
+  summary: string;
+  recommendation?: string | null;
+  source: 'user' | 'ai';
+};
+
+export type UpdateObservationInput = {
+  summary?: string;
+  recommendation?: string | null;
+};
+
 export type ProblemDetailRecord = Omit<Problem, "accountId" | "createdAt" | "updatedAt"> & {
   targetLabel: string | null;
   photos: ProblemPhotoMetadata[];
   linkedActivity: ProblemLinkedActivitySummary | null;
+  observations: ProblemObservation[];
 };
 
 export type ProblemDetail = Omit<ProblemDetailRecord, "photos"> & {
@@ -109,7 +133,9 @@ export type UpdateProblemRequest = {
   linkedActivityId?: UUID | null;
 };
 
-export type UpdateProblemInput = UpdateProblemRequest;
+export type UpdateProblemInput = UpdateProblemRequest & {
+  resolvedAt?: Date | null;
+};
 
 export type ListProblemsFilters = {
   placeId?: UUID;
@@ -180,10 +206,15 @@ export interface ProblemsRepository {
   create(input: CreateProblemInput, db?: DbHandle): Promise<Problem>;
   list(accountId: UUID, filters: ListProblemsFilters, db?: DbHandle): Promise<PaginatedProblems>;
   getDetail(accountId: UUID, problemId: UUID, db?: DbHandle): Promise<ProblemDetailRecord | null>;
+  findStatus(accountId: UUID, problemId: UUID, db?: DbHandle): Promise<{ status: ProblemStatus } | null>;
   update(accountId: UUID, problemId: UUID, patch: UpdateProblemInput, db?: DbHandle): Promise<Problem | null>;
   findPlace(accountId: UUID, placeId: UUID, db?: DbHandle): Promise<{ id: UUID } | null>;
   findTarget(accountId: UUID, targetType: TargetType, targetId: UUID, db?: DbHandle): Promise<ProblemTargetLookup | null>;
   findLinkedActivity(accountId: UUID, activityId: UUID, db?: DbHandle): Promise<LinkedActivityLookup | null>;
   findProblemForPhotoUpload(accountId: UUID, problemId: UUID, db?: DbHandle): Promise<ProblemForPhotoUpload | null>;
   createPhotoMetadata(input: CreateProblemPhotoMetadataInput, db?: DbHandle): Promise<ProblemPhotoMetadata>;
+  createObservation(input: CreateObservationInput, db?: DbHandle): Promise<ProblemObservation>;
+  listObservations(problemId: UUID, db?: DbHandle): Promise<ProblemObservation[]>;
+  updateObservation(problemId: UUID, obsId: UUID, patch: UpdateObservationInput, db?: DbHandle): Promise<ProblemObservation | null>;
+  archiveObservation(problemId: UUID, obsId: UUID, db?: DbHandle): Promise<boolean>;
 }

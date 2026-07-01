@@ -39,6 +39,7 @@ export interface ProblemListItem {
   readonly severity: string | null;
   readonly status: ProblemStatus;
   readonly observedAt: string;
+  readonly resolvedAt: string | null;
   readonly photosCount: number;
 }
 
@@ -56,6 +57,26 @@ export interface ProblemLinkedActivity {
   readonly performedAt: string;
 }
 
+export interface ProblemObservation {
+  readonly id: string;
+  readonly problemId: string;
+  readonly summary: string;
+  readonly recommendation: string | null;
+  readonly source: 'user' | 'ai';
+  readonly createdAt: string;
+  readonly updatedAt: string;
+}
+
+export interface CreateObservationRequest {
+  readonly summary: string;
+  readonly recommendation?: string | null;
+}
+
+export interface UpdateObservationRequest {
+  readonly summary?: string;
+  readonly recommendation?: string | null;
+}
+
 export interface ProblemDetail {
   readonly id: string;
   readonly type: ProblemType;
@@ -69,7 +90,9 @@ export interface ProblemDetail {
   readonly severity: string | null;
   readonly status: ProblemStatus;
   readonly observedAt: string;
+  readonly resolvedAt: string | null;
   readonly photos: readonly ProblemPhoto[];
+  readonly observations: readonly ProblemObservation[];
   readonly linkedActivity: ProblemLinkedActivity | null;
 }
 

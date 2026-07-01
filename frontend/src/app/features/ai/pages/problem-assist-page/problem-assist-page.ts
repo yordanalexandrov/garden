@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  computed,
   inject,
   signal,
 } from '@angular/core';
@@ -21,6 +22,7 @@ import { mapApiError } from '../../../../core/errors/api-error.mapper';
 import { ApiErrorSummary } from '../../../../shared/forms/api-error-summary/api-error-summary';
 import { PageHeader } from '../../../../shared/components/page-header/page-header';
 import {
+  AcceptSuggestionRequest,
   AcceptSuggestionResult,
   AiGenerationResult,
   AiSuggestionStatus,
@@ -74,6 +76,16 @@ export class ProblemAssistPage {
   readonly suggestionStates = signal<AiSuggestionUiState[]>([]);
   readonly followUpAnswers = signal<Record<number, string>>({});
 
+  /** Selected problem ID for the problem_summary accept flow. */
+  readonly acceptProblemId = signal<string | null>(null);
+  /** Selected category override for the problem_summary accept flow. */
+  readonly acceptCategory = signal<string | null>(null);
+  /** Resolved problem list item for the currently selected acceptProblemId. */
+  readonly selectedProblem = computed(() => {
+    const id = this.acceptProblemId();
+    return id ? (this.problems().find((p) => p.id === id) ?? null) : null;
+  });
+
   readonly form = this.fb.group(
     {
       inputMode: ['text'],
@@ -118,6 +130,12 @@ export class ProblemAssistPage {
     return state ? this.problemSummaryPayload(state) : null;
   }
 
+  /** Selects a problem for the accept flow and resets the category selection. */
+  selectAcceptProblem(problemId: string | null): void {
+    this.acceptProblemId.set(problemId);
+    this.acceptCategory.set(null);
+  }
+
   setAnswer(index: number, value: string): void {
     this.followUpAnswers.update((a) => ({ ...a, [index]: value }));
   }
@@ -157,9 +175,16 @@ export class ProblemAssistPage {
   }
 
   onAccept(event: AiSuggestionAcceptEvent): void {
-    this.updateState(event.suggestionId, { status: 'accepting', error: null });
+    const state = this.suggestionStates().find((s) => s.suggestion.id === event.suggestionId);
+    const isSummary = state?.suggestion.suggestionType === 'problem_summary';
 
-    const request = event.editedPayload !== undefined ? { editedPayload: event.editedPayload } : {};
+    const request: AcceptSuggestionRequest = {
+      ...(event.editedPayload !== undefined ? { editedPayload: event.editedPayload } : {}),
+      ...(isSummary && this.acceptProblemId() ? { problemId: this.acceptProblemId()! } : {}),
+      ...(isSummary && this.acceptCategory() ? { acceptedCategory: this.acceptCategory()! } : {}),
+    };
+
+    this.updateState(event.suggestionId, { status: 'accepting', error: null });
 
     this.aiApi
       .acceptSuggestion(event.suggestionId, request)
@@ -195,6 +220,8 @@ export class ProblemAssistPage {
     this.sessionError.set(null);
     this.result.set(null);
     this.suggestionStates.set([]);
+    this.acceptProblemId.set(null);
+    this.acceptCategory.set(null);
 
     this.aiApi
       .problemAssist(request)
@@ -202,6 +229,11 @@ export class ProblemAssistPage {
       .subscribe({
         next: (res) => {
           this.result.set(res);
+          // Pre-select the problem when the user analysed a specific existing problem
+          const { inputMode, problemId } = this.form.getRawValue();
+          if (inputMode === 'problem' && problemId) {
+            this.acceptProblemId.set(problemId);
+          }
           this.suggestionStates.set(
             res.suggestions.map((s) => ({
               suggestion: s,
