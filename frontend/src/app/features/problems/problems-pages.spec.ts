@@ -271,6 +271,9 @@ describe('Phase 17 problem pages', () => {
     const component = fixture.componentInstance;
     fixture.detectChanges();
 
+    const router = TestBed.inject(Router);
+    const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
     component.form.patchValue({
       type: 'problem',
       placeId: 'place-1',
@@ -297,13 +300,16 @@ describe('Phase 17 problem pages', () => {
       }),
     );
     expect(problemsApi.uploadPhoto).not.toHaveBeenCalled();
-    expect(component.created()).toEqual({ id: 'problem-1' });
+    expect(navigateSpy).toHaveBeenCalledWith(['/problems', 'problem-1']);
   });
 
   it('hides the uploader for observations and never uploads a photo', () => {
     const fixture = TestBed.createComponent(ProblemCreatePage);
     const component = fixture.componentInstance;
     fixture.detectChanges();
+
+    const router = TestBed.inject(Router);
+    vi.spyOn(router, 'navigate').mockResolvedValue(true);
 
     component.form.patchValue({
       type: 'observation',
@@ -373,6 +379,9 @@ describe('Phase 17 problem pages', () => {
     const component = fixture.componentInstance;
     fixture.detectChanges();
 
+    const router = TestBed.inject(Router);
+    const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+
     component.form.patchValue({
       type: 'problem',
       placeId: 'place-1',
@@ -388,15 +397,19 @@ describe('Phase 17 problem pages', () => {
     expect(problemsApi.create).toHaveBeenCalledTimes(1);
     expect(problemsApi.uploadPhoto).toHaveBeenCalledWith('problem-1', file);
     expect(component.uploader()?.items().find((i) => i.status === 'done')).toBeTruthy();
+    expect(navigateSpy).toHaveBeenCalledWith(['/problems', 'problem-1']);
   });
 
-  it('keeps metadata and shows an upload error when photo upload fails', () => {
+  it('keeps metadata and navigates even when photo upload fails', () => {
     problemsApi.uploadPhoto.mockReturnValueOnce(
       throwError(() => new ApiError('EXTERNAL_SERVICE_ERROR', 'Storage unavailable')),
     );
     const fixture = TestBed.createComponent(ProblemCreatePage);
     const component = fixture.componentInstance;
     fixture.detectChanges();
+
+    const router = TestBed.inject(Router);
+    const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
 
     component.form.patchValue({
       type: 'problem',
@@ -410,12 +423,12 @@ describe('Phase 17 problem pages', () => {
     component.uploader()?.onFileChange(fileChangeEvent(file));
     component.submit();
 
-    expect(component.created()).toEqual({ id: 'problem-1' });
     expect(component.form.controls.title.value).toBe('Keep this title');
     expect(component.form.controls.description.value).toBe('Keep this description');
     expect(
       component.uploader()?.items().find((i) => i.status === 'error')?.errorMsg,
     ).toBe('Storage unavailable');
+    expect(navigateSpy).toHaveBeenCalledWith(['/problems', 'problem-1']);
   });
 
   it('rejects non-image files with a client validation message', () => {

@@ -8,25 +8,6 @@
 
   <app-api-error-summary [error]="error()" />
 
-  @if (created(); as createdProblem) {
-    <mat-card class="success">
-      <mat-card-header>
-        <mat-card-title>
-          {{ form.controls.type.value === 'problem' ? 'Problem' : 'Observation' }} created
-        </mat-card-title>
-        <mat-card-subtitle>Record saved through the backend API</mat-card-subtitle>
-      </mat-card-header>
-      <mat-card-content>
-        @if (saving()) {
-          <p class="status">Uploading photo, please wait...</p>
-        } @else {
-          <a [routerLink]="['/problems', createdProblem.id]">Open detail</a>
-          <a routerLink="/problems">Back to problems</a>
-        }
-      </mat-card-content>
-    </mat-card>
-  }
-
   <form class="problem-form" [formGroup]="form">
     <mat-card>
       <mat-card-header><mat-card-title>Details</mat-card-title></mat-card-header>
