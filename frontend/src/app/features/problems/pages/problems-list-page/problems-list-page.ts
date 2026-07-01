@@ -4,6 +4,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatOptionModule } from '@angular/material/core';
@@ -38,6 +39,7 @@ import {
     EmptyState,
     MatButtonModule,
     MatCardModule,
+    MatCheckboxModule,
     MatFormFieldModule,
     MatInputModule,
     MatOptionModule,
@@ -65,6 +67,7 @@ export class ProblemsListPage {
     category: new FormControl<ProblemCategory | null>(null),
     from: new FormControl<string | null>(null),
     to: new FormControl<string | null>(null),
+    includeArchived: new FormControl(false, { nonNullable: true }),
   });
 
   private readonly problemsApi = inject(ProblemsApiService);
@@ -97,6 +100,7 @@ export class ProblemsListPage {
         category: value.category || undefined,
         from: value.from ? new Date(value.from).toISOString() : undefined,
         to: value.to ? new Date(value.to).toISOString() : undefined,
+        includeArchived: value.includeArchived,
         page: 1,
         pageSize: 20,
       })

@@ -57,6 +57,8 @@
       <input matInput type="date" formControlName="to" />
     </mat-form-field>
 
+    <mat-checkbox formControlName="includeArchived">Include archived</mat-checkbox>
+
     <button mat-flat-button type="submit">Filter</button>
     <a mat-flat-button color="primary" routerLink="/problems/new">New problem</a>
   </form>
@@ -77,6 +79,9 @@
           <mat-card-header>
             <mat-card-title>
               <a [routerLink]="['/problems', problem.id]">{{ problem.title }}</a>
+              @if (problem.archivedAt) {
+                <span class="archived-tag">(archived)</span>
+              }
             </mat-card-title>
             <mat-card-subtitle>
               {{ problem.type }} · {{ problem.observedAt | date: 'medium' }}

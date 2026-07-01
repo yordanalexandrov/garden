@@ -77,6 +77,7 @@ describe('Phase 17 problem pages', () => {
             severity: 'medium',
             status: 'open',
             observedAt: '2026-05-13T07:00:00.000Z',
+            archivedAt: null,
             photosCount: 2,
           },
         ],
@@ -147,6 +148,7 @@ describe('Phase 17 problem pages', () => {
       category: undefined,
       from: undefined,
       to: undefined,
+      includeArchived: false,
       page: 1,
       pageSize: 20,
     });
@@ -154,6 +156,50 @@ describe('Phase 17 problem pages', () => {
     expect(text).toContain('Leaf spots');
     expect(text).toContain('Bed A');
     expect(text).toContain('Photos: 2');
+  });
+
+  it('requests includeArchived when the checkbox is checked', () => {
+    const fixture = TestBed.createComponent(ProblemsListPage);
+
+    fixture.componentInstance.filters.patchValue({ includeArchived: true });
+    fixture.componentInstance.search();
+    fixture.detectChanges();
+
+    expect(problemsApi.list).toHaveBeenLastCalledWith(
+      expect.objectContaining({ includeArchived: true }),
+    );
+  });
+
+  it('shows an archived indicator for archived rows', () => {
+    problemsApi.list.mockReturnValue(
+      of({
+        items: [
+          {
+            id: 'problem-1',
+            type: 'problem',
+            placeId: 'place-1',
+            targetType: 'bed',
+            targetId: 'bed-1',
+            targetLabel: 'Bed A',
+            title: 'Leaf spots',
+            category: 'fungus',
+            severity: 'medium',
+            status: 'open',
+            observedAt: '2026-05-13T07:00:00.000Z',
+            archivedAt: '2026-06-01T00:00:00.000Z',
+            photosCount: 0,
+          },
+        ],
+        page: 1,
+        pageSize: 20,
+        total: 1,
+      }),
+    );
+    const fixture = TestBed.createComponent(ProblemsListPage);
+    fixture.detectChanges();
+
+    const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(text).toContain('(archived)');
   });
 
   it('renders backend-provided photo URLs on detail', () => {
