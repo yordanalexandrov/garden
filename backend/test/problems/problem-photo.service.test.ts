@@ -123,6 +123,7 @@ class FakeProblemsRepository implements ProblemsRepository {
       status: "open" as const,
       observedAt: new Date(),
       resolvedAt: null,
+      archivedAt: null,
       linkedActivityId: null,
       targetLabel: "Place",
       photos:
@@ -186,6 +187,10 @@ class FakeProblemsRepository implements ProblemsRepository {
   }
 
   archiveObservation(): never {
+    throw new Error("not implemented");
+  }
+
+  archive(): never {
     throw new Error("not implemented");
   }
 }

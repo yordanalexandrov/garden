@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { paginationQuerySchema, uuidSchema } from "../../shared/validation/common-schemas.js";
+import { includeArchivedQuerySchema, paginationQuerySchema, uuidSchema } from "../../shared/validation/common-schemas.js";
 import { TARGET_TYPES } from "../targets/target-resolver.types.js";
 import { PROBLEM_CATEGORIES, PROBLEM_STATUSES, PROBLEM_TYPES } from "./problems.types.js";
 
@@ -16,7 +16,8 @@ export const problemListQuerySchema = paginationQuerySchema.extend({
   status: z.enum(PROBLEM_STATUSES).optional(),
   category: z.enum(PROBLEM_CATEGORIES).optional(),
   from: z.preprocess((value) => (value === undefined || value === "" ? undefined : value), z.string().datetime().optional()),
-  to: z.preprocess((value) => (value === undefined || value === "" ? undefined : value), z.string().datetime().optional())
+  to: z.preprocess((value) => (value === undefined || value === "" ? undefined : value), z.string().datetime().optional()),
+  includeArchived: includeArchivedQuerySchema
 });
 
 export const createProblemBodySchema = z

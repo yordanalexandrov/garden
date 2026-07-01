@@ -22,6 +22,7 @@ describe("problems DTO mapping", () => {
       status: "open",
       observedAt: "2026-05-13T07:00:00.000Z",
       resolvedAt: null,
+      archivedAt: null,
       photosCount: 0
     });
   });
@@ -58,6 +59,7 @@ function createProblem(): Problem {
     status: "open",
     observedAt,
     resolvedAt: null,
+    archivedAt: null,
     linkedActivityId: "423e4567-e89b-42d3-a456-426614174000",
     createdAt,
     updatedAt
@@ -78,6 +80,7 @@ function createProblemListItem(): ProblemListItem {
     status: "open",
     observedAt,
     resolvedAt: null,
+    archivedAt: null,
     photosCount: 0
   };
 }

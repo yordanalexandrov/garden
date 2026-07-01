@@ -47,6 +47,7 @@ type ListProblemsResponse = {
       severity: string | null;
       status: string;
       observedAt: string;
+      archivedAt: string | null;
       photosCount: number;
     }>;
     page: number;
@@ -70,6 +71,7 @@ type ProblemDetailResponse = {
     status: string;
     observedAt: string;
     resolvedAt: string | null;
+    archivedAt: string | null;
     photos: Array<{ id: string; url: string; mimeType: string | null; originalFilename?: string | null; fileSizeBytes?: number | null }>;
     observations: Array<{ id: string; problemId: string; summary: string; recommendation: string | null; source: string; createdAt: string; updatedAt: string }>;
     linkedActivity: { id: string; type: string; performedAt: string } | null;
@@ -724,6 +726,144 @@ describeDatabase("Observation CRUD and resolve/reopen", () => {
       payload: { summary: "Attacker" }
     });
     expect(res.statusCode).toBe(404);
+  });
+});
+
+describeDatabase("Problem archive", () => {
+  let pool: Pool;
+  let dbClient: DbClient;
+  let app: FastifyInstance | undefined;
+
+  beforeEach(async () => {
+    pool = createTestPool();
+    await resetAndApplyBaseline(pool);
+    await insertAuthAccountFixtures(pool);
+    await insertProblemsFixture(pool);
+    dbClient = createDbClient(
+      loadConfig({
+        NODE_ENV: "test",
+        DATABASE_URL: process.env.TEST_DATABASE_URL ?? process.env.DATABASE_URL
+      })
+    );
+    app = await createTestApp({
+      db: dbClient,
+      storage: new TestStorageAdapter(),
+      auth: {
+        authPort: new TestAuthAdapter(),
+        accountsRepository: new KyselyAccountsRepository(dbClient)
+      }
+    });
+  });
+
+  afterEach(async () => {
+    await app?.close();
+    app = undefined;
+    await dbClient.destroy();
+    await pool.end();
+  });
+
+  async function createProblem(): Promise<string> {
+    const res = await app!.inject({
+      method: "POST",
+      url: "/api/v1/problems",
+      headers: accountAAuthHeaders(),
+      payload: validCreatePayload()
+    });
+    return (parseJsonResponse<CreateProblemResponse>(res)).data.id;
+  }
+
+  it("POST /:problemId/archive → 200, hidden from list by default, visible with includeArchived", async () => {
+    const problemId = await createProblem();
+
+    const archiveRes = await app!.inject({
+      method: "POST",
+      url: `/api/v1/problems/${problemId}/archive`,
+      headers: accountAAuthHeaders()
+    });
+    expect(archiveRes.statusCode).toBe(200);
+    expect(parseJsonResponse<{ data: { archived: boolean } }>(archiveRes).data).toEqual({ archived: true });
+
+    const defaultList = await app!.inject({
+      method: "GET",
+      url: "/api/v1/problems",
+      headers: accountAAuthHeaders()
+    });
+    expect(
+      parseJsonResponse<ListProblemsResponse>(defaultList).data.items.find((item) => item.id === problemId)
+    ).toBeUndefined();
+
+    const includeArchivedList = await app!.inject({
+      method: "GET",
+      url: "/api/v1/problems?includeArchived=true",
+      headers: accountAAuthHeaders()
+    });
+    expect(
+      parseJsonResponse<ListProblemsResponse>(includeArchivedList).data.items.find((item) => item.id === problemId)
+    ).toBeDefined();
+  });
+
+  it("archived problem remains fully readable via GET /:problemId", async () => {
+    const problemId = await createProblem();
+
+    await app!.inject({
+      method: "POST",
+      url: `/api/v1/problems/${problemId}/archive`,
+      headers: accountAAuthHeaders()
+    });
+
+    const detail = await app!.inject({
+      method: "GET",
+      url: `/api/v1/problems/${problemId}`,
+      headers: accountAAuthHeaders()
+    });
+    expect(detail.statusCode).toBe(200);
+    expect(parseJsonResponse<ProblemDetailResponse>(detail).data.id).toBe(problemId);
+  });
+
+  it("POST /:problemId/archive twice → 404 on the second call", async () => {
+    const problemId = await createProblem();
+
+    await app!.inject({
+      method: "POST",
+      url: `/api/v1/problems/${problemId}/archive`,
+      headers: accountAAuthHeaders()
+    });
+    const secondRes = await app!.inject({
+      method: "POST",
+      url: `/api/v1/problems/${problemId}/archive`,
+      headers: accountAAuthHeaders()
+    });
+    expect(secondRes.statusCode).toBe(404);
+  });
+
+  it("can archive regardless of status (open, monitoring, resolved)", async () => {
+    const problemId = await createProblem();
+
+    await app!.inject({ method: "POST", url: `/api/v1/problems/${problemId}/resolve`, headers: accountAAuthHeaders() });
+    const archiveRes = await app!.inject({
+      method: "POST",
+      url: `/api/v1/problems/${problemId}/archive`,
+      headers: accountAAuthHeaders()
+    });
+    expect(archiveRes.statusCode).toBe(200);
+  });
+
+  it("scope: account B cannot archive account A's problem → 404, record untouched", async () => {
+    const problemId = await createProblem();
+
+    const res = await app!.inject({
+      method: "POST",
+      url: `/api/v1/problems/${problemId}/archive`,
+      headers: accountBAuthHeaders()
+    });
+    expect(res.statusCode).toBe(404);
+
+    const detail = await app!.inject({
+      method: "GET",
+      url: `/api/v1/problems/${problemId}`,
+      headers: accountAAuthHeaders()
+    });
+    expect(parseJsonResponse<ProblemDetailResponse>(detail).data.id).toBe(problemId);
   });
 });
 

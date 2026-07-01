@@ -95,6 +95,14 @@ export const registerProblemsRoutes: FastifyPluginCallback<ProblemsRouteOptions>
     return successEnvelope(toProblemMutationDto(result));
   });
 
+  app.post("/:problemId/archive", protectedRoute, async (request) => {
+    const actor = requireActor(request);
+    const { params } = validateRequest(request, { params: problemParamsSchema });
+    await requireProblemsService(problemsService).archiveProblem(actor, params.problemId);
+
+    return successEnvelope({ archived: true });
+  });
+
   // Observation routes
   app.post("/:problemId/observations", protectedRoute, async (request, reply) => {
     const actor = requireActor(request);
@@ -219,6 +227,7 @@ function requireProblemsService(service: ProblemsService | undefined): ProblemsS
 
 function toListProblemsFilters(query: ProblemListQuery): ListProblemsFilters {
   const filters: ListProblemsFilters = {
+    includeArchived: query.includeArchived,
     page: query.page,
     pageSize: query.pageSize
   };
