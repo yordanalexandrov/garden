@@ -3,6 +3,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  computed,
   inject,
   signal,
   viewChild,
@@ -62,6 +63,11 @@ export class ProblemDetailPage {
   readonly uploading = signal(false);
   readonly resolving = signal(false);
   readonly archiving = signal(false);
+
+  readonly canArchive = computed(() => {
+    const problem = this.problem();
+    return problem !== null && problem.archivedAt === null;
+  });
 
   readonly uploader = viewChild(ProblemPhotoUploader);
 

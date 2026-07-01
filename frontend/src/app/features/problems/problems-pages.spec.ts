@@ -34,6 +34,7 @@ describe('Phase 17 problem pages', () => {
     status: 'open',
     observedAt: '2026-05-13T07:00:00.000Z',
     resolvedAt: null,
+    archivedAt: null,
     photos: [
       {
         id: 'photo-1',
@@ -480,6 +481,17 @@ describe('Phase 17 problem pages', () => {
 
     expect(problemsApi.archive).toHaveBeenCalledWith('problem-1');
     expect(navigateSpy).toHaveBeenCalledWith(['/problems']);
+  });
+
+  it('shows the archive button when the problem is not archived', () => {
+    const fixture = TestBed.createComponent(ProblemDetailPage);
+    fixture.detectChanges();
+
+    const buttons = Array.from(
+      (fixture.nativeElement as HTMLElement).querySelectorAll('button'),
+    );
+    const archiveButton = buttons.find((b) => b.textContent?.includes('Архивирай'));
+    expect(archiveButton).toBeDefined();
   });
 
   it('hides the archive button when the problem is already archived', () => {
