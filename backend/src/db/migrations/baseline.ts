@@ -58,6 +58,12 @@ export const BASELINE_MIGRATIONS = [
     label: "problem observations and resolve",
     filePath: resolve(docsDir, "008_problem_observations_and_resolve.sql"),
     containsSeedData: false
+  },
+  {
+    id: "009",
+    label: "problems archive",
+    filePath: resolve(docsDir, "009_problems_archive.sql"),
+    containsSeedData: false
   }
 ] as const satisfies readonly BaselineMigration[];
 
