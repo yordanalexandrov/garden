@@ -63,6 +63,32 @@ describe('Phase 24 AI API service', () => {
     expect(api.post.mock.calls[0][1]).not.toHaveProperty(trustedField);
   });
 
+  it('creates plant ingestion sessions through POST /api/v1/ai/plant-ingestion', () => {
+    const service = TestBed.inject(AiApiService);
+
+    service
+      .plantIngestion({
+        plantName: 'Домат',
+        group: 'Домат',
+        variety: 'Воловско сърце',
+        notes: 'за оранжерия',
+        photoDataUrl: 'data:image/jpeg;base64,aGVsbG8=',
+        followUpAnswers: [{ question: 'За оранжерия ли?', answer: 'да' }],
+      })
+      .subscribe();
+
+    expect(api.post).toHaveBeenCalledWith('/ai/plant-ingestion', {
+      plantName: 'Домат',
+      group: 'Домат',
+      variety: 'Воловско сърце',
+      notes: 'за оранжерия',
+      photoDataUrl: 'data:image/jpeg;base64,aGVsbG8=',
+      followUpAnswers: [{ question: 'За оранжерия ли?', answer: 'да' }],
+    });
+    const trustedField = ['account', 'Id'].join('');
+    expect(api.post.mock.calls[0][1]).not.toHaveProperty(trustedField);
+  });
+
   it('creates problem assist sessions through POST /api/v1/ai/problem-assist', () => {
     const service = TestBed.inject(AiApiService);
 

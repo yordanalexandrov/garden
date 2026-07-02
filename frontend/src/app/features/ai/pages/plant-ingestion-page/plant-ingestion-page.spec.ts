@@ -67,7 +67,7 @@ describe('PlantIngestionPage', () => {
     TestBed.resetTestingModule();
   });
 
-  it('validates plant name as required before submit', () => {
+  it('requires a plant name or a photo before submit', () => {
     const fixture = TestBed.createComponent(PlantIngestionPage);
     const component = fixture.componentInstance;
     fixture.detectChanges();
@@ -76,7 +76,119 @@ describe('PlantIngestionPage', () => {
     fixture.detectChanges();
 
     expect(component.form.invalid).toBe(true);
+
+    component.submit();
     expect(aiApi.plantIngestion).not.toHaveBeenCalled();
+  });
+
+  it('accepts a photo instead of a plant name', () => {
+    const fixture = TestBed.createComponent(PlantIngestionPage);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.photoFile.set(new File(['x'], 'plant.jpg', { type: 'image/jpeg' }));
+    component.form.updateValueAndValidity();
+
+    expect(component.form.valid).toBe(true);
+  });
+
+  it('sends group and variety fields in the request', () => {
+    const fixture = TestBed.createComponent(PlantIngestionPage);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.form.patchValue({ plantName: 'Домат', group: 'Домат', variety: 'Воловско сърце' });
+    component.submit();
+
+    expect(aiApi.plantIngestion).toHaveBeenCalledWith({
+      plantName: 'Домат',
+      group: 'Домат',
+      variety: 'Воловско сърце',
+    });
+  });
+
+  it('sends the photo as a data URL with the request', async () => {
+    const fixture = TestBed.createComponent(PlantIngestionPage);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.photoFile.set(new File(['photo-bytes'], 'plant.jpg', { type: 'image/jpeg' }));
+    component.form.updateValueAndValidity();
+    component.submit();
+
+    await vi.waitFor(() => expect(aiApi.plantIngestion).toHaveBeenCalled());
+
+    const request = aiApi.plantIngestion.mock.calls[0][0] as Record<string, unknown>;
+    expect(String(request['photoDataUrl'])).toMatch(/^data:image\/jpeg;base64,/);
+  });
+
+  it('renders followup questions separately from plant suggestion cards', () => {
+    aiApi.plantIngestion.mockReturnValueOnce(
+      of({
+        ...generationResult,
+        suggestions: [
+          plantSuggestion1,
+          {
+            id: 'suggestion-fq',
+            suggestionType: 'followup_questions',
+            payload: {
+              questions: [
+                { text: 'За оранжерия ли търсите сорта?', type: 'yes_no' },
+                { text: 'Каква е основната употреба?', type: 'free_text' },
+              ],
+            },
+          },
+        ],
+      }),
+    );
+
+    const fixture = TestBed.createComponent(PlantIngestionPage);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.form.patchValue({ plantName: 'Домат' });
+    component.submit();
+    fixture.detectChanges();
+
+    expect(component.plantSuggestionStates().length).toBe(1);
+    expect(component.followUpQuestions().length).toBe(2);
+    expect(component.followUpQuestions()[0].type).toBe('yes_no');
+  });
+
+  it('refines the search with the non-empty follow-up answers', () => {
+    aiApi.plantIngestion.mockReturnValueOnce(
+      of({
+        ...generationResult,
+        suggestions: [
+          {
+            id: 'suggestion-fq',
+            suggestionType: 'followup_questions',
+            payload: {
+              questions: [
+                { text: 'За оранжерия ли търсите сорта?', type: 'yes_no' },
+                { text: 'Каква е основната употреба?', type: 'free_text' },
+              ],
+            },
+          },
+        ],
+      }),
+    );
+
+    const fixture = TestBed.createComponent(PlantIngestionPage);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    component.form.patchValue({ plantName: 'Домат' });
+    component.submit();
+    fixture.detectChanges();
+
+    component.setAnswer(0, 'да');
+    component.submitFollowUp();
+
+    expect(aiApi.plantIngestion).toHaveBeenLastCalledWith({
+      plantName: 'Домат',
+      followUpAnswers: [{ question: 'За оранжерия ли търсите сорта?', answer: 'да' }],
+    });
   });
 
   it('submits plant ingestion request and renders all variant suggestions as unaccepted', () => {

@@ -130,7 +130,42 @@ svg {
   gap: 1rem;
 }
 
+.ai-plant-photo {
+  margin-bottom: 0.75rem;
+
+  &__picker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px dashed var(--app-text-secondary, rgba(0, 0, 0, 0.38));
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.875rem;
+  }
+
+  &__preview {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.25rem;
+
+    img {
+      max-width: 240px;
+      max-height: 240px;
+      border-radius: 8px;
+      object-fit: cover;
+    }
+  }
+
+  &__hint {
+    font-size: 0.75rem;
+    color: var(--app-text-secondary, rgba(0, 0, 0, 0.6));
+    margin: 0.25rem 0 0;
+  }
+}
+
 .ai-bed-plan,
+.ai-followup,
 .ai-problem-summary {
   background: var(--app-surface-muted, #eef3ea);
   border-radius: 8px;

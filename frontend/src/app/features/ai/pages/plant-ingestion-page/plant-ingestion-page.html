@@ -14,9 +14,18 @@
   <mat-form-field appearance="outline" class="ai-page__field">
     <mat-label>Название на растението</mat-label>
     <input matInput formControlName="plantName" autocomplete="off" placeholder="напр. Домат, Краставица, Ягода" />
-    @if (form.controls.plantName.invalid && form.controls.plantName.touched) {
-      <mat-error>Названието е задължително.</mat-error>
-    }
+    <mat-hint>Име или снимка е задължително.</mat-hint>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="ai-page__field">
+    <mat-label>Група (по избор)</mat-label>
+    <input matInput formControlName="group" autocomplete="off" placeholder="напр. Домат, Краставица, Цвете, Грозде, Тиква" />
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="ai-page__field">
+    <mat-label>Сорт (по избор)</mat-label>
+    <input matInput formControlName="variety" autocomplete="off" placeholder="напр. Воловско сърце" />
+    <mat-hint>При посочен сорт AI търси именно него, вместо да предлага варианти.</mat-hint>
   </mat-form-field>
 
   <mat-form-field appearance="outline" class="ai-page__field">
@@ -24,6 +33,45 @@
     <textarea matInput formControlName="notes" rows="3" autocomplete="off" placeholder="напр. търся едроплодни сортове за оранжерия"></textarea>
     <mat-hint>Уточни какво търсиш, за да получиш по-точни предложения.</mat-hint>
   </mat-form-field>
+
+  <div class="ai-plant-photo">
+    @if (photoPreviewUrl(); as previewUrl) {
+      <div class="ai-plant-photo__preview">
+        <img [src]="previewUrl" alt="Избрана снимка на растението" />
+        <button
+          mat-icon-button
+          type="button"
+          aria-label="Премахни снимката"
+          (click)="removePhoto()"
+        >
+          <mat-icon fontIcon="close" aria-hidden="true" />
+        </button>
+      </div>
+    } @else {
+      <label class="ai-plant-photo__picker">
+        <mat-icon fontIcon="add_a_photo" aria-hidden="true" />
+        <span>Добави снимка (по избор — JPEG, PNG или WebP, до 5 MB)</span>
+        <input
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          (change)="onPhotoChange($event)"
+          hidden
+        />
+      </label>
+    }
+    <p class="ai-plant-photo__hint">
+      Снимката се използва само за AI разпознаването и не се съхранява.
+    </p>
+    @if (photoError(); as photoErr) {
+      <mat-error class="ai-page__form-error">{{ photoErr }}</mat-error>
+    }
+  </div>
+
+  @if (form.errors?.['requireNameOrPhoto'] && form.controls.plantName.touched) {
+    <mat-error class="ai-page__form-error">
+      Въведи название на растението или добави снимка.
+    </mat-error>
+  }
 
   <div class="ai-page__actions">
     <button
@@ -55,14 +103,14 @@
   </div>
 }
 
-@if (suggestionStates().length > 0) {
+@if (plantSuggestionStates().length > 0) {
   <p class="ai-page__advisory" role="note">
     <mat-icon fontIcon="info" aria-hidden="true" />
-    Намерени са {{ suggestionStates().length }} варианта. Приеми един сорт и откажи останалите.
+    Намерени са {{ plantSuggestionStates().length }} варианта. Приеми един сорт и откажи останалите.
   </p>
 }
 
-@for (state of suggestionStates(); track state.suggestion.id) {
+@for (state of plantSuggestionStates(); track state.suggestion.id) {
   <app-ai-suggestion-card
     [suggestion]="state.suggestion"
     [status]="state.status"
@@ -71,5 +119,56 @@
     (accept)="onAccept($event)"
     (reject)="onReject($event)"
   />
+}
+
+@if (followUpQuestions().length > 0) {
+  <section class="ai-followup" role="region" aria-label="Уточняващи въпроси">
+    <div class="ai-followup__section">
+      <h3>Уточняващи въпроси</h3>
+      <p class="ai-followup__followup-hint">
+        Отговори на въпросите и натисни „Прецизирай търсенето" за по-точни предложения.
+      </p>
+
+      @for (q of followUpQuestions(); track $index; let i = $index) {
+        <div class="ai-followup__followup-item">
+          <p class="ai-followup__followup-question">{{ q.text }}</p>
+
+          @if (q.type === 'yes_no') {
+            <mat-radio-group
+              [value]="followUpAnswers()[i] ?? null"
+              (change)="setAnswer(i, $event.value)"
+              [attr.aria-label]="q.text"
+            >
+              <mat-radio-button value="да">Да</mat-radio-button>
+              <mat-radio-button value="не">Не</mat-radio-button>
+              <mat-radio-button value="не знам">Не знам</mat-radio-button>
+            </mat-radio-group>
+          } @else {
+            <mat-form-field appearance="outline" class="ai-page__field">
+              <textarea
+                matInput
+                rows="2"
+                [value]="followUpAnswers()[i] ?? ''"
+                (input)="setAnswer(i, $any($event.target).value)"
+                [attr.aria-label]="q.text"
+                placeholder="Отговор (незадължително)"
+              ></textarea>
+            </mat-form-field>
+          }
+        </div>
+      }
+
+      <div class="ai-page__actions">
+        <button mat-flat-button color="primary" (click)="submitFollowUp()" [disabled]="submitting()">
+          @if (submitting()) {
+            <mat-spinner diameter="18" />
+            Търся…
+          } @else {
+            Прецизирай търсенето
+          }
+        </button>
+      </div>
+    </div>
+  </section>
 }
 </section>
