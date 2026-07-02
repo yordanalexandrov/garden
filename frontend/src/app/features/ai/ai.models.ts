@@ -72,8 +72,17 @@ export interface FollowUpAnswer {
 }
 
 export interface PlantIngestionRequest {
-  readonly plantName: string;
+  readonly plantName?: string;
+  readonly group?: string;
+  readonly variety?: string;
   readonly notes?: string;
+  /** Base64 data URL; ephemeral AI input, never persisted by the backend. */
+  readonly photoDataUrl?: string;
+  readonly followUpAnswers?: readonly FollowUpAnswer[];
+}
+
+export interface FollowupQuestionsPayload {
+  readonly questions?: readonly FollowUpQuestion[];
 }
 
 export interface ProductRuleGenerationRequest {
