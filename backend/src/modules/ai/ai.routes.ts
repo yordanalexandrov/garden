@@ -23,7 +23,7 @@ import { AiService } from "./ai.service.js";
 import {
   acceptSuggestionBodySchema,
   bedPlanningBodySchema,
-  plantIngestionBodySchema,
+  buildPlantIngestionBodySchema,
   problemAssistBodySchema,
   productIngestionBodySchema,
   productRuleGenerationBodySchema,
@@ -53,12 +53,22 @@ export const registerAiRoutes: FastifyPluginCallback<AiRouteOptions> = (app, opt
     return successEnvelope(toGenerationResponseDto(result.session, result.suggestions, result.warnings));
   });
 
-  app.post("/plant-ingestion", protectedRoute, async (request) => {
+  // The photo travels as a base64 data URL inside the JSON body, so the route
+  // body limit must cover the encoded photo plus the text fields.
+  const photoMaxBytes = options.config?.integrations.problemPhotoMaxBytes ?? 5 * 1024 * 1024;
+  const plantIngestionBodySchema = buildPlantIngestionBodySchema(photoMaxBytes);
+  const plantIngestionBodyLimit = Math.ceil((photoMaxBytes * 4) / 3) + 1024 * 1024;
+
+  app.post("/plant-ingestion", { ...protectedRoute, bodyLimit: plantIngestionBodyLimit }, async (request) => {
     const actor = requireActor(request);
     const { body } = validateRequest(request, { body: plantIngestionBodySchema });
     const result = await requireAiService(aiService).ingestPlant(actor, {
-      plantName: body.plantName,
-      ...(body.notes !== undefined ? { notes: body.notes } : {})
+      ...(body.plantName !== undefined ? { plantName: body.plantName } : {}),
+      ...(body.group !== undefined ? { group: body.group } : {}),
+      ...(body.variety !== undefined ? { variety: body.variety } : {}),
+      ...(body.notes !== undefined ? { notes: body.notes } : {}),
+      ...(body.photoDataUrl !== undefined ? { photoDataUrl: body.photoDataUrl } : {}),
+      ...(body.followUpAnswers !== undefined ? { followUpAnswers: body.followUpAnswers } : {})
     });
 
     return successEnvelope(toGenerationResponseDto(result.session, result.suggestions, result.warnings));

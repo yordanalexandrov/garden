@@ -126,8 +126,44 @@ export class TestAiAdapter implements AiPort {
       throw new AiProviderError("Test AI plant ingestion failed");
     }
 
+    // Mirror the real adapter's contract: a specific variety focuses the result
+    // on a single suggestion, and follow-up questions are only asked on the
+    // first pass (a refine request with answers returns no new questions).
+    const plantSuggestions: NormalizedSuggestion[] =
+      input.variety !== undefined
+        ? [
+            {
+              type: "plant",
+              payload: {
+                commonName: input.plantName ?? "Домат",
+                variety: input.variety,
+                plantCategory: input.group ?? "Плодови зеленчуци",
+                lifecycleType: "annual",
+                growingStyle: "vegetable",
+                notes: "Тестово предложение, фокусирано върху посочения сорт."
+              }
+            }
+          ]
+        : DEFAULT_PLANT_SUGGESTIONS;
+
+    const hasFollowUpAnswers = input.followUpAnswers !== undefined && input.followUpAnswers.length > 0;
+    const suggestions: NormalizedSuggestion[] = hasFollowUpAnswers
+      ? plantSuggestions
+      : [
+          ...plantSuggestions,
+          {
+            type: "followup_questions",
+            payload: {
+              questions: [
+                { text: "За оранжерия ли търсите сорта?", type: "yes_no" },
+                { text: "Каква е основната употреба (салати, консерви, сушене)?", type: "free_text" },
+              ]
+            }
+          }
+        ];
+
     return {
-      suggestions: DEFAULT_PLANT_SUGGESTIONS,
+      suggestions,
       warnings: ["Данните са тестови и не са потвърдени от реален източник."]
     };
   }

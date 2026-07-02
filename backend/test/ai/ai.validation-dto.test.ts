@@ -7,6 +7,8 @@ import type { AiSession, AiSuggestion } from "../../src/modules/ai/ai.types.js";
 import {
   acceptSuggestionBodySchema,
   bedPlanningBodySchema,
+  buildPlantIngestionBodySchema,
+  plantIngestionBodySchema,
   problemAssistBodySchema,
   productIngestionBodySchema,
   productRuleGenerationBodySchema,
@@ -108,6 +110,53 @@ describe("AI validation schemas", () => {
         followUpAnswers: [{ question: "Are spots wet?", answer: "" }],
       }).success,
     ).toBe(false);
+  });
+
+  it("validates plant ingestion with only a plant name", () => {
+    expect(plantIngestionBodySchema.safeParse({ plantName: "Домат" }).success).toBe(true);
+  });
+
+  it("validates plant ingestion with only a photo", () => {
+    expect(
+      plantIngestionBodySchema.safeParse({ photoDataUrl: "data:image/jpeg;base64,aGVsbG8=" }).success
+    ).toBe(true);
+  });
+
+  it("validates plant ingestion with all fields", () => {
+    expect(
+      plantIngestionBodySchema.safeParse({
+        plantName: "Домат",
+        group: "Домат",
+        variety: "Воловско сърце",
+        notes: "за оранжерия",
+        photoDataUrl: "data:image/png;base64,aGVsbG8=",
+        followUpAnswers: [{ question: "За оранжерия ли?", answer: "да" }]
+      }).success
+    ).toBe(true);
+  });
+
+  it("rejects plant ingestion without a name and a photo", () => {
+    expect(plantIngestionBodySchema.safeParse({ notes: "само бележки" }).success).toBe(false);
+    expect(plantIngestionBodySchema.safeParse({}).success).toBe(false);
+  });
+
+  it("rejects plant ingestion photo with unsupported MIME type", () => {
+    expect(
+      plantIngestionBodySchema.safeParse({ photoDataUrl: "data:image/gif;base64,aGVsbG8=" }).success
+    ).toBe(false);
+  });
+
+  it("rejects plant ingestion photo that is not a data URL", () => {
+    expect(
+      plantIngestionBodySchema.safeParse({ photoDataUrl: "https://example.test/photo.jpg" }).success
+    ).toBe(false);
+  });
+
+  it("rejects plant ingestion photo above the size limit", () => {
+    const smallLimitSchema = buildPlantIngestionBodySchema(16);
+    const oversized = `data:image/jpeg;base64,${"A".repeat(200)}`;
+
+    expect(smallLimitSchema.safeParse({ photoDataUrl: oversized }).success).toBe(false);
   });
 
   it("validates product rule generation with a valid productId", () => {
@@ -228,6 +277,43 @@ describe("TestAiAdapter", () => {
     expect(summaryPayload?.summary).toBeDefined();
     expect(summaryPayload?.summary?.toLowerCase()).not.toContain("diagnosed");
     expect(summaryPayload?.summary?.toLowerCase()).not.toContain("definitely");
+  });
+
+  it("returns several plant variants plus follow-up questions on a first plant ingestion pass", async () => {
+    const adapter = new TestAiAdapter();
+    const result = await adapter.ingestPlant({ plantName: "Домат" });
+
+    const plantSuggestions = result.suggestions.filter((s) => s.type === "plant");
+    const followupSuggestions = result.suggestions.filter((s) => s.type === "followup_questions");
+
+    expect(plantSuggestions.length).toBeGreaterThan(1);
+    expect(followupSuggestions).toHaveLength(1);
+
+    const payload = followupSuggestions[0]?.payload as { questions: Array<{ text: string; type: string }> };
+    expect(payload.questions.length).toBeGreaterThan(0);
+    expect(payload.questions[0]).toHaveProperty("text");
+    expect(payload.questions[0]).toHaveProperty("type");
+  });
+
+  it("focuses plant ingestion on the given variety with a single suggestion", async () => {
+    const adapter = new TestAiAdapter();
+    const result = await adapter.ingestPlant({ plantName: "Домат", group: "Домат", variety: "Воловско сърце" });
+
+    const plantSuggestions = result.suggestions.filter((s) => s.type === "plant");
+
+    expect(plantSuggestions).toHaveLength(1);
+    expect(plantSuggestions[0]?.payload).toMatchObject({ variety: "Воловско сърце", plantCategory: "Домат" });
+  });
+
+  it("asks no new questions on a plant ingestion refine pass with answers", async () => {
+    const adapter = new TestAiAdapter();
+    const result = await adapter.ingestPlant({
+      plantName: "Домат",
+      followUpAnswers: [{ question: "За оранжерия ли търсите сорта?", answer: "да" }]
+    });
+
+    expect(result.suggestions.filter((s) => s.type === "followup_questions")).toHaveLength(0);
+    expect(adapter.ingestPlantCalls[0]?.followUpAnswers).toHaveLength(1);
   });
 
   it("simulates provider failure for all methods", async () => {
