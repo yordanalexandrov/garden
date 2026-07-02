@@ -328,6 +328,88 @@ describe("OpenAiAdapter", () => {
       expect(result.suggestions).toHaveLength(0);
       expect(result.warnings).toHaveLength(1);
     });
+
+    it("includes group, variety and follow-up answers in the user content", async () => {
+      const payload = { plants: [], followUpQuestions: [], warnings: [] };
+      mockResponsesCreate.mockResolvedValue(makeResponse(JSON.stringify(payload)));
+
+      await adapter.ingestPlant({
+        plantName: "Домат",
+        group: "Домат",
+        variety: "Воловско сърце",
+        notes: "за оранжерия",
+        followUpAnswers: [{ question: "За оранжерия ли?", answer: "да" }],
+      });
+
+      const request = mockResponsesCreate.mock.calls[0]![0] as {
+        input: Array<{ role: string; content: unknown }>;
+      };
+      const userContent = request.input.find((m) => m.role === "user")?.content as string;
+
+      expect(userContent).toContain("Домат");
+      expect(userContent).toContain("Воловско сърце");
+      expect(userContent).toContain("за оранжерия");
+      expect(userContent).toContain("За оранжерия ли? → да");
+    });
+
+    it("attaches the photo as an input_image part alongside the text", async () => {
+      const payload = { plants: [], followUpQuestions: [], warnings: [] };
+      mockResponsesCreate.mockResolvedValue(makeResponse(JSON.stringify(payload)));
+
+      const photoDataUrl = "data:image/jpeg;base64,aGVsbG8=";
+      await adapter.ingestPlant({ photoDataUrl });
+
+      const request = mockResponsesCreate.mock.calls[0]![0] as {
+        input: Array<{ role: string; content: unknown }>;
+      };
+      const userContent = request.input.find((m) => m.role === "user")?.content as Array<Record<string, unknown>>;
+
+      expect(Array.isArray(userContent)).toBe(true);
+      expect(userContent[0]).toMatchObject({ type: "input_text" });
+      expect(userContent[1]).toMatchObject({ type: "input_image", image_url: photoDataUrl });
+    });
+
+    it("maps followUpQuestions into a followup_questions suggestion", async () => {
+      const payload = {
+        plants: [
+          {
+            commonName: "Домат",
+            variety: null,
+            plantCategory: "Плодови зеленчуци",
+            lifecycleType: "annual",
+            growingStyle: "vegetable",
+            notes: null,
+          },
+        ],
+        followUpQuestions: [
+          { text: "За оранжерия ли търсите сорта?", type: "yes_no" },
+          { text: "Каква е основната употреба?", type: "free_text" },
+        ],
+        warnings: [],
+      };
+      mockResponsesCreate.mockResolvedValue(makeResponse(JSON.stringify(payload)));
+
+      const result = await adapter.ingestPlant({ plantName: "Домат" });
+
+      expect(result.suggestions).toHaveLength(2);
+      expect(result.suggestions[0]!.type).toBe("plant");
+      expect(result.suggestions[1]!.type).toBe("followup_questions");
+      expect(result.suggestions[1]!.payload).toEqual({
+        questions: [
+          { text: "За оранжерия ли търсите сорта?", type: "yes_no" },
+          { text: "Каква е основната употреба?", type: "free_text" },
+        ],
+      });
+    });
+
+    it("omits the followup_questions suggestion when the model asks nothing", async () => {
+      const payload = { plants: [], followUpQuestions: [], warnings: [] };
+      mockResponsesCreate.mockResolvedValue(makeResponse(JSON.stringify(payload)));
+
+      const result = await adapter.ingestPlant({ plantName: "Домат" });
+
+      expect(result.suggestions.filter((s) => s.type === "followup_questions")).toHaveLength(0);
+    });
   });
 
   describe("suggestBedPlan", () => {

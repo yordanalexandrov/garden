@@ -191,6 +191,111 @@ describeDatabase("AI routes with database", () => {
     });
   });
 
+  describe("plant ingestion", () => {
+    const photoDataUrl = "data:image/jpeg;base64,aGVsbG8=";
+
+    it("creates a mixed-mode session with plant and followup_questions suggestions, no plants created", async () => {
+      const plantCountBefore = await pool.query<{ count: string }>("select count(*) from plants where account_id = $1", ["aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"]);
+
+      const response = await app!.inject({
+        method: "POST",
+        url: "/api/v1/ai/plant-ingestion",
+        headers: accountAAuthHeaders(),
+        payload: {
+          plantName: "Домат",
+          group: "Домат",
+          notes: "за оранжерия",
+          photoDataUrl
+        }
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const body = parseJsonResponse<GenerationResponse>(response);
+
+      expect(body.data.aiSession.kind).toBe("plant_ingestion");
+      expect(body.data.aiSession.inputMode).toBe("mixed");
+      expect(body.data.suggestions.some((s) => s.suggestionType === "plant")).toBe(true);
+      expect(body.data.suggestions.some((s) => s.suggestionType === "followup_questions")).toBe(true);
+
+      expect(ai.ingestPlantCalls).toHaveLength(1);
+      expect(ai.ingestPlantCalls[0]).toMatchObject({
+        plantName: "Домат",
+        group: "Домат",
+        notes: "за оранжерия",
+        photoDataUrl
+      });
+
+      const plantCountAfter = await pool.query<{ count: string }>("select count(*) from plants where account_id = $1", ["aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"]);
+      expect(plantCountAfter.rows[0]?.count).toBe(plantCountBefore.rows[0]?.count);
+    });
+
+    it("never persists the photo in the AI session raw input", async () => {
+      const response = await app!.inject({
+        method: "POST",
+        url: "/api/v1/ai/plant-ingestion",
+        headers: accountAAuthHeaders(),
+        payload: { plantName: "Домат", photoDataUrl }
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const rawInputs = await pool.query<{ raw_input_text: string | null }>(
+        "select raw_input_text from ai_sessions where kind = 'plant_ingestion'"
+      );
+      expect(rawInputs.rows).toHaveLength(1);
+      expect(rawInputs.rows[0]?.raw_input_text ?? "").not.toContain("base64");
+    });
+
+    it("accepts a photo-only request and uses image input mode", async () => {
+      const response = await app!.inject({
+        method: "POST",
+        url: "/api/v1/ai/plant-ingestion",
+        headers: accountAAuthHeaders(),
+        payload: { photoDataUrl }
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const body = parseJsonResponse<GenerationResponse>(response);
+      expect(body.data.aiSession.inputMode).toBe("image");
+    });
+
+    it("forwards follow-up answers on a refine request and returns no new questions", async () => {
+      const response = await app!.inject({
+        method: "POST",
+        url: "/api/v1/ai/plant-ingestion",
+        headers: accountAAuthHeaders(),
+        payload: {
+          plantName: "Домат",
+          variety: "Воловско сърце",
+          followUpAnswers: [{ question: "За оранжерия ли търсите сорта?", answer: "да" }]
+        }
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const body = parseJsonResponse<GenerationResponse>(response);
+
+      expect(body.data.suggestions.some((s) => s.suggestionType === "followup_questions")).toBe(false);
+      expect(ai.ingestPlantCalls[0]?.followUpAnswers).toEqual([
+        { question: "За оранжерия ли търсите сорта?", answer: "да" }
+      ]);
+      expect(ai.ingestPlantCalls[0]?.variety).toBe("Воловско сърце");
+    });
+
+    it("rejects a request without a plant name and a photo", async () => {
+      const response = await app!.inject({
+        method: "POST",
+        url: "/api/v1/ai/plant-ingestion",
+        headers: accountAAuthHeaders(),
+        payload: { notes: "само бележки" }
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+  });
+
   describe("bed planning", () => {
     it("creates guidance suggestion only, no plantings created", async () => {
       const response = await app!.inject({

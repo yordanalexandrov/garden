@@ -382,3 +382,154 @@ describe("AiService.acceptSuggestion – problem_summary", () => {
     expect(createObservationMock).not.toHaveBeenCalled();
   });
 });
+
+describe("AiService.ingestPlant", () => {
+  let createSessionMock: ReturnType<typeof vi.fn>;
+  let addSuggestionsMock: ReturnType<typeof vi.fn>;
+  let ingestPlantMock: ReturnType<typeof vi.fn>;
+
+  let aiRepository: AiRepository;
+  let aiPort: AiPort;
+
+  const PHOTO_DATA_URL = "data:image/jpeg;base64,aGVsbG8=";
+
+  beforeEach(() => {
+    const session: AiSession = {
+      id: "sess-0000-0000-0000-000000000002",
+      accountId: ACTOR.accountId,
+      kind: "plant_ingestion",
+      inputMode: "name",
+      status: "completed",
+      rawInputText: null,
+      relatedEntityType: null,
+      relatedEntityId: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    createSessionMock = vi.fn().mockResolvedValue(session);
+    addSuggestionsMock = vi.fn().mockResolvedValue([]);
+    ingestPlantMock = vi.fn().mockResolvedValue({ suggestions: [] });
+
+    aiRepository = {
+      createSession: createSessionMock,
+      addSuggestions: addSuggestionsMock,
+      updateSessionStatus: vi.fn(),
+      findSuggestionById: vi.fn(),
+      findSessionById: vi.fn(),
+      listSessionSuggestions: vi.fn(),
+      markAccepted: vi.fn(),
+      markRejected: vi.fn(),
+    } as unknown as AiRepository;
+
+    aiPort = { ingestPlant: ingestPlantMock } as unknown as AiPort;
+  });
+
+  function makeService(): AiService {
+    return new AiService(
+      aiRepository,
+      aiPort,
+      null as never, // productsService
+      null as never, // bedsRepository
+      null as never, // plantsRepository
+      null as never, // dbClient
+    );
+  }
+
+  it("passes all provided fields to the AI port", async () => {
+    const service = makeService();
+
+    await service.ingestPlant(ACTOR, {
+      plantName: "Домат",
+      group: "Домат",
+      variety: "Воловско сърце",
+      notes: "за оранжерия",
+      photoDataUrl: PHOTO_DATA_URL,
+      followUpAnswers: [{ question: "За оранжерия ли?", answer: "да" }],
+    });
+
+    expect(ingestPlantMock).toHaveBeenCalledWith({
+      plantName: "Домат",
+      group: "Домат",
+      variety: "Воловско сърце",
+      notes: "за оранжерия",
+      photoDataUrl: PHOTO_DATA_URL,
+      followUpAnswers: [{ question: "За оранжерия ли?", answer: "да" }],
+    });
+  });
+
+  it("uses inputMode 'name' for text-only input", async () => {
+    const service = makeService();
+
+    await service.ingestPlant(ACTOR, { plantName: "Домат" });
+
+    expect(createSessionMock).toHaveBeenCalledWith(
+      expect.objectContaining({ kind: "plant_ingestion", inputMode: "name", rawInputText: "Название: Домат" }),
+    );
+  });
+
+  it("uses inputMode 'image' for photo-only input", async () => {
+    const service = makeService();
+
+    await service.ingestPlant(ACTOR, { photoDataUrl: PHOTO_DATA_URL });
+
+    expect(createSessionMock).toHaveBeenCalledWith(
+      expect.objectContaining({ inputMode: "image", rawInputText: null }),
+    );
+  });
+
+  it("uses inputMode 'mixed' for photo plus text input", async () => {
+    const service = makeService();
+
+    await service.ingestPlant(ACTOR, { plantName: "Домат", group: "Домат", photoDataUrl: PHOTO_DATA_URL });
+
+    expect(createSessionMock).toHaveBeenCalledWith(
+      expect.objectContaining({ inputMode: "mixed", rawInputText: "Название: Домат\nГрупа: Домат" }),
+    );
+  });
+
+  it("never persists the photo data URL in the session raw input", async () => {
+    const service = makeService();
+
+    await service.ingestPlant(ACTOR, { plantName: "Домат", photoDataUrl: PHOTO_DATA_URL });
+
+    const sessionInput = createSessionMock.mock.calls[0]?.[0] as { rawInputText: string | null };
+    expect(sessionInput.rawInputText ?? "").not.toContain("base64");
+  });
+
+  it("persists followup_questions suggestions returned by the port", async () => {
+    ingestPlantMock.mockResolvedValue({
+      suggestions: [
+        {
+          type: "plant",
+          payload: {
+            commonName: "Домат",
+            variety: null,
+            plantCategory: null,
+            lifecycleType: "annual",
+            growingStyle: "vegetable",
+            notes: null,
+          },
+        },
+        {
+          type: "followup_questions",
+          payload: { questions: [{ text: "За оранжерия ли?", type: "yes_no" }] },
+        },
+      ],
+    });
+
+    const service = makeService();
+    await service.ingestPlant(ACTOR, { plantName: "Домат" });
+
+    expect(addSuggestionsMock).toHaveBeenCalledWith(
+      expect.anything(),
+      [
+        expect.objectContaining({ suggestionType: "plant" }),
+        expect.objectContaining({
+          suggestionType: "followup_questions",
+          payload: { questions: [{ text: "За оранжерия ли?", type: "yes_no" }] },
+        }),
+      ],
+    );
+  });
+});

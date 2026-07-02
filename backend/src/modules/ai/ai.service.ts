@@ -65,8 +65,13 @@ export type IngestProductInput = {
 };
 
 export type IngestPlantInput = {
-  plantName: string;
+  plantName?: string;
+  group?: string;
+  variety?: string;
   notes?: string;
+  /** Ephemeral AI-only input — forwarded to the provider, never persisted. */
+  photoDataUrl?: string;
+  followUpAnswers?: FollowUpAnswer[];
 };
 
 export type SuggestBedPlanInput = {
@@ -145,8 +150,12 @@ export class AiService {
 
     try {
       portResult = await this.aiPort.ingestPlant({
-        plantName: input.plantName,
-        ...(input.notes !== undefined ? { notes: input.notes } : {})
+        ...(input.plantName !== undefined ? { plantName: input.plantName } : {}),
+        ...(input.group !== undefined ? { group: input.group } : {}),
+        ...(input.variety !== undefined ? { variety: input.variety } : {}),
+        ...(input.notes !== undefined ? { notes: input.notes } : {}),
+        ...(input.photoDataUrl !== undefined ? { photoDataUrl: input.photoDataUrl } : {}),
+        ...(input.followUpAnswers !== undefined ? { followUpAnswers: input.followUpAnswers } : {})
       });
     } catch (error) {
       if (isAiProviderError(error)) {
@@ -156,12 +165,22 @@ export class AiService {
       throw error;
     }
 
+    // The photo is ephemeral AI input: only the text fields are recorded.
+    const textParts = [
+      input.plantName !== undefined ? `Название: ${input.plantName}` : null,
+      input.group !== undefined ? `Група: ${input.group}` : null,
+      input.variety !== undefined ? `Сорт: ${input.variety}` : null,
+      input.notes !== undefined ? `Бележки: ${input.notes}` : null
+    ].filter((part): part is string => part !== null);
+
+    const hasPhoto = input.photoDataUrl !== undefined;
+
     const session = await this.aiRepository.createSession({
       accountId: actor.accountId,
       kind: "plant_ingestion",
-      inputMode: "name",
+      inputMode: hasPhoto ? (textParts.length > 0 ? "mixed" : "image") : "name",
       status: "completed",
-      rawInputText: input.plantName
+      rawInputText: textParts.length > 0 ? textParts.join("\n") : null
     });
 
     const suggestions = await this.aiRepository.addSuggestions(

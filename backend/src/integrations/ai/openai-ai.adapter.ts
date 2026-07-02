@@ -113,6 +113,8 @@ const PLANT_GROWING_STYLES = [
 // Strict JSON Schema for plant ingestion. The model returns an array of
 // plant variants so the user can choose the one they want. Each variant
 // must carry rich Bulgarian notes (origin, characteristics, growing days, etc.).
+// followUpQuestions lets the model ask for clarification; the user can answer
+// and re-run the search for a more focused result.
 const PLANT_INGESTION_SCHEMA = {
   name: "plant_ingestion",
   strict: true,
@@ -136,9 +138,21 @@ const PLANT_INGESTION_SCHEMA = {
           required: ["commonName", "variety", "plantCategory", "lifecycleType", "growingStyle", "notes"],
         },
       },
+      followUpQuestions: {
+        type: "array",
+        items: {
+          type: "object",
+          additionalProperties: false,
+          properties: {
+            text: { type: "string" },
+            type: { type: "string", enum: ["yes_no", "free_text"] },
+          },
+          required: ["text", "type"],
+        },
+      },
       warnings: { type: "array", items: { type: "string" } },
     },
-    required: ["plants", "warnings"],
+    required: ["plants", "followUpQuestions", "warnings"],
   },
 } as const;
 
@@ -277,18 +291,40 @@ Return data that conforms to the provided JSON schema.`,
   }
 
   async ingestPlant(input: IngestPlantInput): Promise<IngestPlantResult> {
-    const userContent = [
-      `Plant name: ${input.plantName}`,
+    const parts = [
+      input.plantName ? `Plant name: ${input.plantName}` : null,
+      input.group ? `Plant group (user's own grouping, e.g. Домат, Краставица, Цвете): ${input.group}` : null,
+      input.variety ? `Specific variety the user is interested in: ${input.variety}` : null,
       input.notes ? `Additional notes from user: ${input.notes}` : null,
-    ]
-      .filter(Boolean)
-      .join("\n");
+      input.photoDataUrl ? "A photo of the plant is attached — identify the plant (and variety if possible) from it." : null,
+    ].filter((part): part is string => part !== null);
+
+    if (input.followUpAnswers !== undefined && input.followUpAnswers.length > 0) {
+      parts.push("\nПотребителят отговори на уточняващите въпроси:");
+      for (const a of input.followUpAnswers) {
+        parts.push(`- ${a.question} → ${a.answer}`);
+      }
+    }
+
+    const userContent = parts.join("\n");
+    const hasFollowUpAnswers = input.followUpAnswers !== undefined && input.followUpAnswers.length > 0;
 
     const raw = await this.callStructuredJson(
       `You are an expert assistant for a Bulgarian gardening app that manages a plant catalog.
 
-Given a plant name (and optional notes), search for and return 3 to 5 distinct varieties
-or cultivars of that plant that are commonly grown or available in Bulgaria.
+The user describes a plant with any combination of: a name, a group, a specific
+variety, free-text notes and/or a photo. Search for plant varieties matching
+ALL the provided context and return suggestions for the catalog.
+
+How many suggestions to return:
+- If a specific variety is given (or clearly identifiable from the photo), focus
+  on exactly that variety: return 1 suggestion for it (at most 2 when the name is
+  ambiguous between distinct real varieties).
+- Otherwise return 3 to 5 distinct varieties or cultivars commonly grown or
+  available in Bulgaria.
+
+If only a photo is provided, first identify the plant species (and variety, if
+distinguishable) from the photo, then proceed as above.
 
 Search strategy:
 - Use the web_search tool to look up Bulgarian gardening websites, seed catalogs,
@@ -306,8 +342,22 @@ For each plant variant, include rich Bulgarian notes covering:
 - any special care requirements or known advantages
 - availability in Bulgaria
 
-Language: write ALL free-text fields (notes, warnings, plantCategory) in Bulgarian.
-Keep enum fields (lifecycleType, growingStyle) as the exact English tokens below.
+plantCategory: when the user provided a plant group, prefer it as the plantCategory
+value; otherwise pick a fitting Bulgarian category yourself.
+
+Follow-up questions:
+- If clarification would let you return noticeably better matches (e.g. the name is
+  ambiguous, the photo is unclear, or the user's goal is unknown), add 1 to 3
+  followUpQuestions (text in Bulgarian). Use "yes_no" for yes/no questions and
+  "free_text" for open ones. Still return your best plant suggestions alongside them.
+- If you have enough information, set followUpQuestions to an empty array.
+${hasFollowUpAnswers ? `- The user has already answered follow-up questions. Incorporate the answers into a
+  more focused search. Never repeat questions the user already answered; only ask
+  NEW, more specific questions if something essential is still missing.
+` : ""}
+Language: write ALL free-text fields (notes, warnings, plantCategory, followUpQuestions
+text) in Bulgarian. Keep enum fields (lifecycleType, growingStyle) as the exact English
+tokens below.
 
 Enum rules:
 - lifecycleType must be exactly one of: annual, biennial, perennial
@@ -318,6 +368,7 @@ When you use web search, add a warning naming the source(s) you relied on.
 Return data that conforms to the provided JSON schema.`,
       userContent,
       PLANT_INGESTION_SCHEMA,
+      input.photoDataUrl !== undefined ? [input.photoDataUrl] : undefined,
     );
 
     const rawPlants = Array.isArray(raw.plants) ? raw.plants : [];
@@ -327,7 +378,7 @@ Return data that conforms to the provided JSON schema.`,
       .filter((p): p is Record<string, unknown> => p !== null && typeof p === "object")
       .map((p): NormalizedSuggestion => {
         const payload: NormalizedPlantPayload = {
-          commonName: str(p.commonName, input.plantName),
+          commonName: str(p.commonName, input.plantName ?? ""),
           variety: strOrNull(p.variety),
           plantCategory: strOrNull(p.plantCategory),
           lifecycleType: str(p.lifecycleType, "annual"),
@@ -336,6 +387,20 @@ Return data that conforms to the provided JSON schema.`,
         };
         return { type: "plant", payload };
       });
+
+    const followUpQuestions = Array.isArray(raw.followUpQuestions)
+      ? raw.followUpQuestions
+          .filter((q): q is Record<string, unknown> => q !== null && typeof q === "object")
+          .map((q) => ({
+            text: str(q.text),
+            type: q.type === "yes_no" ? ("yes_no" as const) : ("free_text" as const),
+          }))
+          .filter((q) => q.text.length > 0)
+      : [];
+
+    if (followUpQuestions.length > 0) {
+      suggestions.push({ type: "followup_questions", payload: { questions: followUpQuestions } });
+    }
 
     return warnings.length > 0 ? { suggestions, warnings } : { suggestions };
   }
@@ -591,12 +656,26 @@ Return data that conforms to the provided JSON schema.`,
 
   // Structured extraction via the Responses API. Enables the hosted web_search
   // tool (when configured) so the model can look up products it does not know,
-  // and enforces the strict JSON schema on the final message.
+  // and enforces the strict JSON schema on the final message. Optional image
+  // data URLs are attached as input_image parts alongside the text.
   private async callStructuredJson(
     systemPrompt: string,
     userContent: string,
     schema: { name: string; strict: boolean; schema: Record<string, unknown> },
+    imageDataUrls?: string[],
   ): Promise<Record<string, unknown>> {
+    const userInput =
+      imageDataUrls !== undefined && imageDataUrls.length > 0
+        ? [
+            { type: "input_text" as const, text: userContent },
+            ...imageDataUrls.map((url) => ({
+              type: "input_image" as const,
+              image_url: url,
+              detail: "auto" as const,
+            })),
+          ]
+        : userContent;
+
     try {
       const response = await this.client.responses.create({
         model: this.model,
@@ -604,7 +683,7 @@ Return data that conforms to the provided JSON schema.`,
         ...(this.webSearch ? { tools: [{ type: "web_search" }] } : {}),
         input: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: userContent },
+          { role: "user", content: userInput },
         ],
         text: {
           format: {

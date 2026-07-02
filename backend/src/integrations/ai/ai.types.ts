@@ -56,7 +56,7 @@ export type NormalizedProblemSummaryPayload = {
 };
 
 export type NormalizedFollowupQuestionsPayload = {
-  questions: string[];
+  questions: FollowUpQuestion[];
 };
 
 export type NormalizedPlantPayload = {
@@ -82,8 +82,13 @@ export type IngestProductResult = {
 };
 
 export type IngestPlantInput = {
-  plantName: string;
+  plantName?: string;
+  group?: string;
+  variety?: string;
   notes?: string;
+  /** Ephemeral AI-only input — never persisted anywhere. */
+  photoDataUrl?: string;
+  followUpAnswers?: FollowUpAnswer[];
 };
 
 export type IngestPlantResult = {
