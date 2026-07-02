@@ -70,6 +70,15 @@ export class PlantIngestionPage {
   readonly photoPreviewUrl = signal<string | null>(null);
   readonly photoError = signal<string | null>(null);
 
+  constructor() {
+    this.destroyRef.onDestroy(() => {
+      const previewUrl = this.photoPreviewUrl();
+      if (previewUrl !== null) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    });
+  }
+
   private readonly requireNameOrPhoto = (control: AbstractControl): ValidationErrors | null => {
     const plantName = control.get('plantName')?.value?.trim();
     if (!plantName && this.photoFile() === null) {
